@@ -5,7 +5,7 @@ import { createScheduler, type RenderCallback } from '../../../src/core/schedule
 import type { StateSnapshot } from '../../../src/core/state/types';
 import { DirtyLayer } from '../../../src/core/state/types';
 
-describe('scheduler/scheduler', () => {
+describe('scheduler/scheduler (rAF-only)', () => {
 	let renders: Array<{
 		snapshot: StateSnapshot;
 		invalidation: Invalidation;
@@ -33,8 +33,7 @@ describe('scheduler/scheduler', () => {
 			clearDirty: () => {
 				cleared++;
 			},
-			getOverlay: () => undefined,
-			timing: 'microtask'
+			getOverlay: () => undefined
 		});
 	});
 
@@ -42,59 +41,60 @@ describe('scheduler/scheduler', () => {
 		scheduler.destroy();
 	});
 
-	it('coalesces multiple schedule() calls into a single microtask render', async () => {
-		scheduler.schedule();
-		scheduler.schedule();
-		scheduler.schedule();
+	it('coalesces multiple schedule() calls into a single rAF render', async () => {
+		// Polyfill rAF/c for Node
+		const originalRaf = globalThis.requestAnimationFrame;
+		const originalCaf = globalThis.cancelAnimationFrame;
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		(globalThis as any).requestAnimationFrame = (cb: (t: number) => void): number =>
+			setTimeout(() => cb(Date.now()), 0) as unknown as number;
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		(globalThis as any).cancelAnimationFrame = (h: number) => clearTimeout(h as unknown as number);
 
-		// wait for microtask tick
-		await Promise.resolve();
+		try {
+			scheduler.schedule();
+			scheduler.schedule();
+			scheduler.schedule();
 
-		expect(renders.length).toBe(1);
-		expect(cleared).toBe(1);
+			// Wait for setTimeout(0) to fire our polyfilled rAF callback
+			await new Promise((r) => setTimeout(r, 0));
+
+			expect(renders.length).toBe(1);
+			expect(cleared).toBe(1);
+		} finally {
+			// Restore rAF/cAF
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			(globalThis as any).requestAnimationFrame = originalRaf;
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			(globalThis as any).cancelAnimationFrame = originalCaf;
+		}
 	});
 
 	it('flushNow performs immediate render and clears dirty once', async () => {
-		scheduler.schedule();
+		// No rAF required for flushNow
 		scheduler.flushNow();
 
 		expect(renders.length).toBe(1);
 		expect(cleared).toBe(1);
 
-		// ensure no extra render occurs on the next microtask tick
-		await Promise.resolve();
+		// Ensure no extra render occurs asynchronously
+		await new Promise((r) => setTimeout(r, 0));
 		expect(renders.length).toBe(1);
 		expect(cleared).toBe(1);
 	});
 
 	it('passes overlay from getOverlay to render', async () => {
-		// Recreate scheduler with overlay provider
-		scheduler.destroy();
-		scheduler = createScheduler({
-			render,
-			getSnapshot: () => fakeSnapshot,
-			getInvalidation: () => fakeInvalidation(),
-			clearDirty: () => {
-				cleared++;
-			},
-			getOverlay: () => fakeOverlay,
-			timing: 'microtask'
-		});
-
-		scheduler.schedule();
-		await Promise.resolve();
-
-		expect(renders.length).toBe(1);
-		expect(renders[0].overlay).toBe(fakeOverlay);
-	});
-
-	it('timing: raf falls back to microtask if requestAnimationFrame is unavailable', async () => {
-		// Temporarily remove rAF if present
+		// Polyfill rAF/cAF for Node
 		const originalRaf = globalThis.requestAnimationFrame;
+		const originalCaf = globalThis.cancelAnimationFrame;
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		(globalThis as any).requestAnimationFrame = undefined;
+		(globalThis as any).requestAnimationFrame = (cb: (t: number) => void): number =>
+			setTimeout(() => cb(Date.now()), 0) as unknown as number;
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		(globalThis as any).cancelAnimationFrame = (h: number) => clearTimeout(h as unknown as number);
 
 		try {
+			// Recreate scheduler with overlay provider
 			scheduler.destroy();
 			scheduler = createScheduler({
 				render,
@@ -103,17 +103,31 @@ describe('scheduler/scheduler', () => {
 				clearDirty: () => {
 					cleared++;
 				},
-				getOverlay: () => undefined,
-				timing: 'raf'
+				getOverlay: () => fakeOverlay
 			});
 
 			scheduler.schedule();
-			await Promise.resolve();
+			await new Promise((r) => setTimeout(r, 0));
 
 			expect(renders.length).toBe(1);
-			expect(cleared).toBe(1);
+			expect(renders[0].overlay).toBe(fakeOverlay);
 		} finally {
-			// Restore rAF
+			// Restore rAF/cAF
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			(globalThis as any).requestAnimationFrame = originalRaf;
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			(globalThis as any).cancelAnimationFrame = originalCaf;
+		}
+	});
+
+	it('schedule throws if requestAnimationFrame is unavailable', () => {
+		const originalRaf = globalThis.requestAnimationFrame;
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		(globalThis as any).requestAnimationFrame = undefined;
+
+		try {
+			expect(() => scheduler.schedule()).toThrow(/requestAnimationFrame is required/);
+		} finally {
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			(globalThis as any).requestAnimationFrame = originalRaf;
 		}
