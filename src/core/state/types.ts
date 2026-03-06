@@ -89,7 +89,7 @@ export interface StateSnapshot {
 // Dirty layer flags for precise invalidation.
 // Use bitmask to allow combining layers; renderer/scheduler will interpret these.
 export enum DirtyLayer {
-	Board = Math.trunc(1), //1 << 0,
+	Board = 1, //1 << 0,
 	Coords = 1 << 1,
 	LastMove = 1 << 2,
 	Highlights = 1 << 3,
