@@ -35,6 +35,22 @@ export function toAlgebraic(sq: Square): SquareString {
 }
 
 /**
+ * unify square input to numeric index. Accepts either a number (0..63) or algebraic string ('a1'..'h8').
+ * @param sq square number or string
+ * @returns square number
+ */
+export function toValidSquare(sq: Square | SquareString): Square {
+	if (typeof sq === 'number') {
+		assertValidSquare(sq);
+		return sq;
+	} else if (typeof sq === 'string') {
+		return fromAlgebraic(sq);
+	} else {
+		throw new TypeError(`Invalid square input: ${sq}`);
+	}
+}
+
+/**
  * File of a square (0..7) where 0='a', 7='h'.
  */
 export function fileOf(sq: Square): number {

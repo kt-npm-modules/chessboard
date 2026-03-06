@@ -187,6 +187,75 @@ describe('state/reducers', () => {
 		expect(state.lastMove!.captured!.color).toBe('black');
 	});
 
+	it('en passant-like capture clears capturedSquare and sets lastMove.capturedSquare', () => {
+		const state = createInitialState({
+			position: {
+				e5: { color: 'w', role: 'p' },
+				d5: { color: 'b', role: 'p' }
+			} satisfies PositionMapShort,
+			turn: 'white'
+		});
+		clearDirty(state);
+
+		move(state, { from: 'e5', to: 'd6' }, { capturedSquare: 'd5' });
+
+		const d5 = fromAlgebraic('d5');
+		const d6 = fromAlgebraic('d6');
+		const e5 = fromAlgebraic('e5');
+
+		// EP-like capture removed pawn from d5, moved to d6
+		expect(state.pieces[d5]).toBe(0);
+		expect(state.ids[d5]).toBe(-1);
+		expect(state.pieces[e5]).toBe(0);
+		expect(state.pieces[d6]).not.toBe(0);
+
+		expect(state.lastMove).not.toBeNull();
+		expect(state.lastMove!.captured).toBeDefined();
+		expect(state.lastMove!.captured!.role).toBe('pawn');
+		expect(state.lastMove!.captured!.color).toBe('black');
+		expect(state.lastMove!.capturedSquare).toBe(d5);
+
+		// Dirty markers include capture square
+		expect(state.dirtySquares.has(d5)).toBe(true);
+	});
+
+	it('castling moves rook and sets castleSide on lastMove', () => {
+		const state = createInitialState({
+			position: {
+				e1: { color: 'w', role: 'K' },
+				h1: { color: 'w', role: 'R' }
+			} satisfies PositionMapShort,
+			turn: 'white'
+		});
+		clearDirty(state);
+
+		const e1 = fromAlgebraic('e1');
+		const g1 = fromAlgebraic('g1');
+		const h1 = fromAlgebraic('h1');
+		const f1 = fromAlgebraic('f1');
+
+		move(
+			state,
+			{ from: 'e1', to: 'g1', castleSide: 'kingside' },
+			{ castle: { rookFrom: 'h1', rookTo: 'f1' } }
+		);
+
+		// King moved e1 -> g1
+		expect(state.pieces[e1]).toBe(0);
+		expect(state.pieces[g1]).not.toBe(0);
+
+		// Rook moved h1 -> f1
+		const rookAtF1 = decodePiece(state.pieces[f1]);
+		expect(rookAtF1).not.toBeNull();
+		expect(rookAtF1!.role).toBe('rook');
+		expect(rookAtF1!.color).toBe('white');
+		expect(state.pieces[h1]).toBe(0);
+
+		// Snapshot metadata
+		expect(state.lastMove).not.toBeNull();
+		expect(state.lastMove!.castleSide).toBe('kingside');
+	});
+
 	it('setTurn and setOrientation accept short color inputs', () => {
 		const state = createInitialState({ position: 'start', turn: 'white', orientation: 'white' });
 		setTurn(state, 'b');

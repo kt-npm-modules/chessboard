@@ -1,9 +1,10 @@
 import { START_FEN, parseFenPlacement, parseFenTurn } from '../notation/fen';
 import type { InternalState } from './boardState';
-import { assertValidSquare, fromAlgebraic } from './coords';
+import { assertValidSquare, fromAlgebraic, toValidSquare } from './coords';
 import { decodePiece, encodePiece, isEmpty } from './encode';
 import { normalizeColor, normalizeRole } from './normalize';
 import type {
+	CastleSquare,
 	Color,
 	ColorInput,
 	MoveInput,
@@ -116,26 +117,21 @@ export function setOrientation(state: InternalState, c: ColorInput): void {
  * Accepts numeric or algebraic square.
  */
 export function select(state: InternalState, sq: Square | SquareString | -1): void {
-	const newSel = sq === -1 ? -1 : typeof sq === 'number' ? sq : fromAlgebraic(sq);
-	if (newSel !== -1) assertValidSquare(newSel);
+	const newSel = sq === -1 ? -1 : toValidSquare(sq); // toValidSquare will validate the square input
 	if (state.selected === newSel) return;
 	state.selected = newSel;
 	markDirtyLayer(state, DirtyLayer.Highlights);
 }
 
-type CastleOptionsSquare = {
-	rookFrom: Square;
-	rookTo: Square;
-};
-type CastleOptionsString = {
+type CastleString = {
 	rookFrom: SquareString;
 	rookTo: SquareString;
 };
-export type CastleOptions = CastleOptionsSquare | CastleOptionsString;
+export type CastleOptions = CastleSquare | CastleString;
 
 export interface MoveOptions {
 	promotion?: RolePromotionInput;
-	capturedSquare?: Square; // Optional: the square of the captured piece, useful for en passant
+	capturedSquare?: Square | SquareString; // Optional: the square of the captured piece, useful for en passant
 	castle?: CastleOptions; // Optional: if this move is a castling move, provide details
 }
 /**
@@ -169,17 +165,21 @@ export interface MoveOptions {
  * @returns void
  * @example
  * move(state, { from: 'e2', to: 'e4' });
- * move(state, { from: 12, to:  }); // numeric squares
+ * move(state, { from: 12, to: 28 }); // numeric squares
  * move(state, { from: 'a7', to: 'a8' }, { promotion: 'Q' });       // short
  * move(state, { from: 'a7', to: 'a8' }, { promotion: 'queen' });   // long
+ * move(state, { from: 'e1', to: 'g1' }, { castle: { rookFrom: 'h1', rookTo: 'f1' } }); // castling with algebraic squares
+ * move(state, { from: 6, to: 4 }, { castle: { rookFrom: 7, rookTo: 5 } }); // castling with numeric squares
+ * move(state, { from: 'e5', to: 'd6' }, { capturedSquare: 'd5' }); // en passant-like move where the captured piece is on a different square
+ * move(state, { from: 20, to: 27 }, { capturedSquare: 19 }); // en passant-like move with numeric captured square
  */
 export function move(state: InternalState, move: MoveInput, opts?: MoveOptions): void {
-	const from = typeof move.from === 'number' ? move.from : fromAlgebraic(move.from);
-	const to = typeof move.to === 'number' ? move.to : fromAlgebraic(move.to);
-	assertValidSquare(from);
-	assertValidSquare(to);
+	const from = toValidSquare(move.from); // toValidSquare will validate the square input
+	const to = toValidSquare(move.to); // toValidSquare will validate the square input
 
-	if (from === to) return;
+	if (from === to) {
+		throw new RangeError(`Source and destination squares are the same: ${from}`);
+	}
 
 	const movingCode = state.pieces[from];
 	if (isEmpty(movingCode)) {
@@ -193,9 +193,20 @@ export function move(state: InternalState, move: MoveInput, opts?: MoveOptions):
 	// Preserve id of moving piece
 	const movingId = state.ids[from];
 
-	// Destination before overwrite to detect capture
-	const destCode = state.pieces[to];
-	const capturedPiece = isEmpty(destCode) ? undefined : decodePiece(destCode)!;
+	// Determine capture square (normal capture at 'to', or EP-like via opts.capturedSquare)
+	const capSq = opts?.capturedSquare;
+	const captureSq: Square | undefined = capSq !== undefined ? toValidSquare(capSq) : to;
+	let capturedPiece: Piece | undefined;
+	if (captureSq !== undefined) {
+		const codeAtCapture = state.pieces[captureSq];
+		capturedPiece = isEmpty(codeAtCapture) ? undefined : decodePiece(codeAtCapture)!;
+		// En passant-like capture: if capture square differs from 'to', clear it now
+		if (captureSq !== to) {
+			state.pieces[captureSq] = 0;
+			state.ids[captureSq] = -1;
+			markDirtySquare(state, captureSq);
+		}
+	}
 
 	// Write destination: with promotion or same role
 	const newRole = opts?.promotion ? normalizeRole(opts.promotion) : movingPiece.role;
@@ -203,10 +214,32 @@ export function move(state: InternalState, move: MoveInput, opts?: MoveOptions):
 
 	state.pieces[to] = newPieceCode;
 	state.ids[to] = movingId;
+	markDirtySquare(state, to);
 
 	// Clear source square
 	state.pieces[from] = 0;
 	state.ids[from] = -1;
+	markDirtySquare(state, from);
+
+	// Castling rook move if provided
+	let castle: CastleSquare | undefined;
+	if (opts?.castle) {
+		const rookFrom = toValidSquare(opts.castle.rookFrom);
+		const rookTo = toValidSquare(opts.castle.rookTo);
+		const rookCode = state.pieces[rookFrom];
+		const rookId = state.ids[rookFrom];
+		if (!isEmpty(rookCode) && rookId !== -1) {
+			state.pieces[rookTo] = rookCode;
+			state.ids[rookTo] = rookId;
+			state.pieces[rookFrom] = 0;
+			state.ids[rookFrom] = -1;
+			castle = { rookFrom, rookTo };
+
+			markDirtySquare(state, rookFrom);
+			markDirtySquare(state, rookTo);
+			markDirtyLayer(state, DirtyLayer.Pieces);
+		}
+	}
 
 	// Update last move and toggle turn
 	const promotion = opts?.promotion ? (normalizeRole(opts.promotion) as RolePromotion) : undefined;
@@ -215,7 +248,10 @@ export function move(state: InternalState, move: MoveInput, opts?: MoveOptions):
 		to,
 		moved: movingPiece,
 		...(capturedPiece && { captured: capturedPiece }),
-		...(promotion && { promotion })
+		...(capturedPiece && { capturedSquare: captureSq }), // Include capturedSquare if there was a capture
+		...(promotion && { promotion }),
+		...(move.castleSide && { castleSide: move.castleSide }),
+		...(castle && { castle })
 	};
 	state.turn = state.turn === 'white' ? 'black' : 'white';
 

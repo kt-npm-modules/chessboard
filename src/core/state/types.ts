@@ -64,11 +64,17 @@ export interface Theme {
 	coords?: string; // e.g., '#333'
 }
 
+export type CastleSquare = {
+	rookFrom: Square;
+	rookTo: Square;
+};
+
 export interface Move extends MoveInputSquare {
 	moved: Piece;
 	promotion?: RolePromotion;
 	captured?: Piece;
 	capturedSquare?: Square; // Optional: where the captured piece was (for en passant)
+	castle?: CastleSquare;
 }
 // Read-only snapshot shape exposed to consumers.
 export interface StateSnapshot {
