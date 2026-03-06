@@ -10,3 +10,5 @@
 # chessboard
 
 Web (could be used for mobile) chessboard UI
+
+in progress 
