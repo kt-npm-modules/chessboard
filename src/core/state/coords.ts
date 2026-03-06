@@ -54,7 +54,7 @@ export function toValidSquare(sq: Square | SquareString): Square {
  * File of a square (0..7) where 0='a', 7='h'.
  */
 export function fileOf(sq: Square): number {
-	return sq % 8 | 0;
+	return (sq % 8) | 0;
 }
 
 /**
