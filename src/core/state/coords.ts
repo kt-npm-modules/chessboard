@@ -14,10 +14,10 @@ const RANK_START = '1'.charCodeAt(0);
  * Convert algebraic square (e.g. 'e4') to numeric index (0..63).
  */
 export function fromAlgebraic(s: SquareString): Square {
-	const file = (s.charCodeAt(0) - FILE_START) | 0;
-	const rank = (s.charCodeAt(1) - RANK_START) | 0;
+	const file = Math.trunc(s.charCodeAt(0) - FILE_START);
+	const rank = Math.trunc(s.charCodeAt(1) - RANK_START);
 	// rank 0 = '1' => row 0, rank 7 = '8' => row 7
-	const sq = (rank * 8 + file) | 0;
+	const sq = Math.trunc(rank * 8 + file);
 	if (!isValidSquare(sq)) throw new RangeError(`Invalid algebraic square: ${s}`);
 	return sq as Square;
 }
@@ -54,24 +54,31 @@ export function toValidSquare(sq: Square | SquareString): Square {
  * File of a square (0..7) where 0='a', 7='h'.
  */
 export function fileOf(sq: Square): number {
-	return (sq % 8) | 0;
+	return Math.trunc(sq % 8);
 }
 
 /**
  * Rank of a square (0..7) where 0='1', 7='8'.
  */
 export function rankOf(sq: Square): number {
-	return ((sq / 8) | 0) as number;
+	return Math.trunc(sq / 8);
 }
 
 /**
  * Construct a square index from file/rank (0..7 each).
  */
 export function squareOf(file: number, rank: number): Square {
-	if ((file | 0) !== file || (rank | 0) !== rank || file < 0 || file > 7 || rank < 0 || rank > 7) {
+	if (
+		Math.trunc(file) !== file ||
+		Math.trunc(rank) !== rank ||
+		file < 0 ||
+		file > 7 ||
+		rank < 0 ||
+		rank > 7
+	) {
 		throw new RangeError(`Invalid file/rank: file=${file}, rank=${rank}`);
 	}
-	return ((rank * 8 + file) | 0) as Square;
+	return Math.trunc(rank * 8 + file);
 }
 
 /**
