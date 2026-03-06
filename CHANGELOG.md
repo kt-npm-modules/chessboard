@@ -1,4 +1,4 @@
-# @ktarmyshov/npm-typescript-template
+# @ktarmyshov/chessboard
 
 ## 0.0.4
 

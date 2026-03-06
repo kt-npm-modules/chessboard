@@ -1,5 +1,5 @@
 ---
-'@ktarmyshov/npm-typescript-template': patch
+'@ktarmyshov/chessboard': patch
 ---
 
 dependabot: directory '/', update vitest
