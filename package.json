@@ -1,6 +1,6 @@
 {
-	"name": "@ktarmyshov/npm-typescript-template",
-	"description": "Template repository for npm packages written in TypeScript",
+	"name": "@ktarmyshov/chessboard",
+	"description": "A chessboard UI library for JavaScript and TypeScript projects, providing an interactive and customizable chessboard component.",
 	"version": "0.0.4",
 	"license": "MIT",
 	"author": {
@@ -8,29 +8,22 @@
 		"email": "k.tarmyshov@googlemail.com"
 	},
 	"keywords": [
-		"node",
-		"javascript",
-		"typescript",
-		"nodejs",
-		"node_modules",
-		"npm",
-		"template",
-		"auto-update",
-		"auto-release",
-		"sonar",
-		"sonarcloud",
-		"codeql",
-		"eslint",
-		"prettier",
-		"changeset"
+		"chess",
+		"chessboard",
+		"chess-ui",
+		"chess-component",
+		"chess-library",
+		"chessboard-ui",
+		"chessboard-component",
+		"chessboard-library"
 	],
-	"homepage": "https://github.com/kt-npm-modules/npm-typescript-template#readme",
+	"homepage": "https://github.com/kt-npm-modules/chessboard#readme",
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/kt-npm-modules/npm-typescript-template.git"
+		"url": "git+https://github.com/kt-npm-modules/chessboard.git"
 	},
 	"bugs": {
-		"url": "https://github.com/kt-npm-modules/npm-typescript-template/issues"
+		"url": "https://github.com/kt-npm-modules/chessboard/issues"
 	},
 	"type": "module",
 	"types": "./dist/index.d.ts",
@@ -80,5 +73,8 @@
 	},
 	"engines": {
 		"node": ">=20"
+	},
+	"dependencies": {
+		"type-fest": "^5.4.4"
 	}
 }

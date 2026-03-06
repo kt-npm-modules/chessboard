@@ -1,0 +1,94 @@
+/**
+ * Core public types for the chessboard state layer.
+ * - Public-facing types use readable names (Color/Role long names).
+ * - Inputs may accept short aliases; normalization happens in helpers (implemented elsewhere).
+ * - Internals use numeric squares (0..63) and compact encodings; those details are hidden from consumers.
+ */
+
+import { ReadonlyDeep } from 'type-fest';
+
+export type Color = 'white' | 'black';
+export type ColorShort = 'w' | 'b';
+export type ColorInput = Color | ColorShort;
+
+export type Role = 'pawn' | 'knight' | 'bishop' | 'rook' | 'queen' | 'king';
+export type RoleShort = 'p' | 'N' | 'B' | 'R' | 'Q' | 'K';
+export type RoleInput = Role | RoleShort;
+export type RolePromotion = Exclude<Role, 'king' | 'pawn'>;
+export type RolePromotionShort = Exclude<RoleShort, 'p' | 'K'>;
+export type RolePromotionInput = RolePromotion | RolePromotionShort;
+
+// Numeric square index (0..63); a1 = 0, b1 = 1, ..., h8 = 63.
+// Note: We keep it as number but document the domain. Converters live in coords.ts.
+export type Square = number;
+
+// Algebraic squares like 'e4'. Use template literal types to avoid listing all 64.
+export type FileChar = 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h';
+export type RankChar = '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8';
+export type SquareString = `${FileChar}${RankChar}`;
+
+export interface Piece {
+	color: Color;
+	role: Role;
+}
+export interface PieceShort {
+	color: ColorShort;
+	role: RoleShort;
+}
+
+export interface Move {
+	from: Square;
+	to: Square;
+}
+export interface MoveString {
+	from: SquareString;
+	to: SquareString;
+}
+export type MoveInput = Move | MoveString;
+
+// Minimal theming shape for state-level awareness. Renderer can accept richer theme later.
+export interface Theme {
+	// Board colors
+	light: string; // e.g., '#f0d9b5'
+	dark: string; // e.g., '#b58863'
+	// Highlights and overlays
+	selection: string; // e.g., 'rgba(255, 215, 0, 0.6)'
+	lastMove: string; // e.g., 'rgba(246, 246, 105, 0.6)'
+	highlight: string; // generic highlight color (legal moves, etc.)
+	// Optional: coordinate text color (renderer may use)
+	coords?: string; // e.g., '#333'
+}
+
+// Note: pieces is a Uint8Array for performance; helpers will be provided to inspect it.
+export interface State {
+	pieces: Uint8Array;
+	orientation: Color;
+	turn: Color;
+	selected: Square | -1;
+	lastMove: Move | null;
+	theme: Theme;
+}
+// Read-only snapshot shape exposed to consumers.
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export interface StateSnapshot extends ReadonlyDeep<State> {}
+
+// Dirty layer flags for precise invalidation.
+// Use bitmask to allow combining layers; renderer/scheduler will interpret these.
+export enum DirtyLayer {
+	Board = 1 << 0,
+	Coords = 1 << 1,
+	LastMove = 1 << 2,
+	Highlights = 1 << 3,
+	Arrows = 1 << 4,
+	Pieces = 1 << 5,
+	Drag = 1 << 6,
+	Overlay = 1 << 7
+}
+
+// Position map acceptance forms (public inputs)
+// Long/canonical
+export type PositionMap = Partial<Record<SquareString, Piece>>;
+// Short/alias
+export type PositionMapShort = Partial<Record<SquareString, PieceShort>>;
+export type FEN = string; // Standard FEN string; validation/parsing happens in helpers (implemented elsewhere).
+export type PositionInput = 'start' | FEN | PositionMap | PositionMapShort;
