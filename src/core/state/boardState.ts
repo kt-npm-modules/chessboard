@@ -12,7 +12,6 @@ import {
 	PositionMapShort,
 	Square,
 	SquareString,
-	State,
 	StateSnapshot,
 	Theme
 } from './types';
@@ -116,7 +115,7 @@ export function createInitialState(opts: InitialStateOptions = {}): InternalStat
  * - Other fields are primitives or treated as read-only by convention.
  */
 export function getSnapshot(state: InternalState): StateSnapshot {
-	const snap: State = {
+	const snap: StateSnapshot = {
 		pieces: new Uint8Array(state.pieces),
 		orientation: state.orientation,
 		turn: state.turn,

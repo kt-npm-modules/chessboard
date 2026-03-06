@@ -59,18 +59,15 @@ export interface Theme {
 	coords?: string; // e.g., '#333'
 }
 
-// Note: pieces is a Uint8Array for performance; helpers will be provided to inspect it.
-export interface State {
-	pieces: Uint8Array;
-	orientation: Color;
-	turn: Color;
-	selected: Square | -1;
-	lastMove: Move | null;
-	theme: Theme;
-}
 // Read-only snapshot shape exposed to consumers.
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export interface StateSnapshot extends ReadonlyDeep<State> {}
+export interface StateSnapshot {
+	readonly pieces: ReadonlyDeep<Uint8Array>;
+	readonly orientation: Color;
+	readonly turn: Color;
+	readonly selected: Square | -1;
+	readonly lastMove: ReadonlyDeep<Move> | null;
+	readonly theme: ReadonlyDeep<Theme>;
+}
 
 // Dirty layer flags for precise invalidation.
 // Use bitmask to allow combining layers; renderer/scheduler will interpret these.

@@ -19,15 +19,38 @@ import type {
 import { DirtyLayer, Piece } from './types';
 
 /**
- * Replace the entire position from one of the accepted inputs.
- * - 'start' uses START_FEN
- * - FEN string parses placement and turn
- * - PositionMap/PositionMapShort encodes directly (short is normalized)
- * After replacement:
- * - selected = -1
- * - lastMove = null
- * - fresh ids assigned for all pieces
- * - dirty layers: Board | Coords | Pieces
+ * Replace the entire board position from one of the accepted inputs.
+ *
+ * Semantics
+ * - Clears the board first, then applies the provided position.
+ * - Regenerates piece IDs for all occupied squares (ids[i] >= 1); empties get -1.
+ * - Resets selection and last move:
+ *   - selected = -1
+ *   - lastMove = null
+ * - Marks dirty layers for a full redraw:
+ *   - DirtyLayer.Board | DirtyLayer.Coords | DirtyLayer.Pieces
+ * - Turn handling:
+ *   - If input is 'start' or a FEN string, state.turn is set from the FEN active color.
+ *   - If input is a PositionMap/PositionMapShort (sparse map), state.turn is NOT changed.
+ *
+ * Inputs
+ * - 'start'                Standard initial position (START_FEN).
+ * - FEN                    Full FEN string; field 1 (placement) and field 2 (active color) are used.
+ * - PositionMap            Sparse map of occupied squares using canonical Piece (: 'white'|'black', role: 'pawn'|'knight'|'bishop'|'rook'|'queen'|'king').
+ * - PositionMapShort       Sparse map using short aliases (color: 'w'|'b', role: 'p'|'N'|'B'|'R'|'Q'|'K').
+ *
+ * Errors
+ * - Invalid FEN strings throw with descriptive messages.
+ * - Invalid algebraic square keys throw a RangeError.
+ * - Invalid role/color short aliases throw a RangeError.
+ *
+ * @param state Internal mutable state
+ * @param input 'start' | FEN | PositionMap | PositionMapShort
+ * @returns void
+ * @example
+ * setPosition(state, 'start');                      // standard start, white to move
+ * setPosition(state, '8/8/8/8/8/8/8/8 w - - 0 1');  // empty board, white to move
+ * setPosition(state, { e2: { color: 'w', role: 'p' }, e7: { color: 'b', role: 'p' } });
  */
 export function setPosition(state: InternalState, input: PositionInput): void {
 	let pieces: Uint8Array;
@@ -103,13 +126,39 @@ export interface MoveOptions {
 	promotion?: RolePromotionInput;
 }
 /**
- * Move a piece from->to. No legality checks here (policy handled above the state layer).
- * - Accepts Move or MoveString
- * - Preserves moving piece id
- * - Handles capture by overwriting target
- * - Optional promotion role (not 'pawn')
- * - Updates lastMove and toggles turn
- * - Marks dirty: from, to and layers Pieces | LastMove | Highlights
+ * Apply a UI-level move from one square to another. No legality is enforced here.
+ *
+ * Semantics
+ * - Accepts MoveInput: numeric squares (0..63) or algebraic strings (e.g., 'e4').
+ * - Preserves the moving piece ID (ID from source transferred to destination).
+ * - Capture is handled by overwriting the destination square.
+ * - Promotion:
+ *   - If opts.promotion is provided, the moving piece role is replaced by the promoted role.
+ *   - RolePromotionInput accepts both long and short forms (e.g., 'queen' or 'Q').
+ * - Updates turn and last move:
+ *   - lastMove = { from, to }
+ *   - turn toggles between 'white' and 'black'
+ * - Dirty tracking:
+ *   - Dirty squares: from, to
+ *   - Dirty layers: DirtyLayer.Pieces | DirtyLayer.LastMove | DirtyLayer.Highlights
+ *
+ * Limitations (by design)
+ * - No rules/legality checks (e.g., legal moves, check, en passant, castling) — handled by higher-level policy/integration.
+ * - En passant/castling/halfmove/fullmove counters are not maintained here.
+ *
+ * Errors
+ * - Moving from an empty square throws RangeError.
+ * - Invalid squares (out of [0..63] or bad algebraic) throw a RangeError.
+ *
+ * @param state Internal mutable state
+ * @param move MoveInput
+ * @param opts Optional MoveOptions { promotion?: RolePromotionInput }
+ * @returns void
+ * @example
+ * move(state, { from: 'e2', to: 'e4' });
+ * move(state, { from: 12, to:  }); // numeric squares
+ * move(state, { from: 'a7', to: 'a8' }, { promotion: 'Q' });       // short
+ * move(state, { from: 'a7', to: 'a8' }, { promotion: 'queen' });   // long
  */
 export function move(state: InternalState, move: MoveInput, opts?: MoveOptions): void {
 	const from = typeof move.from === 'number' ? move.from : fromAlgebraic(move.from);
