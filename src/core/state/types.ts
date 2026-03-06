@@ -36,15 +36,20 @@ export interface PieceShort {
 	role: RoleShort;
 }
 
-export interface Move {
+export type CastleSide = 'kingside' | 'queenside';
+interface MoveInputBase {
+	castleSide?: CastleSide;
+}
+
+export interface MoveInputSquare extends MoveInputBase {
 	from: Square;
 	to: Square;
 }
-export interface MoveString {
+export interface MoveInputString extends MoveInputBase {
 	from: SquareString;
 	to: SquareString;
 }
-export type MoveInput = Move | MoveString;
+export type MoveInput = MoveInputSquare | MoveInputString;
 
 // Minimal theming shape for state-level awareness. Renderer can accept richer theme later.
 export interface Theme {
@@ -59,6 +64,12 @@ export interface Theme {
 	coords?: string; // e.g., '#333'
 }
 
+export interface Move extends MoveInputSquare {
+	moved: Piece;
+	promotion?: RolePromotion;
+	captured?: Piece;
+	capturedSquare?: Square; // Optional: where the captured piece was (for en passant)
+}
 // Read-only snapshot shape exposed to consumers.
 export interface StateSnapshot {
 	readonly pieces: ReadonlyDeep<Uint8Array>;

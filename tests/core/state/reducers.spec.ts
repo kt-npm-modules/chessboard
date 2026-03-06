@@ -17,11 +17,7 @@ import {
 	setTheme,
 	setTurn
 } from '../../../src/core/state/reducers';
-import type {
-	PieceShort,
-	PositionMapShort,
-	RolePromotionInput
-} from '../../../src/core/state/types';
+import type { PieceShort, PositionMapShort } from '../../../src/core/state/types';
 import { DirtyLayer } from '../../../src/core/state/types';
 
 describe('state/reducers', () => {
@@ -29,7 +25,11 @@ describe('state/reducers', () => {
 		const state = createInitialState(); // default start
 		// Flip state to non-default values, then setPosition should reset them
 		state.selected = fromAlgebraic('e4');
-		state.lastMove = { from: fromAlgebraic('a2'), to: fromAlgebraic('a4') };
+		state.lastMove = {
+			from: fromAlgebraic('a2'),
+			to: fromAlgebraic('a4'),
+			moved: { color: 'white', role: 'pawn' }
+		};
 
 		setPosition(state, 'start');
 
@@ -107,7 +107,13 @@ describe('state/reducers', () => {
 
 		// turn toggled and lastMove updated
 		expect(state.turn).toBe('black');
-		expect(state.lastMove).toEqual({ from, to });
+		expect(state.lastMove).not.toBeNull();
+		expect(state.lastMove).toMatchObject({ from, to });
+		// lastMove metadata for a quiet move
+		expect(state.lastMove!.moved.role).toBe('pawn');
+		expect(state.lastMove!.moved.color).toBe('white');
+		expect(state.lastMove!.captured).toBeUndefined();
+		expect(state.lastMove!.promotion).toBeUndefined();
 
 		// dirty markers
 		expect(state.dirtySquares.has(from)).toBe(true);
@@ -129,12 +135,18 @@ describe('state/reducers', () => {
 		// Short form promotion
 		{
 			const state = setup();
-			move(state, { from: 'a7', to: 'a8' }, { promotion: 'Q' as RolePromotionInput });
+			move(state, { from: 'a7', to: 'a8' }, { promotion: 'Q' });
 			const code = state.pieces[fromAlgebraic('a8')];
 			const piece = decodePiece(code);
 			expect(piece).not.toBeNull();
 			expect(piece!.role).toBe('queen');
 			expect(piece!.color).toBe('white');
+
+			// lastMove metadata includes promotion and moved piece (pre-promotion)
+			expect(state.lastMove).not.toBeNull();
+			expect(state.lastMove!.promotion).toBe('queen');
+			expect(state.lastMove!.moved.role).toBe('pawn');
+			expect(state.lastMove!.moved.color).toBe('white');
 		}
 
 		// Long form promotion
@@ -146,7 +158,33 @@ describe('state/reducers', () => {
 			expect(piece).not.toBeNull();
 			expect(piece!.role).toBe('queen');
 			expect(piece!.color).toBe('white');
+
+			// lastMove metadata includes promotion and moved piece (pre-promotion)
+			expect(state.lastMove).not.toBeNull();
+			expect(state.lastMove!.promotion).toBe('queen');
+			expect(state.lastMove!.moved.role).toBe('pawn');
+			expect(state.lastMove!.moved.color).toBe('white');
 		}
+	});
+
+	it('move capture sets lastMove.captured with destination piece before overwrite', () => {
+		const state = createInitialState({
+			position: {
+				e4: { color: 'w', role: 'p' },
+				e5: { color: 'b', role: 'p' }
+			} satisfies PositionMapShort,
+			turn: 'white'
+		});
+		clearDirty(state);
+
+		move(state, { from: 'e4', to: 'e5' });
+
+		expect(state.lastMove).not.toBeNull();
+		expect(state.lastMove!.moved.role).toBe('pawn');
+		expect(state.lastMove!.moved.color).toBe('white');
+		expect(state.lastMove!.captured).toBeDefined();
+		expect(state.lastMove!.captured!.role).toBe('pawn');
+		expect(state.lastMove!.captured!.color).toBe('black');
 	});
 
 	it('setTurn and setOrientation accept short color inputs', () => {

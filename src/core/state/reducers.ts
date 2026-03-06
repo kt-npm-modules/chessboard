@@ -11,6 +11,7 @@ import type {
 	PositionInput,
 	PositionMap,
 	PositionMapShort,
+	RolePromotion,
 	RolePromotionInput,
 	Square,
 	SquareString,
@@ -122,8 +123,20 @@ export function select(state: InternalState, sq: Square | SquareString | -1): vo
 	markDirtyLayer(state, DirtyLayer.Highlights);
 }
 
+type CastleOptionsSquare = {
+	rookFrom: Square;
+	rookTo: Square;
+};
+type CastleOptionsString = {
+	rookFrom: SquareString;
+	rookTo: SquareString;
+};
+export type CastleOptions = CastleOptionsSquare | CastleOptionsString;
+
 export interface MoveOptions {
 	promotion?: RolePromotionInput;
+	capturedSquare?: Square; // Optional: the square of the captured piece, useful for en passant
+	castle?: CastleOptions; // Optional: if this move is a castling move, provide details
 }
 /**
  * Apply a UI-level move from one square to another. No legality is enforced here.
@@ -180,6 +193,10 @@ export function move(state: InternalState, move: MoveInput, opts?: MoveOptions):
 	// Preserve id of moving piece
 	const movingId = state.ids[from];
 
+	// Destination before overwrite to detect capture
+	const destCode = state.pieces[to];
+	const capturedPiece = isEmpty(destCode) ? undefined : decodePiece(destCode)!;
+
 	// Write destination: with promotion or same role
 	const newRole = opts?.promotion ? normalizeRole(opts.promotion) : movingPiece.role;
 	const newPieceCode = encodePiece({ color: movingPiece.color, role: newRole });
@@ -192,7 +209,14 @@ export function move(state: InternalState, move: MoveInput, opts?: MoveOptions):
 	state.ids[from] = -1;
 
 	// Update last move and toggle turn
-	state.lastMove = { from, to };
+	const promotion = opts?.promotion ? (normalizeRole(opts.promotion) as RolePromotion) : undefined;
+	state.lastMove = {
+		from,
+		to,
+		moved: movingPiece,
+		...(capturedPiece && { captured: capturedPiece }),
+		...(promotion && { promotion })
+	};
 	state.turn = state.turn === 'white' ? 'black' : 'white';
 
 	// Dirty tracking
