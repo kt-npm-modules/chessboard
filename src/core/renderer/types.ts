@@ -1,10 +1,10 @@
 /**
- * Renderer contracts (Phase 1 - types only).
- * - Purpose: carry precise invalidation signals from the scheduler/state to the renderer.
+ * Renderer contracts (Phase 1/3).
+ * - Purpose: define the minimal public contracts between scheduler/state and renderer.
  * - The renderer interprets DirtyLayer bitmask and (optionally) a set of specific squares.
  */
 
-import type { Square } from '../state/types';
+import type { Color, Square, StateSnapshot } from '../state/types';
 
 /**
  * Invalidation payload:
@@ -12,9 +12,32 @@ import type { Square } from '../state/types';
  * - squares: optional set of affected squares for region-specific updates (e.g., piece moves, highlights).
  *
  * Note: `layers` uses the DirtyLayer enum defined in ../state/types; we keep it as `number` here
- * to avoid coupling and allow OR-combination without importing the enum.
+ * to allow OR-combination without importing the enum in this file.
  */
 export interface Invalidation {
 	layers: number;
 	squares?: Set<Square>;
+}
+
+/**
+ * Board geometry computed for a given mount size and orientation.
+ * - squareRect returns the top-left pixel position and side length for a given square index (0..63).
+ *   Coordinates are in the local SVG space with origin at the top-left corner.
+ */
+export interface BoardGeometry {
+	boardSize: number; // total board side in px
+	squareSize: number; // derived: boardSize / 8
+	orientation: Color; // 'white' or 'black'
+	squareRect(sq: Square): { x: number; y: number; size: number };
+}
+
+/**
+ * Minimal renderer interface understood by the scheduler.
+ * - mount/unmount attach/detach DOM.
+ * - render applies updates according to invalidation.
+ */
+export interface Renderer {
+	mount(container: HTMLElement): void;
+	unmount(): void;
+	render(state: StateSnapshot, geometry: BoardGeometry, invalidation: Invalidation): void;
 }
