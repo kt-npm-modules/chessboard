@@ -145,7 +145,7 @@ export interface StateSnapshot {
 	readonly pieces: ReadonlyDeep<Uint8Array>;
 	readonly orientation: Color;
 	readonly turn: Color;
-	readonly selected: Square | -1;
+	readonly selected: Square | null;
 	readonly lastMove: ReadonlyDeep<Move> | null;
 	readonly theme: ReadonlyDeep<Theme>;
 }

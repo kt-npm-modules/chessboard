@@ -134,7 +134,7 @@ export class SvgRenderer implements Renderer {
 			this.drawHighlightRect(g, state.lastMove.to, state.theme.lastMove);
 		}
 		// selection
-		if (state.selected !== -1) {
+		if (state.selected != null) {
 			this.drawHighlightRect(g, state.selected, state.theme.selection);
 		}
 	}

@@ -26,7 +26,7 @@ export interface InternalState {
 
 	orientation: Color;
 	turn: Color;
-	selected: Square | -1;
+	selected: Square | null;
 	lastMove: Move | null;
 
 	theme: Theme;
@@ -101,7 +101,7 @@ export function createInitialState(opts: InitialStateOptions = {}): InternalStat
 		nextId,
 		orientation,
 		turn,
-		selected: -1,
+		selected: null,
 		lastMove: null,
 		theme,
 		dirtySquares: new Set<Square>(),

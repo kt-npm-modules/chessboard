@@ -27,7 +27,7 @@ import { DirtyLayer, Piece } from './types';
  * - Clears the board first, then applies the provided position.
  * - Regenerates piece IDs for all occupied squares (ids[i] >= 1); empties get -1.
  * - Resets selection and last move:
- *   - selected = -1
+ *   - selected = null
  *   - lastMove = null
  * - Marks dirty layers for a full redraw:
  *   - DirtyLayer.Board | DirtyLayer.Coords | DirtyLayer.Pieces
@@ -83,7 +83,7 @@ export function setPosition(state: InternalState, input: PositionInput): void {
 		}
 	}
 
-	state.selected = -1;
+	state.selected = null;
 	state.lastMove = null;
 
 	// Update turn from position if provided (do not override explicitly-set turn elsewhere)
@@ -113,11 +113,11 @@ export function setOrientation(state: InternalState, c: ColorInput): void {
 }
 
 /**
- * Select a square or clear selection with -1.
+ * Select a square or clear selection with null.
  * Accepts numeric or algebraic square.
  */
-export function select(state: InternalState, sq: Square | SquareString | -1): void {
-	const newSel = sq === -1 ? -1 : toValidSquare(sq); // toValidSquare will validate the square input
+export function select(state: InternalState, sq: Square | SquareString | null): void {
+	const newSel: Square | null = sq === null ? null : toValidSquare(sq as Square | SquareString); // toValidSquare will validate the square input
 	if (state.selected === newSel) return;
 	state.selected = newSel;
 	markDirtyLayer(state, DirtyLayer.Highlights);

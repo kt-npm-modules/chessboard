@@ -13,7 +13,7 @@ describe('state/boardState', () => {
 
 		// Defaults
 		expect(state.orientation).toBe('white');
-		expect(state.selected).toBe(-1);
+		expect(state.selected).toBeNull();
 		expect(state.lastMove).toBeNull();
 
 		// Theme merged with defaults

@@ -39,7 +39,7 @@ describe('state/reducers', () => {
 
 		// START_FEN has white to move
 		expect(state.turn).toBe('white');
-		expect(state.selected).toBe(-1);
+		expect(state.selected).toBeNull();
 		expect(state.lastMove).toBeNull();
 
 		// Dirty flags set for full redraw
