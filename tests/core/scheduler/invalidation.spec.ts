@@ -7,7 +7,7 @@ import type { PositionMapShort } from '../../../src/core/state/types';
 import { DirtyLayer } from '../../../src/core/state/types';
 
 describe('scheduler/invalidation', () => {
-	it('quiet move: includes from/to squares and layers Pieces|LastMove|Highlights', () => {
+	it('quiet move: includes from/to squares and Pieces layer', () => {
 		const state = createInitialState({
 			position: {
 				e2: { color: 'w', role: 'p' }
@@ -20,8 +20,6 @@ describe('scheduler/invalidation', () => {
 
 		const inv = computeInvalidation(state);
 		expect(inv.layers & DirtyLayer.Pieces).toBeTruthy();
-		expect(inv.layers & DirtyLayer.LastMove).toBeTruthy();
-		expect(inv.layers & DirtyLayer.Highlights).toBeTruthy();
 
 		const e2 = fromAlgebraic('e2');
 		const e4 = fromAlgebraic('e4');
@@ -47,7 +45,6 @@ describe('scheduler/invalidation', () => {
 		expect(inv.squares?.has(e4)).toBe(true);
 		expect(inv.squares?.has(e5)).toBe(true);
 		expect(inv.layers & DirtyLayer.Pieces).toBeTruthy();
-		expect(inv.layers & DirtyLayer.LastMove).toBeTruthy();
 	});
 
 	it('en passant-like capture: includes capturedSquare in invalidation.squares', () => {
@@ -71,7 +68,6 @@ describe('scheduler/invalidation', () => {
 		expect(inv.squares?.has(d6)).toBe(true);
 		expect(inv.squares?.has(d5)).toBe(true);
 		expect(inv.layers & DirtyLayer.Pieces).toBeTruthy();
-		expect(inv.layers & DirtyLayer.LastMove).toBeTruthy();
 	});
 
 	it('castling: includes rookFrom and rookTo in invalidation.squares', () => {
@@ -101,6 +97,5 @@ describe('scheduler/invalidation', () => {
 		expect(inv.squares?.has(h1)).toBe(true);
 		expect(inv.squares?.has(f1)).toBe(true);
 		expect(inv.layers & DirtyLayer.Pieces).toBeTruthy();
-		expect(inv.layers & DirtyLayer.LastMove).toBeTruthy();
 	});
 });

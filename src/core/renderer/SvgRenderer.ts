@@ -2,13 +2,16 @@ import { decodePiece } from '../state/encode';
 import { DirtyLayer, Square, type Color, type Role, type StateSnapshot } from '../state/types';
 import { cburnettSpriteUrl } from './assets';
 import { isLightSquare } from './geometry';
-import type { Invalidation, Renderer, RenderGeometry } from './types';
+import type { Invalidation, RenderConfig, Renderer, RenderGeometry } from './types';
+import { DEFAULT_RENDER_CONFIG } from './types';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
 type SvgRendererOptions = {
 	/** Optional override for the sprite URL. Defaults to cburnettSpriteUrl(). */
 	spriteUrl?: string;
+	/** Optional renderer visual configuration. */
+	config?: Partial<RenderConfig>;
 };
 
 type PieceNodeRecord = {
@@ -58,6 +61,7 @@ export class SvgRenderer implements Renderer {
 
 	private spriteUrl: string;
 	private uidPrefix: string;
+	private config: RenderConfig;
 
 	// Incremental piece DOM cache keyed by stable piece id from state.ids
 	private pieceNodes: Map<number, PieceNodeRecord> = new Map();
@@ -65,6 +69,7 @@ export class SvgRenderer implements Renderer {
 	constructor(opts: SvgRendererOptions = {}) {
 		this.spriteUrl = opts.spriteUrl ?? cburnettSpriteUrl();
 		this.uidPrefix = `cb-${Math.random().toString(36).slice(2)}-`;
+		this.config = { ...DEFAULT_RENDER_CONFIG, ...(opts.config ?? {}) };
 	}
 
 	mount(container: HTMLElement): void {
@@ -132,7 +137,7 @@ export class SvgRenderer implements Renderer {
 	}
 
 	render(state: StateSnapshot, geometry: RenderGeometry, invalidation: Invalidation): void {
-		if (!this.svgRoot) return;
+		if (!this.svgRoot) throw new Error('SvgRenderer: Cannot render before mount()');
 
 		// Ensure size/viewBox matches geometry
 		const size = String(geometry.boardSize);
@@ -145,7 +150,7 @@ export class SvgRenderer implements Renderer {
 		const updateBoard = (layers & DirtyLayer.Board) !== 0 || (layers & DirtyLayer.Coords) !== 0;
 		const updatePieces = (layers & DirtyLayer.Pieces) !== 0 || updateBoard;
 
-		if (updateBoard) this.drawSquares(state.theme.light, state.theme.dark, geometry);
+		if (updateBoard) this.drawSquares(this.config.light, this.config.dark, geometry);
 		if (updatePieces) this.drawPieces(state, geometry);
 	}
 

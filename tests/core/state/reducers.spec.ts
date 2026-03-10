@@ -1,9 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {
-	createInitialState,
-	DEFAULT_THEME,
-	type InternalState
-} from '../../../src/core/state/boardState';
+import { createInitialState, type InternalState } from '../../../src/core/state/boardState';
 import { fromAlgebraic } from '../../../src/core/state/coords';
 import { decodePiece } from '../../../src/core/state/encode';
 import {
@@ -14,22 +10,16 @@ import {
 	select,
 	setOrientation,
 	setPosition,
-	setTheme,
 	setTurn
 } from '../../../src/core/state/reducers';
 import type { PieceShort, PositionMapShort } from '../../../src/core/state/types';
 import { DirtyLayer } from '../../../src/core/state/types';
 
 describe('state/reducers', () => {
-	it('setPosition with "start" initializes pieces, ids, selection, lastMove, and sets turn from FEN', () => {
+	it('setPosition with "start" initializes pieces, ids, selection, and sets turn from FEN', () => {
 		const state = createInitialState(); // default start
 		// Flip state to non-default values, then setPosition should reset them
 		state.selected = fromAlgebraic('e4');
-		state.lastMove = {
-			from: fromAlgebraic('a2'),
-			to: fromAlgebraic('a4'),
-			moved: { color: 'white', role: 'pawn' }
-		};
 
 		setPosition(state, 'start');
 
@@ -40,7 +30,6 @@ describe('state/reducers', () => {
 		// START_FEN has white to move
 		expect(state.turn).toBe('white');
 		expect(state.selected).toBeNull();
-		expect(state.lastMove).toBeNull();
 
 		// Dirty flags set for full redraw
 		expect((state.dirtyLayers & DirtyLayer.Board) !== 0).toBe(true);
@@ -73,15 +62,15 @@ describe('state/reducers', () => {
 		expect(state.turn).toBe('black');
 	});
 
-	it('select updates selected and marks Highlights dirty', () => {
+	it('select updates selected without marking Board dirty', () => {
 		const state = createInitialState({ position: 'start' });
 		clearDirty(state);
 		select(state, 'e4');
 		expect(state.selected).toBe(fromAlgebraic('e4'));
-		expect((state.dirtyLayers & DirtyLayer.Highlights) !== 0).toBe(true);
+		expect((state.dirtyLayers & DirtyLayer.Board) === 0).toBe(true);
 	});
 
-	it('move updates board, preserves id, toggles turn, sets lastMove and marks dirty', () => {
+	it('move updates board, preserves id, toggles turn and marks dirty', () => {
 		const state = createInitialState({
 			// start from minimal map so we control the board
 			position: {
@@ -97,7 +86,7 @@ describe('state/reducers', () => {
 		const idFrom = state.ids[from];
 		expect(idFrom).not.toBe(-1);
 
-		move(state, { from, to });
+		const moveResult = move(state, { from, to });
 
 		// from is cleared, to is occupied
 		expect(state.pieces[from]).toBe(0);
@@ -105,22 +94,21 @@ describe('state/reducers', () => {
 		expect(state.pieces[to]).not.toBe(0);
 		expect(state.ids[to]).toBe(idFrom);
 
-		// turn toggled and lastMove updated
+		// turn toggled
 		expect(state.turn).toBe('black');
-		expect(state.lastMove).not.toBeNull();
-		expect(state.lastMove).toMatchObject({ from, to });
-		// lastMove metadata for a quiet move
-		expect(state.lastMove!.moved.role).toBe('pawn');
-		expect(state.lastMove!.moved.color).toBe('white');
-		expect(state.lastMove!.captured).toBeUndefined();
-		expect(state.lastMove!.promotion).toBeUndefined();
+
+		expect(moveResult).not.toBeNull();
+		expect(moveResult).toMatchObject({ from, to });
+		// metadata for a quiet move
+		expect(moveResult.moved.role).toBe('pawn');
+		expect(moveResult.moved.color).toBe('white');
+		expect(moveResult.captured).toBeUndefined();
+		expect(moveResult.promotion).toBeUndefined();
 
 		// dirty markers
 		expect(state.dirtySquares.has(from)).toBe(true);
 		expect(state.dirtySquares.has(to)).toBe(true);
 		expect((state.dirtyLayers & DirtyLayer.Pieces) !== 0).toBe(true);
-		expect((state.dirtyLayers & DirtyLayer.LastMove) !== 0).toBe(true);
-		expect((state.dirtyLayers & DirtyLayer.Highlights) !== 0).toBe(true);
 	});
 
 	it('move applies promotion when provided (RolePromotionInput short or long)', () => {
@@ -135,7 +123,7 @@ describe('state/reducers', () => {
 		// Short form promotion
 		{
 			const state = setup();
-			move(state, { from: 'a7', to: 'a8' }, { promotion: 'Q' });
+			const moveResult = move(state, { from: 'a7', to: 'a8' }, { promotion: 'Q' });
 			const code = state.pieces[fromAlgebraic('a8')];
 			const piece = decodePiece(code);
 			expect(piece).not.toBeNull();
@@ -143,31 +131,31 @@ describe('state/reducers', () => {
 			expect(piece!.color).toBe('white');
 
 			// lastMove metadata includes promotion and moved piece (pre-promotion)
-			expect(state.lastMove).not.toBeNull();
-			expect(state.lastMove!.promotion).toBe('queen');
-			expect(state.lastMove!.moved.role).toBe('pawn');
-			expect(state.lastMove!.moved.color).toBe('white');
+			expect(moveResult).not.toBeNull();
+			expect(moveResult.promotion).toBe('queen');
+			expect(moveResult.moved.role).toBe('pawn');
+			expect(moveResult.moved.color).toBe('white');
 		}
 
 		// Long form promotion
 		{
 			const state = setup();
-			move(state, { from: 'a7', to: 'a8' }, { promotion: 'queen' });
+			const moveResult = move(state, { from: 'a7', to: 'a8' }, { promotion: 'queen' });
 			const code = state.pieces[fromAlgebraic('a8')];
 			const piece = decodePiece(code);
 			expect(piece).not.toBeNull();
 			expect(piece!.role).toBe('queen');
 			expect(piece!.color).toBe('white');
 
-			// lastMove metadata includes promotion and moved piece (pre-promotion)
-			expect(state.lastMove).not.toBeNull();
-			expect(state.lastMove!.promotion).toBe('queen');
-			expect(state.lastMove!.moved.role).toBe('pawn');
-			expect(state.lastMove!.moved.color).toBe('white');
+			// moveResult metadata includes promotion and moved piece (pre-promotion)
+			expect(moveResult).not.toBeNull();
+			expect(moveResult.promotion).toBe('queen');
+			expect(moveResult.moved.role).toBe('pawn');
+			expect(moveResult.moved.color).toBe('white');
 		}
 	});
 
-	it('move capture sets lastMove.captured with destination piece before overwrite', () => {
+	it('move capture sets moveResult.captured with destination piece before overwrite', () => {
 		const state = createInitialState({
 			position: {
 				e4: { color: 'w', role: 'p' },
@@ -177,17 +165,16 @@ describe('state/reducers', () => {
 		});
 		clearDirty(state);
 
-		move(state, { from: 'e4', to: 'e5' });
+		const moveResult = move(state, { from: 'e4', to: 'e5' });
 
-		expect(state.lastMove).not.toBeNull();
-		expect(state.lastMove!.moved.role).toBe('pawn');
-		expect(state.lastMove!.moved.color).toBe('white');
-		expect(state.lastMove!.captured).toBeDefined();
-		expect(state.lastMove!.captured!.role).toBe('pawn');
-		expect(state.lastMove!.captured!.color).toBe('black');
+		expect(moveResult).not.toBeNull();
+		expect(moveResult.moved.role).toBe('pawn');
+		expect(moveResult.moved.color).toBe('white');
+		expect(moveResult.captured).toBeDefined();
+		expect(moveResult.captured!.role).toBe('pawn');
+		expect(moveResult.captured!.color).toBe('black');
 	});
-
-	it('en passant-like capture clears capturedSquare and sets lastMove.capturedSquare', () => {
+	it('en passant-like capture clears capturedSquare', () => {
 		const state = createInitialState({
 			position: {
 				e5: { color: 'w', role: 'p' },
@@ -197,7 +184,7 @@ describe('state/reducers', () => {
 		});
 		clearDirty(state);
 
-		move(state, { from: 'e5', to: 'd6' }, { capturedSquare: 'd5' });
+		const moveResult = move(state, { from: 'e5', to: 'd6' }, { capturedSquare: 'd5' });
 
 		const d5 = fromAlgebraic('d5');
 		const d6 = fromAlgebraic('d6');
@@ -209,17 +196,17 @@ describe('state/reducers', () => {
 		expect(state.pieces[e5]).toBe(0);
 		expect(state.pieces[d6]).not.toBe(0);
 
-		expect(state.lastMove).not.toBeNull();
-		expect(state.lastMove!.captured).toBeDefined();
-		expect(state.lastMove!.captured!.role).toBe('pawn');
-		expect(state.lastMove!.captured!.color).toBe('black');
-		expect(state.lastMove!.capturedSquare).toBe(d5);
+		expect(moveResult).not.toBeNull();
+		expect(moveResult.captured).toBeDefined();
+		expect(moveResult.captured!.role).toBe('pawn');
+		expect(moveResult.captured!.color).toBe('black');
+		expect(moveResult.capturedSquare).toBe(d5);
 
 		// Dirty markers include capture square
 		expect(state.dirtySquares.has(d5)).toBe(true);
 	});
 
-	it('castling moves rook and sets castleSide on lastMove', () => {
+	it('castling moves rook and returns castling metadata', () => {
 		const state = createInitialState({
 			position: {
 				e1: { color: 'w', role: 'K' },
@@ -234,7 +221,7 @@ describe('state/reducers', () => {
 		const h1 = fromAlgebraic('h1');
 		const f1 = fromAlgebraic('f1');
 
-		move(
+		const moveResult = move(
 			state,
 			{ from: 'e1', to: 'g1', castleSide: 'kingside' },
 			{ castle: { rookFrom: 'h1', rookTo: 'f1' } }
@@ -251,9 +238,20 @@ describe('state/reducers', () => {
 		expect(rookAtF1!.color).toBe('white');
 		expect(state.pieces[h1]).toBe(0);
 
-		// Snapshot metadata
-		expect(state.lastMove).not.toBeNull();
-		expect(state.lastMove!.castleSide).toBe('kingside');
+		// Returned move metadata
+		expect(moveResult).not.toBeNull();
+		expect(moveResult.castleSide).toBe('kingside');
+		expect(moveResult.castle).toBeDefined();
+		expect(moveResult.castle!.rookFrom).toBe(h1);
+		expect(moveResult.castle!.rookTo).toBe(f1);
+	});
+
+	it('setTurn updates turn without marking Board dirty', () => {
+		const state = createInitialState({ position: 'start', turn: 'white' });
+		clearDirty(state);
+		setTurn(state, 'black');
+		expect(state.turn).toBe('black');
+		expect((state.dirtyLayers & DirtyLayer.Board) === 0).toBe(true);
 	});
 
 	it('setTurn and setOrientation accept short color inputs', () => {
@@ -262,19 +260,6 @@ describe('state/reducers', () => {
 		setOrientation(state, 'b');
 		expect(state.turn).toBe('black');
 		expect(state.orientation).toBe('black');
-	});
-
-	it('setTheme merges partial overrides and marks relevant layers dirty', () => {
-		const state = createInitialState({ position: 'start' });
-		clearDirty(state);
-		setTheme(state, { light: '#fff', coords: '#000' });
-		expect(state.theme.light).toBe('#fff');
-		expect(state.theme.coords).toBe('#000');
-		// Unspecified keep defaults
-		expect(state.theme.dark).toBe(DEFAULT_THEME.dark);
-		expect((state.dirtyLayers & DirtyLayer.Board) !== 0).toBe(true);
-		expect((state.dirtyLayers & DirtyLayer.Coords) !== 0).toBe(true);
-		expect((state.dirtyLayers & DirtyLayer.Highlights) !== 0).toBe(true);
 	});
 
 	it('dirty helpers: markDirtySquare/markDirtyLayer/clearDirty behavior', () => {

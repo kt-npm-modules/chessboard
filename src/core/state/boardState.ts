@@ -5,15 +5,13 @@ import { normalizeColor, normalizeRole } from './normalize';
 import {
 	Color,
 	ColorInput,
-	Move,
 	Piece,
 	PositionInput,
 	PositionMap,
 	PositionMapShort,
 	Square,
 	SquareString,
-	StateSnapshot,
-	Theme
+	StateSnapshot
 } from './types';
 
 /**
@@ -27,31 +25,15 @@ export interface InternalState {
 	orientation: Color;
 	turn: Color;
 	selected: Square | null;
-	lastMove: Move | null;
-
-	theme: Theme;
 
 	dirtySquares: Set<Square>;
 	dirtyLayers: number;
 }
 
-/**
- * Default board theme. Renderer may use richer themes; this is state-level awareness only.
- */
-export const DEFAULT_THEME: Theme = {
-	light: '#f0d9b5',
-	dark: '#b58863',
-	selection: 'rgba(255, 215, 0, 0.6)',
-	lastMove: 'rgba(246, 246, 105, 0.6)',
-	highlight: 'rgba(0, 128, 255, 0.35)',
-	coords: '#333'
-};
-
 export interface InitialStateOptions {
 	position?: PositionInput; // 'start' | FEN | PositionMap | PositionMapShort
 	orientation?: ColorInput; // 'white' | 'black' | 'w' | 'b'
 	turn?: ColorInput; // optional override of active color
-	theme?: Partial<Theme>;
 }
 
 /**
@@ -93,8 +75,6 @@ export function createInitialState(opts: InitialStateOptions = {}): InternalStat
 		}
 	}
 
-	const theme: Theme = { ...DEFAULT_THEME, ...(opts.theme ?? {}) };
-
 	return {
 		pieces,
 		ids,
@@ -102,8 +82,6 @@ export function createInitialState(opts: InitialStateOptions = {}): InternalStat
 		orientation,
 		turn,
 		selected: null,
-		lastMove: null,
-		theme,
 		dirtySquares: new Set<Square>(),
 		dirtyLayers: 0
 	};
@@ -120,9 +98,7 @@ export function getSnapshot(state: InternalState): StateSnapshot {
 		ids: new Int16Array(state.ids),
 		orientation: state.orientation,
 		turn: state.turn,
-		selected: state.selected,
-		lastMove: state.lastMove,
-		theme: state.theme
+		selected: state.selected
 	};
 	// Cast to the readonly deep snapshot type. Data is either cloned or immutable primitives.
 	return snap;

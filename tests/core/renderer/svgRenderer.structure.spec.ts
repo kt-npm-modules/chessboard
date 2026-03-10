@@ -71,15 +71,7 @@ describe('SvgRenderer structure (root/slot normalization)', () => {
 			ids,
 			orientation: 'white' as const,
 			turn: 'white' as const,
-			selected: null,
-			lastMove: null,
-			theme: {
-				light: '#f0d9b5',
-				dark: '#b58863',
-				highlight: 'rgba(255, 255, 0, 0.5)',
-				selection: 'rgba(20, 85, 30, 0.5)',
-				lastMove: 'rgba(155, 199, 0, 0.41)'
-			}
+			selected: null
 		};
 
 		const geometry = makeRenderGeometry(800, 'white');
@@ -116,15 +108,7 @@ describe('SvgRenderer structure (root/slot normalization)', () => {
 			ids,
 			orientation: 'white' as const,
 			turn: 'white' as const,
-			selected: null,
-			lastMove: null,
-			theme: {
-				light: '#f0d9b5',
-				dark: '#b58863',
-				highlight: 'rgba(255, 255, 0, 0.5)',
-				selection: 'rgba(20, 85, 30, 0.5)',
-				lastMove: 'rgba(155, 199, 0, 0.41)'
-			}
+			selected: null
 		};
 
 		const geometry = makeRenderGeometry(800, 'white');
@@ -161,15 +145,7 @@ describe('SvgRenderer structure (root/slot normalization)', () => {
 			ids,
 			orientation: 'white' as const,
 			turn: 'white' as const,
-			selected: null,
-			lastMove: null,
-			theme: {
-				light: '#f0d9b5',
-				dark: '#b58863',
-				highlight: 'rgba(255, 255, 0, 0.5)',
-				selection: 'rgba(20, 85, 30, 0.5)',
-				lastMove: 'rgba(155, 199, 0, 0.41)'
-			}
+			selected: null
 		};
 
 		const geometry = makeRenderGeometry(800, 'white');

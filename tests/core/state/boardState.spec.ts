@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createInitialState, DEFAULT_THEME, getSnapshot } from '../../../src/core/state/boardState';
+import { createInitialState, getSnapshot } from '../../../src/core/state/boardState';
 import { fromAlgebraic } from '../../../src/core/state/coords';
 
 describe('state/boardState', () => {
@@ -14,15 +14,6 @@ describe('state/boardState', () => {
 		// Defaults
 		expect(state.orientation).toBe('white');
 		expect(state.selected).toBeNull();
-		expect(state.lastMove).toBeNull();
-
-		// Theme merged with defaults
-		expect(state.theme.light).toBe(DEFAULT_THEME.light);
-		expect(state.theme.dark).toBe(DEFAULT_THEME.dark);
-		expect(state.theme.selection).toBe(DEFAULT_THEME.selection);
-		expect(state.theme.lastMove).toBe(DEFAULT_THEME.lastMove);
-		expect(state.theme.highlight).toBe(DEFAULT_THEME.highlight);
-		expect(state.theme.coords).toBe(DEFAULT_THEME.coords);
 
 		// ids assigned for all non-empty squares, -1 for empty
 		const a1 = fromAlgebraic('a1');
@@ -52,17 +43,5 @@ describe('state/boardState', () => {
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		(snap as any).pieces[0] = 99;
 		expect(state.pieces[0]).not.toBe(99);
-	});
-
-	it('createInitialState merges theme overrides', () => {
-		const state = createInitialState({
-			position: 'start',
-			theme: { light: '#fff', coords: '#000' }
-		});
-		expect(state.theme.light).toBe('#fff');
-		expect(state.theme.coords).toBe('#000');
-		// Unspecified fields keep defaults
-		expect(state.theme.dark).toBe(DEFAULT_THEME.dark);
-		expect(state.theme.highlight).toBe(DEFAULT_THEME.highlight);
 	});
 });

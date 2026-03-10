@@ -7,6 +7,25 @@
 import type { Square, StateSnapshot } from '../state/types';
 
 /**
+ * Renderer-owned visual configuration.
+ * Contains only base board rendering config actually owned by the core renderer.
+ */
+export interface RenderConfig {
+	light: string; // board light square color
+	dark: string; // board dark square color
+	coords?: string; // optional coordinate text color
+}
+
+/**
+ * Default renderer configuration.
+ */
+export const DEFAULT_RENDER_CONFIG: RenderConfig = {
+	light: '#f0d9b5',
+	dark: '#b58863',
+	coords: '#333'
+};
+
+/**
  * Invalidation payload:
  * - layers: DirtyLayer bitmask (number) indicating which visual layers need redraw.
  * - squares: optional set of affected squares for region-specific updates (e.g., piece moves, highlights).

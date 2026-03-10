@@ -7,6 +7,7 @@ import type {
 	CastleSquare,
 	Color,
 	ColorInput,
+	Move,
 	MoveInput,
 	PieceShort,
 	PositionInput,
@@ -15,8 +16,7 @@ import type {
 	RolePromotion,
 	RolePromotionInput,
 	Square,
-	SquareString,
-	Theme
+	SquareString
 } from './types';
 import { DirtyLayer, Piece } from './types';
 
@@ -84,7 +84,6 @@ export function setPosition(state: InternalState, input: PositionInput): void {
 	}
 
 	state.selected = null;
-	state.lastMove = null;
 
 	// Update turn from position if provided (do not override explicitly-set turn elsewhere)
 	if (turnFromPosition) {
@@ -100,8 +99,6 @@ export function setPosition(state: InternalState, input: PositionInput): void {
  */
 export function setTurn(state: InternalState, c: ColorInput): void {
 	state.turn = normalizeColor(c);
-	// Consumers might show turn-based highlights
-	markDirtyLayer(state, DirtyLayer.Highlights);
 }
 
 /**
@@ -109,7 +106,7 @@ export function setTurn(state: InternalState, c: ColorInput): void {
  */
 export function setOrientation(state: InternalState, c: ColorInput): void {
 	state.orientation = normalizeColor(c);
-	markDirtyLayer(state, DirtyLayer.Board | DirtyLayer.Coords | DirtyLayer.Highlights);
+	markDirtyLayer(state, DirtyLayer.Board | DirtyLayer.Coords);
 }
 
 /**
@@ -120,7 +117,6 @@ export function select(state: InternalState, sq: Square | SquareString | null): 
 	const newSel: Square | null = sq === null ? null : toValidSquare(sq as Square | SquareString); // toValidSquare will validate the square input
 	if (state.selected === newSel) return;
 	state.selected = newSel;
-	markDirtyLayer(state, DirtyLayer.Highlights);
 }
 
 type CastleString = {
@@ -162,7 +158,7 @@ export interface MoveOptions {
  * @param state Internal mutable state
  * @param move MoveInput
  * @param opts Optional MoveOptions { promotion?: RolePromotionInput }
- * @returns void
+ * @returns Move
  * @example
  * move(state, { from: 'e2', to: 'e4' });
  * move(state, { from: 12, to: 28 }); // numeric squares
@@ -173,7 +169,7 @@ export interface MoveOptions {
  * move(state, { from: 'e5', to: 'd6' }, { capturedSquare: 'd5' }); // en passant-like move where the captured piece is on a different square
  * move(state, { from: 20, to: 27 }, { capturedSquare: 19 }); // en passant-like move with numeric captured square
  */
-export function move(state: InternalState, move: MoveInput, opts?: MoveOptions): void {
+export function move(state: InternalState, move: MoveInput, opts?: MoveOptions): Move {
 	const from = toValidSquare(move.from); // toValidSquare will validate the square input
 	const to = toValidSquare(move.to); // toValidSquare will validate the square input
 
@@ -241,9 +237,16 @@ export function move(state: InternalState, move: MoveInput, opts?: MoveOptions):
 		}
 	}
 
-	// Update last move and toggle turn
+	// Toggle turn
+	state.turn = state.turn === 'white' ? 'black' : 'white';
+
+	// Dirty tracking
+	markDirtySquare(state, from);
+	markDirtySquare(state, to);
+	markDirtyLayer(state, DirtyLayer.Pieces);
+
 	const promotion = opts?.promotion ? (normalizeRole(opts.promotion) as RolePromotion) : undefined;
-	state.lastMove = {
+	const result: Move = {
 		from,
 		to,
 		moved: movingPiece,
@@ -253,20 +256,7 @@ export function move(state: InternalState, move: MoveInput, opts?: MoveOptions):
 		...(move.castleSide && { castleSide: move.castleSide }),
 		...(castle && { castle })
 	};
-	state.turn = state.turn === 'white' ? 'black' : 'white';
-
-	// Dirty tracking
-	markDirtySquare(state, from);
-	markDirtySquare(state, to);
-	markDirtyLayer(state, DirtyLayer.Pieces | DirtyLayer.LastMove | DirtyLayer.Highlights);
-}
-
-/**
- * Merge theme overrides.
- */
-export function setTheme(state: InternalState, partial: Partial<Theme>): void {
-	state.theme = { ...state.theme, ...partial };
-	markDirtyLayer(state, DirtyLayer.Board | DirtyLayer.Coords | DirtyLayer.Highlights);
+	return result;
 }
 
 /**

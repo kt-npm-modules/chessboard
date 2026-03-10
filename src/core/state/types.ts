@@ -115,19 +115,6 @@ export interface MoveInputString extends MoveInputBase {
 }
 export type MoveInput = MoveInputSquare | MoveInputString;
 
-// Minimal theming shape for state-level awareness. Renderer can accept richer theme later.
-export interface Theme {
-	// Board colors
-	light: string; // e.g., '#f0d9b5'
-	dark: string; // e.g., '#b58863'
-	// Highlights and overlays
-	selection: string; // e.g., 'rgba(255, 215, 0, 0.6)'
-	lastMove: string; // e.g., 'rgba(246, 246, 105, 0.6)'
-	highlight: string; // generic highlight color (legal moves, etc.)
-	// Optional: coordinate text color (renderer may use)
-	coords?: string; // e.g., '#333'
-}
-
 export type CastleSquare = {
 	rookFrom: Square;
 	rookTo: Square;
@@ -147,8 +134,6 @@ export interface StateSnapshot {
 	readonly orientation: Color;
 	readonly turn: Color;
 	readonly selected: Square | null;
-	readonly lastMove: ReadonlyDeep<Move> | null;
-	readonly theme: ReadonlyDeep<Theme>;
 }
 
 // Dirty layer flags for precise invalidation.
@@ -156,13 +141,9 @@ export interface StateSnapshot {
 export enum DirtyLayer {
 	Board = 1, // 1 << 0,
 	Coords = 2, // 1 << 1,
-	LastMove = 4, // 1 << 2,
-	Highlights = 8, // 1 << 3,
-	Arrows = 16, // 1 << 4,
-	Pieces = 32, // 1 << 5,
-	Drag = 64, // 1 << 6,
-	Overlay = 128, // 1 << 7
-	All = Board | Coords | LastMove | Highlights | Arrows | Pieces | Drag | Overlay
+	Pieces = 4, // 1 << 2,
+	Drag = 8, // 1 << 3,
+	All = Board | Coords | Pieces | Drag
 }
 
 // Position map acceptance forms (public inputs)
