@@ -2,7 +2,7 @@
 
 ## Pre-Phase 2 — Core cleanup / normalization
 
-**Status: IN PROGRESS**
+**Status: COMPLETE**
 
 ### 0.1 Renderer root / slot normalization
 
@@ -43,9 +43,13 @@
 - Confirm no architectural leakage from render config into state
 - Confirm no dead fields / dead invalidation paths remain
 
+**Status: COMPLETE**
+
 ---
 
 ## Phase 2 — Runtime composition
+
+**Status: IN PROGRESS**
 
 ### 2.1 Internal runtime model
 
