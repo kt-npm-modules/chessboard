@@ -2,7 +2,11 @@
 
 ## Pre-Phase 2 — Core cleanup / normalization
 
+**Status: IN PROGRESS**
+
 ### 0.1 Renderer root / slot normalization
+
+**Status: COMPLETE**
 
 - Rename `root` to `svgRoot`
 - Rename legacy `layer*` fields to ownership-based `...Root`
