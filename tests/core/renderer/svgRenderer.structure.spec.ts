@@ -71,7 +71,8 @@ describe('SvgRenderer structure (root/slot normalization)', () => {
 			ids,
 			orientation: 'white' as const,
 			turn: 'white' as const,
-			selected: null
+			selected: null,
+			movability: null
 		};
 
 		const geometry = makeRenderGeometry(800, 'white');
@@ -108,7 +109,8 @@ describe('SvgRenderer structure (root/slot normalization)', () => {
 			ids,
 			orientation: 'white' as const,
 			turn: 'white' as const,
-			selected: null
+			selected: null,
+			movability: null
 		};
 
 		const geometry = makeRenderGeometry(800, 'white');
@@ -145,7 +147,8 @@ describe('SvgRenderer structure (root/slot normalization)', () => {
 			ids,
 			orientation: 'white' as const,
 			turn: 'white' as const,
-			selected: null
+			selected: null,
+			movability: null
 		};
 
 		const geometry = makeRenderGeometry(800, 'white');
@@ -186,7 +189,8 @@ describe('SvgRenderer structure (root/slot normalization)', () => {
 			ids,
 			orientation: 'white' as const,
 			turn: 'white' as const,
-			selected: null
+			selected: null,
+			movability: null
 		};
 
 		const geometry = makeRenderGeometry(800, 'white');

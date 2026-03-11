@@ -126,6 +126,27 @@ export interface Move extends MoveInputSquare {
 	capturedSquare?: Square; // Optional: where the captured piece was (for en passant)
 	castle?: CastleSquare;
 }
+// Movability types for externally-provided interaction policy
+export type MovableColor = 'white' | 'black' | 'both';
+
+export type StrictMovability = {
+	mode: 'strict';
+	color: MovableColor;
+	destinations: Partial<Record<Square, readonly Square[]>>;
+};
+
+export type FreeMovability = {
+	mode: 'free';
+	color: MovableColor;
+};
+
+// Disables move interaction only, not all board interaction
+export type DisabledMovability = {
+	mode: 'disabled';
+};
+
+export type Movability = StrictMovability | FreeMovability | DisabledMovability;
+
 // Read-only snapshot shape exposed to consumers.
 export interface StateSnapshot {
 	readonly pieces: ReadonlyDeep<Uint8Array>;
@@ -133,6 +154,7 @@ export interface StateSnapshot {
 	readonly orientation: Color;
 	readonly turn: Color;
 	readonly selected: Square | null;
+	readonly movability: Movability | null;
 }
 
 // Dirty layer flags for precise invalidation.

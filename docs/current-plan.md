@@ -75,6 +75,14 @@
 
 ### 2.3 External input feeding
 
+**Status: IN PROGRESS**
+
+**Phase 2.3a — internal-only movability feeding into runtime/state/snapshot**
+**Status: COMPLETE**
+
+**Phase 2.3b — runtime/input begins consulting movability**
+**Status: NOT STARTED**
+
 - Confirm external destinations remain input into core interaction/runtime
 - Clarify how host-provided data enters runtime without leaking into renderer
 - Keep legality source external, behavior usage internal

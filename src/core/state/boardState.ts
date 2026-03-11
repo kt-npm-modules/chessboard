@@ -5,6 +5,7 @@ import { normalizeColor, normalizeRole } from './normalize';
 import {
 	Color,
 	ColorInput,
+	Movability,
 	Piece,
 	PositionInput,
 	PositionMap,
@@ -25,6 +26,7 @@ export interface InternalState {
 	orientation: Color;
 	turn: Color;
 	selected: Square | null;
+	movability: Movability | null;
 
 	dirtySquares: Set<Square>;
 	dirtyLayers: number;
@@ -34,6 +36,7 @@ export interface InitialStateOptions {
 	position?: PositionInput; // 'start' | FEN | PositionMap | PositionMapShort
 	orientation?: ColorInput; // 'white' | 'black' | 'w' | 'b'
 	turn?: ColorInput; // optional override of active color
+	movability?: Movability; // optional externally-provided interaction policy
 }
 
 /**
@@ -82,6 +85,7 @@ export function createInitialState(opts: InitialStateOptions = {}): InternalStat
 		orientation,
 		turn,
 		selected: null,
+		movability: opts.movability ?? null,
 		dirtySquares: new Set<Square>(),
 		dirtyLayers: 0
 	};
@@ -98,7 +102,8 @@ export function getSnapshot(state: InternalState): StateSnapshot {
 		ids: new Int16Array(state.ids),
 		orientation: state.orientation,
 		turn: state.turn,
-		selected: state.selected
+		selected: state.selected,
+		movability: state.movability
 	};
 	// Cast to the readonly deep snapshot type. Data is either cloned or immutable primitives.
 	return snap;

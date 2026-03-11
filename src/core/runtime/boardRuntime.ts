@@ -23,19 +23,27 @@ import type { Renderer, RenderGeometry } from '../renderer/types';
 import { computeInvalidation } from '../scheduler/invalidation';
 import { createScheduler, type Scheduler } from '../scheduler/scheduler';
 import { createInitialState, getSnapshot, type InternalState } from '../state/boardState';
-import { clearDirty, markDirtyLayer, setOrientation, setPosition } from '../state/reducers';
-import { DirtyLayer, type ColorInput, type PositionInput } from '../state/types';
+import {
+	clearDirty,
+	markDirtyLayer,
+	setMovability as setMovabilityReducer,
+	setOrientation,
+	setPosition
+} from '../state/reducers';
+import { DirtyLayer, type ColorInput, type Movability, type PositionInput } from '../state/types';
 
 export interface BoardRuntimeOptions {
 	renderer: Renderer;
 	position?: PositionInput;
 	orientation?: ColorInput;
+	movability?: Movability;
 }
 
 export interface BoardRuntime {
 	mount(container: HTMLElement): void;
 	setPosition(input: PositionInput): void;
 	setOrientation(input: ColorInput): void;
+	setMovability(m: Movability | null): boolean;
 	destroy(): void;
 }
 
@@ -59,10 +67,10 @@ function measureBoardSize(container: HTMLElement): number {
  * @returns BoardRuntime instance
  */
 export function createBoardRuntime(opts: BoardRuntimeOptions): BoardRuntime {
-	const { renderer, position, orientation } = opts;
+	const { renderer, position, orientation, movability } = opts;
 
 	// Internal state
-	const state: InternalState = createInitialState({ position, orientation });
+	const state: InternalState = createInitialState({ position, orientation, movability });
 	let boardSize: number | null = null;
 	let geometry: RenderGeometry | null = null;
 	let mounted = false;
@@ -149,6 +157,17 @@ export function createBoardRuntime(opts: BoardRuntimeOptions): BoardRuntime {
 				geometry = makeRenderGeometry(boardSize!, state.orientation);
 				scheduler.schedule();
 			}
+		},
+
+		setMovability(m: Movability | null): boolean {
+			// Mutate state via reducer
+			const changed = setMovabilityReducer(state, m);
+
+			// Schedule render if mounted and state changed
+			if (mounted && changed) {
+				scheduler.schedule();
+			}
+			return changed;
 		},
 
 		destroy(): void {

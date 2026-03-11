@@ -494,4 +494,123 @@ describe('core/runtime/boardRuntime', () => {
 
 		expect(() => runtime.mount(container)).toThrow('cannot mount after destroy');
 	});
+
+	// Phase 2.3a: Movability tests
+
+	it('first render observes the latest pre-mount movability value', async () => {
+		// Verifies: pre-mount movability updates are accumulated and reflected in first render
+		const renderer = createTestRenderer();
+		const renderSpy = vi.spyOn(renderer, 'render');
+		const container = createMockContainer(400, 400);
+
+		const runtime = createBoardRuntime({ renderer });
+		runtime.setMovability({ mode: 'free', color: 'white' });
+		runtime.setMovability({ mode: 'strict', color: 'white', destinations: { 12: [28] } });
+
+		runtime.mount(container);
+
+		await waitForRender();
+
+		expect(renderSpy).toHaveBeenCalled();
+		const [snapshot] = renderSpy.mock.calls[0];
+
+		// Verify latest pre-mount movability is in snapshot
+		expect(snapshot.movability).toEqual({
+			mode: 'strict',
+			color: 'white',
+			destinations: { 12: [28] }
+		});
+	});
+
+	it('post-mount movability update schedules render', async () => {
+		// Verifies: post-mount movability changes schedule render
+		const renderer = createTestRenderer();
+		const renderSpy = vi.spyOn(renderer, 'render');
+		const container = createMockContainer(400, 400);
+
+		const runtime = createBoardRuntime({ renderer });
+		runtime.mount(container);
+
+		await waitForRender();
+		renderSpy.mockClear();
+
+		// Update movability post-mount
+		runtime.setMovability({ mode: 'free', color: 'black' });
+
+		await waitForRender();
+
+		expect(renderSpy).toHaveBeenCalled();
+		const [snapshot] = renderSpy.mock.calls[0];
+		expect(snapshot.movability).toEqual({ mode: 'free', color: 'black' });
+	});
+
+	it('no-op movability update does not schedule extra render', async () => {
+		// Verifies: structurally equal movability update is a no-op
+		const renderer = createTestRenderer();
+		const renderSpy = vi.spyOn(renderer, 'render');
+		const container = createMockContainer(400, 400);
+
+		const runtime = createBoardRuntime({
+			renderer,
+			movability: { mode: 'strict', color: 'white', destinations: { 12: [28, 20] } }
+		});
+		runtime.mount(container);
+
+		await waitForRender();
+		const initialCallCount = renderSpy.mock.calls.length;
+
+		// Set same movability (structurally equal)
+		runtime.setMovability({ mode: 'strict', color: 'white', destinations: { 12: [28, 20] } });
+
+		await waitForRender();
+
+		// No new render should be scheduled (call count should remain the same)
+		expect(renderSpy.mock.calls.length).toBe(initialCallCount);
+	});
+
+	it('movability change marks Pieces layer dirty', async () => {
+		// Verifies: movability changes mark DirtyLayer.Pieces
+		const renderer = createTestRenderer();
+		const renderSpy = vi.spyOn(renderer, 'render');
+		const container = createMockContainer(400, 400);
+
+		const runtime = createBoardRuntime({ renderer });
+		runtime.mount(container);
+
+		await waitForRender();
+		renderSpy.mockClear();
+
+		runtime.setMovability({ mode: 'disabled' });
+
+		await waitForRender();
+
+		expect(renderSpy).toHaveBeenCalled();
+		const [, , invalidation] = renderSpy.mock.calls[0];
+
+		// Verify Pieces layer is marked dirty
+		expect(invalidation.layers & DirtyLayer.Pieces).not.toBe(0);
+	});
+
+	it('movability and turn remain independent', async () => {
+		// Verifies: turn and movability do not infer from each other
+		const renderer = createTestRenderer();
+		const renderSpy = vi.spyOn(renderer, 'render');
+		const container = createMockContainer(400, 400);
+
+		const runtime = createBoardRuntime({
+			renderer,
+			position: 'start', // white to move
+			movability: { mode: 'free', color: 'black' }
+		});
+		runtime.mount(container);
+
+		await waitForRender();
+
+		const [snapshot] = renderSpy.mock.calls[0];
+
+		// Verify turn is white (from start position)
+		expect(snapshot.turn).toBe('white');
+		// Verify movability is black (independent)
+		expect(snapshot.movability).toEqual({ mode: 'free', color: 'black' });
+	});
 });

@@ -13,14 +13,13 @@ describe('SvgRenderer coordinates rendering', () => {
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		const coordsRoot = (renderer as any).coordsRoot as SVGGElement;
 
-		const pieces = new Uint8Array(64);
-		const ids = new Int16Array(64);
 		const state: StateSnapshot = {
-			pieces,
-			ids,
+			pieces: new Uint8Array(64),
+			ids: new Int16Array(64),
 			orientation: 'white',
 			turn: 'white',
-			selected: null
+			selected: null,
+			movability: null
 		};
 
 		const geometry = makeRenderGeometry(800, 'white');
@@ -43,14 +42,13 @@ describe('SvgRenderer coordinates rendering', () => {
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		const coordsRoot = (renderer as any).coordsRoot as SVGGElement;
 
-		const pieces = new Uint8Array(64);
-		const ids = new Int16Array(64);
 		const state: StateSnapshot = {
-			pieces,
-			ids,
+			pieces: new Uint8Array(64),
+			ids: new Int16Array(64),
 			orientation: 'white',
 			turn: 'white',
-			selected: null
+			selected: null,
+			movability: null
 		};
 
 		const geometry = makeRenderGeometry(800, 'white');
@@ -93,14 +91,13 @@ describe('SvgRenderer coordinates rendering', () => {
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		const coordsRoot = (renderer as any).coordsRoot as SVGGElement;
 
-		const pieces = new Uint8Array(64);
-		const ids = new Int16Array(64);
 		const state: StateSnapshot = {
-			pieces,
-			ids,
+			pieces: new Uint8Array(64),
+			ids: new Int16Array(64),
 			orientation: 'white',
 			turn: 'white',
-			selected: null
+			selected: null,
+			movability: null
 		};
 
 		const geometry = makeRenderGeometry(800, 'white');
@@ -143,14 +140,13 @@ describe('SvgRenderer coordinates rendering', () => {
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		const coordsRoot = (renderer as any).coordsRoot as SVGGElement;
 
-		const pieces = new Uint8Array(64);
-		const ids = new Int16Array(64);
 		const state: StateSnapshot = {
-			pieces,
-			ids,
+			pieces: new Uint8Array(64),
+			ids: new Int16Array(64),
 			orientation: 'black',
 			turn: 'white',
-			selected: null
+			selected: null,
+			movability: null
 		};
 
 		const geometry = makeRenderGeometry(800, 'black');
@@ -193,14 +189,13 @@ describe('SvgRenderer coordinates rendering', () => {
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		const coordsRoot = (renderer as any).coordsRoot as SVGGElement;
 
-		const pieces = new Uint8Array(64);
-		const ids = new Int16Array(64);
 		const state: StateSnapshot = {
-			pieces,
-			ids,
+			pieces: new Uint8Array(64),
+			ids: new Int16Array(64),
 			orientation: 'black',
 			turn: 'white',
-			selected: null
+			selected: null,
+			movability: null
 		};
 
 		const geometry = makeRenderGeometry(800, 'black');
@@ -243,14 +238,13 @@ describe('SvgRenderer coordinates rendering', () => {
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		const coordsRoot = (renderer as any).coordsRoot as SVGGElement;
 
-		const pieces = new Uint8Array(64);
-		const ids = new Int16Array(64);
 		const state: StateSnapshot = {
-			pieces,
-			ids,
+			pieces: new Uint8Array(64),
+			ids: new Int16Array(64),
 			orientation: 'white',
 			turn: 'white',
-			selected: null
+			selected: null,
+			movability: null
 		};
 
 		const geometry = makeRenderGeometry(800, 'white');
@@ -288,14 +282,13 @@ describe('SvgRenderer coordinates rendering', () => {
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		const coordsRoot = (renderer as any).coordsRoot as SVGGElement;
 
-		const pieces = new Uint8Array(64);
-		const ids = new Int16Array(64);
 		const state: StateSnapshot = {
-			pieces,
-			ids,
+			pieces: new Uint8Array(64),
+			ids: new Int16Array(64),
 			orientation: 'white',
 			turn: 'white',
-			selected: null
+			selected: null,
+			movability: null
 		};
 
 		const geometry = makeRenderGeometry(800, 'white');
