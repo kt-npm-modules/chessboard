@@ -22,7 +22,7 @@ import { makeRenderGeometry } from '../renderer/geometry';
 import type { Renderer, RenderGeometry } from '../renderer/types';
 import { computeInvalidation } from '../scheduler/invalidation';
 import { createScheduler, type Scheduler } from '../scheduler/scheduler';
-import { createInitialState, getSnapshot, type InternalState } from '../state/boardState';
+import { createInitialState, getSnapshot } from '../state/boardState';
 import {
 	clearDirty,
 	markDirtyLayer,
@@ -32,6 +32,7 @@ import {
 } from '../state/reducers';
 import {
 	DirtyLayer,
+	InternalState,
 	type ColorInput,
 	type Movability,
 	type PositionInput,

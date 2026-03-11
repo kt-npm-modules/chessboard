@@ -5,6 +5,7 @@ import { normalizeColor, normalizeRole } from './normalize';
 import {
 	Color,
 	ColorInput,
+	InternalState,
 	Movability,
 	Piece,
 	PositionInput,
@@ -14,23 +15,6 @@ import {
 	SquareString,
 	StateSnapshot
 } from './types';
-
-/**
- * Internal state shape (not exported publicly). Reducers will operate on this.
- */
-export interface InternalState {
-	pieces: Uint8Array;
-	ids: Int16Array;
-	nextId: number;
-
-	orientation: Color;
-	turn: Color;
-	selected: Square | null;
-	movability: Movability | null;
-
-	dirtySquares: Set<Square>;
-	dirtyLayers: number;
-}
 
 export interface InitialStateOptions {
 	position?: PositionInput; // 'start' | FEN | PositionMap | PositionMapShort

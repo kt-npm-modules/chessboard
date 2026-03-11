@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createInitialState, type InternalState } from '../../../src/core/state/boardState';
+import { createInitialState } from '../../../src/core/state/boardState';
 import { fromAlgebraic } from '../../../src/core/state/coords';
 import { decodePiece } from '../../../src/core/state/encode';
 import {
@@ -12,7 +12,7 @@ import {
 	setPosition,
 	setTurn
 } from '../../../src/core/state/reducers';
-import type { PieceShort, PositionMapShort } from '../../../src/core/state/types';
+import type { InternalState, PieceShort, PositionMapShort } from '../../../src/core/state/types';
 import { DirtyLayer } from '../../../src/core/state/types';
 
 describe('state/reducers', () => {

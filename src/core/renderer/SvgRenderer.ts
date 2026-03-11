@@ -1,10 +1,16 @@
 import { PartialDeep } from 'type-fest';
 import { squareOf, toAlgebraic } from '../state/coords';
 import { decodePiece } from '../state/encode';
-import { DirtyLayer, Square, type Color, type Role, type StateSnapshot } from '../state/types';
+import { DirtyLayer, Square, type Color, type Role } from '../state/types';
 import { cburnettSpriteUrl } from './assets';
 import { isLightSquare } from './geometry';
-import type { Invalidation, RenderConfig, Renderer, RenderGeometry } from './types';
+import type {
+	Invalidation,
+	RenderConfig,
+	Renderer,
+	RenderGeometry,
+	RenderStateSnapshot
+} from './types';
 import { DEFAULT_RENDER_CONFIG } from './types';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
@@ -145,7 +151,7 @@ export class SvgRenderer implements Renderer {
 		this.pieceNodes.clear();
 	}
 
-	render(state: StateSnapshot, geometry: RenderGeometry, invalidation: Invalidation): void {
+	render(state: RenderStateSnapshot, geometry: RenderGeometry, invalidation: Invalidation): void {
 		if (!this.svgRoot) throw new Error('SvgRenderer: Cannot render before mount()');
 
 		// Ensure size/viewBox matches geometry
@@ -158,7 +164,7 @@ export class SvgRenderer implements Renderer {
 		const layers = invalidation.layers;
 		if (layers & DirtyLayer.Board) {
 			this.drawBoard(this.config.light, this.config.dark, geometry);
-			this.drawCoords(state.orientation, geometry);
+			this.drawCoords(geometry.orientation, geometry);
 		}
 		if (layers & DirtyLayer.Pieces) this.drawPieces(state, geometry);
 	}
@@ -263,7 +269,7 @@ export class SvgRenderer implements Renderer {
 	 * - Removes nodes whose piece ids disappeared.
 	 * - Keeps sprite sheet approach.
 	 */
-	private drawPieces(state: StateSnapshot, g: RenderGeometry) {
+	private drawPieces(state: RenderStateSnapshot, g: RenderGeometry) {
 		const layer = this.piecesRoot;
 		this.clear(layer);
 		this.clear(this.defsDynamic);

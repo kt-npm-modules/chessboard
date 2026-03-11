@@ -4,7 +4,7 @@
  * - The renderer interprets DirtyLayer bitmask and (optionally) a set of specific squares.
  */
 
-import type { Square, StateSnapshot } from '../state/types';
+import type { Color, Square, StateSnapshot } from '../state/types';
 
 /**
  * Renderer-owned visual configuration.
@@ -52,8 +52,15 @@ export interface Invalidation {
 export interface RenderGeometry {
 	boardSize: number; // total board side in px
 	squareSize: number; // derived: boardSize / 8
+	orientation: Color; // 'white' or 'black', affects square indexing and coordinate rendering
 	squareRect(sq: Square): { x: number; y: number; size: number };
 }
+
+/**
+ * State snapshot shape exposed to the renderer.
+ * - Excludes orientation since renderer receives it separately in geometry.
+ */
+export type RenderStateSnapshot = Omit<StateSnapshot, 'orientation'>;
 
 /**
  * Minimal renderer interface understood by the scheduler.
@@ -63,5 +70,5 @@ export interface RenderGeometry {
 export interface Renderer {
 	mount(container: HTMLElement): void;
 	unmount(): void;
-	render(state: StateSnapshot, geometry: RenderGeometry, invalidation: Invalidation): void;
+	render(state: RenderStateSnapshot, geometry: RenderGeometry, invalidation: Invalidation): void;
 }

@@ -9,9 +9,8 @@
  * - For strict mode, consult destinations map
  */
 
-import type { InternalState } from '../state/boardState';
 import { isBlackCode, isEmpty, isWhiteCode } from '../state/encode';
-import type { MovableColor, Square } from '../state/types';
+import type { InternalState, MovableColor, Square } from '../state/types';
 
 /**
  * Check if a piece color matches the movability color policy.

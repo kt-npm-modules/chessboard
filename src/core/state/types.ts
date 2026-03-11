@@ -8,6 +8,7 @@
 import { ReadonlyDeep } from 'type-fest';
 
 export type Color = 'white' | 'black';
+export type Orientation = Color; // For clarity in context where it applies
 export type ColorShort = 'w' | 'b';
 export type ColorInput = Color | ColorShort;
 
@@ -147,11 +148,31 @@ export type DisabledMovability = {
 
 export type Movability = StrictMovability | FreeMovability | DisabledMovability;
 
-// Read-only snapshot shape exposed to consumers.
+/**
+ * Internal mutable board state used by reducers/runtime.
+ * Not intended as a renderer- or consumer-facing contract.
+ */
+export interface InternalState {
+	pieces: Uint8Array;
+	ids: Int16Array;
+	nextId: number;
+
+	orientation: Orientation;
+	turn: Color;
+	selected: Square | null;
+	movability: Movability | null;
+
+	dirtySquares: Set<Square>;
+	dirtyLayers: number;
+}
+
+/**
+ * State snapshot shape exposed to consumers.
+ */
 export interface StateSnapshot {
 	readonly pieces: ReadonlyDeep<Uint8Array>;
 	readonly ids: ReadonlyDeep<Int16Array>;
-	readonly orientation: Color;
+	readonly orientation: Orientation;
 	readonly turn: Color;
 	readonly selected: Square | null;
 	readonly movability: Movability | null;

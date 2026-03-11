@@ -34,6 +34,7 @@ export function makeRenderGeometry(boardSize: number, orientation: Color): Rende
 	return {
 		boardSize,
 		squareSize,
+		orientation,
 		squareRect
 	};
 }

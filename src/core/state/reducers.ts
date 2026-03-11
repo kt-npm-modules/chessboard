@@ -1,5 +1,4 @@
 import { START_FEN, parseFenPlacement, parseFenTurn } from '../notation/fen';
-import type { InternalState } from './boardState';
 import { assertValidSquare, fromAlgebraic, toValidSquare } from './coords';
 import { decodePiece, encodePiece, isEmpty } from './encode';
 import { normalizeColor, normalizeRole } from './normalize';
@@ -7,6 +6,7 @@ import type {
 	CastleSquare,
 	Color,
 	ColorInput,
+	InternalState,
 	Movability,
 	Move,
 	MoveInput,

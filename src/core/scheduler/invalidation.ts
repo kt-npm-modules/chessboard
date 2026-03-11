@@ -4,7 +4,7 @@
  */
 
 import type { Invalidation } from '../renderer/types';
-import type { InternalState } from '../state/boardState';
+import type { InternalState } from '../state/types';
 
 /**
  * Compute invalidation payload from state's accumulated dirty flags.
