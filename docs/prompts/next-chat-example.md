@@ -3,23 +3,22 @@ We are continuing work on `kt-npm-modules/chessboard`.
 ## Handoff summary
 
 - Project: `kt-npm-modules/chessboard` — MIT-licensed modern TypeScript chessboard engine with chessground-like interaction and cm-chessboard-like extension ideas.
-- Current task completed: Pre-Phase 2 / `0.3 — post-cleanup validation and dead-path sweep`.
-- Confirmed: `SvgRenderer` root ownership model remains `boardRoot`, `coordsRoot`, `piecesRoot`, `dragRoot`, plus reserved extension slot roots.
-- Confirmed: coordinate rendering was implemented in `SvgRenderer` via `drawCoords()` in chess.com-like style, inside edge squares.
-- Confirmed: rank labels render on the visual left edge in top-left square corners; file labels render on the visual bottom edge in bottom-right square corners.
-- Confirmed: orientation mapping is visual, not logical: white = `a8..a1` / `a1..h1`; black = `h1..h8` / `h8..a8`.
-- Confirmed: coordinate text color now uses `RenderConfig.coords.{light,dark}` for contrast-by-square semantics.
-- Confirmed: `RenderConfig.coords` changed from a single string to an object `{ light, dark }`.
-- Confirmed: `isLightSquare()` had a base parity bug and was fixed to classic chess parity where `a1` is dark.
-- Confirmed: separate `DirtyLayer.Coords` was removed as unnecessary/error-prone.
-- Confirmed: coordinates are still rendered in `coordsRoot`, but invalidation treats them as part of `DirtyLayer.Board`.
-- Confirmed: current dirty layers are `Board`, `Pieces`, `Drag`, `All`.
-- Confirmed: renderer now follows strict per-layer bit handling; `Board` redraw includes both board squares and coords.
-- Confirmed: reducer invalidation was updated accordingly (`setPosition()` / `setOrientation()` no longer use a coords bit).
-- Confirmed: focused renderer tests were updated for the new contract, and a test for `render()` before `mount()` was added.
-- Constraints: keep steps narrow, architecture-first, avoid speculative APIs, avoid unrelated refactors, prefer small diff review loops.
-- Relevant files: `src/core/renderer/SvgRenderer.ts`, `src/core/renderer/types.ts`, `src/core/renderer/geometry.ts`, `src/core/state/types.ts`, `src/core/state/reducers.ts`, `tests/core/renderer/svgRenderer.coords.spec.ts`, `tests/core/renderer/svgRenderer.structure.spec.ts`, `tests/core/state/reducers.spec.ts`, `current-plan.md`.
-- Next step: start Phase 2 — runtime composition, beginning with the narrowest internal runtime/controller contract step rather than public API shaping.
+- Current task completed: Phase 2.1 — first narrow runtime composition step.
+- Confirmed: internal runtime is implemented as POJO/factory style (`createBoardRuntime(...)`), not a class.
+- Confirmed: runtime is the main internal orchestrator of board lifecycle; renderer must not be queried for mount state.
+- Confirmed: runtime owns mount state, host-derived board size, render geometry, scheduler wiring, and render permission.
+- Confirmed: `mount(container)` measures and validates host size before mounting renderer.
+- Confirmed: board size is host-derived via `Math.min(container.clientWidth, container.clientHeight)`.
+- Confirmed: geometry is immutable derived data; runtime recreates geometry on orientation change instead of mutating it.
+- Confirmed: initial runtime redraw marks `DirtyLayer.Board | DirtyLayer.Pieces`, not `DirtyLayer.All`.
+- Confirmed: pre-mount state mutations are allowed; renderer must not be called before mount.
+- Confirmed: repeated `mount()` is rejected; invalid zero/non-positive container size throws.
+- Confirmed: `setTurn()` was intentionally excluded from Phase 2.1 runtime because it currently has no core render consequence.
+- Confirmed: runtime remains internal-only; no public export from `src/index.ts`.
+- Confirmed: runtime tests were tightened without adding testing-only production APIs or scheduler exposure.
+- Constraints: keep steps narrow, architecture-first, internal-only until justified; avoid public API shaping, drag/input work, extension redesign, speculative abstractions, and unrelated refactors.
+- Relevant files: `src/core/runtime/boardRuntime.ts`, `tests/core/runtime/boardRuntime.spec.ts`, `src/core/scheduler/scheduler.ts`, `src/core/scheduler/invalidation.ts`, `src/core/renderer/SvgRenderer.ts`, `src/core/renderer/geometry.ts`, `src/core/state/boardState.ts`, `src/core/state/reducers.ts`, `src/core/state/types.ts`, `current-plan.md`.
+- Next step: Phase 2.2 — add runtime-owned host resize / geometry refresh handling, still without entering input, drag lifecycle, extension model, or public API shaping.
 
 ## Attached plan
 
@@ -30,29 +29,29 @@ Use it as the roadmap reference, but in this chat focus only on the task below.
 
 We are continuing work on `kt-npm-modules/chessboard`.
 
-Focus only on: **Phase 2 — Runtime composition**, starting with the **first narrow internal step**.
+Focus only on: **Phase 2.2 — runtime-owned host resize / geometry refresh**.
 
 Goals:
 
-- define the minimal internal runtime/controller composition contract
-- clarify how state, renderer, and invalidation connect at runtime
+- define the minimal internal resize/reflow step after Phase 2.1 runtime composition
+- make runtime react to host size changes and refresh geometry
 - keep this internal-only and architecture-first
-- avoid starting drag system, extension model, or public API shaping
+- avoid starting input/controller work, drag lifecycle, extension model, or public API shaping
 
 Do:
 
-1. brief audit of the current runtime/composition-related code
-2. identify the smallest Phase 2 step that should be implemented first
+1. brief audit of current runtime + geometry + scheduler behavior relevant to resize
+2. identify the smallest Phase 2.2 step that should be implemented first
 3. recommend only minimal changes needed for that step
-4. prepare a precise implementation prompt for Cline + GPT-5
+4. prepare a precise implementation prompt for Cline + GPT-5/Sonnet
 5. later review the patch in a narrow diff loop
 
 Do not:
 
-- redesign extension APIs
-- start Phase 3 drag lifecycle work
+- redesign renderer contracts unless strictly necessary
+- start Phase 3 drag work
 - broaden into public API design
-- refactor unrelated renderer/state code
+- refactor unrelated state/renderer code
 - introduce speculative abstractions
 
 Working mode:
@@ -63,8 +62,14 @@ Working mode:
 4. focused test updates if needed
 5. later patch review
 
-Assume all previously confirmed Pre-Phase 2 decisions remain in force unless explicitly revised.
-Keep the step narrow and internal-runtime-focused.
+Assume all confirmed Phase 2.1 decisions remain in force unless explicitly revised.
+
+Relevant baseline from previous chat:
+
+- runtime already owns mount state, host-derived board size, geometry, scheduler wiring, and render permission
+- board size is currently measured from host via `Math.min(container.clientWidth, container.clientHeight)`
+- geometry is immutable and recreated on orientation change
+- resize observation/reflow was intentionally not implemented in Phase 2.1 and is the next narrow step
 
 ## Working mode
 
