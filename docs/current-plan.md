@@ -75,17 +75,26 @@
 
 ### 2.3 External input feeding
 
-**Status: IN PROGRESS**
-
-**Phase 2.3a — internal-only movability feeding into runtime/state/snapshot**
 **Status: COMPLETE**
 
-**Phase 2.3b — runtime/input begins consulting movability**
-**Status: NOT STARTED**
+**Phase 2.3a — internal-only movability feeding into runtime/state/snapshot**  
+**Status: COMPLETE**
 
-- Confirm external destinations remain input into core interaction/runtime
-- Clarify how host-provided data enters runtime without leaking into renderer
-- Keep legality source external, behavior usage internal
+**Phase 2.3b — runtime/input begins consulting movability**  
+**Status: COMPLETE**
+
+- Confirm external interaction policy enters runtime/state without leaking into renderer
+- Keep legality source external and board rule-agnostic
+- Store movability internally and consult it for move-attempt eligibility
+- Allow strict movability to carry external destinations while free movability allows unrestricted move attempts
+- Keep renderer independent from movability in Phase 2.3
+
+### Immediate renderer bugfix
+
+**Status: TODO**
+
+- Fix coordinate label placement under black orientation
+- Add/adjust focused renderer test for black orientation label placement
 
 ### 2.4 Runtime tests
 
@@ -94,6 +103,12 @@
 - Add tests for no-op updates / narrow updates
 
 ---
+
+### 2.5 Piece rendering review
+
+- Review current piece sprite rendering strategy before deeper drag/input work
+- Evaluate whether full-sprite `<image>` + `clip-path` is acceptable for piece hit-targeting and drag ownership
+- If needed, normalize per-piece DOM structure without redesigning unrelated renderer parts
 
 ## Phase 3 — Drag and interaction system
 

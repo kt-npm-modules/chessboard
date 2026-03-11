@@ -30,7 +30,17 @@ import {
 	setOrientation,
 	setPosition
 } from '../state/reducers';
-import { DirtyLayer, type ColorInput, type Movability, type PositionInput } from '../state/types';
+import {
+	DirtyLayer,
+	type ColorInput,
+	type Movability,
+	type PositionInput,
+	type Square
+} from '../state/types';
+import {
+	canStartMoveFrom as canStartMoveFromHelper,
+	isMoveAttemptAllowed as isMoveAttemptAllowedHelper
+} from './movability';
 
 export interface BoardRuntimeOptions {
 	renderer: Renderer;
@@ -44,6 +54,8 @@ export interface BoardRuntime {
 	setPosition(input: PositionInput): void;
 	setOrientation(input: ColorInput): void;
 	setMovability(m: Movability | null): boolean;
+	canStartMoveFrom(from: Square): boolean;
+	isMoveAttemptAllowed(from: Square, to: Square): boolean;
 	destroy(): void;
 }
 
@@ -168,6 +180,14 @@ export function createBoardRuntime(opts: BoardRuntimeOptions): BoardRuntime {
 				scheduler.schedule();
 			}
 			return changed;
+		},
+
+		canStartMoveFrom(from: Square): boolean {
+			return canStartMoveFromHelper(state, from);
+		},
+
+		isMoveAttemptAllowed(from: Square, to: Square): boolean {
+			return isMoveAttemptAllowedHelper(state, from, to);
 		},
 
 		destroy(): void {

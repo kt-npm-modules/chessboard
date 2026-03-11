@@ -613,4 +613,225 @@ describe('core/runtime/boardRuntime', () => {
 		// Verify movability is black (independent)
 		expect(snapshot.movability).toEqual({ mode: 'free', color: 'black' });
 	});
+
+	// Phase 2.3b: Movability consultation tests
+
+	it('null movability blocks all move attempts', () => {
+		// Verifies: null movability returns false for all queries
+		const renderer = createTestRenderer();
+		const container = createMockContainer(400, 400);
+
+		const runtime = createBoardRuntime({
+			renderer,
+			position: 'start',
+			movability: undefined
+		});
+		runtime.mount(container);
+
+		// Try to start move from white pawn on e2 (square 12)
+		expect(runtime.canStartMoveFrom(12)).toBe(false);
+		// Try to attempt move from e2 to e4
+		expect(runtime.isMoveAttemptAllowed(12, 28)).toBe(false);
+	});
+
+	it('disabled movability blocks all move attempts', () => {
+		// Verifies: disabled mode returns false for all queries
+		const renderer = createTestRenderer();
+		const container = createMockContainer(400, 400);
+
+		const runtime = createBoardRuntime({
+			renderer,
+			position: 'start',
+			movability: { mode: 'disabled' }
+		});
+		runtime.mount(container);
+
+		// Try to start move from white pawn on e2 (square 12)
+		expect(runtime.canStartMoveFrom(12)).toBe(false);
+		// Try to attempt move from e2 to e4
+		expect(runtime.isMoveAttemptAllowed(12, 28)).toBe(false);
+	});
+
+	it('free movability allows start from allowed color piece', () => {
+		// Verifies: free mode with white allows starting from white pieces
+		const renderer = createTestRenderer();
+		const container = createMockContainer(400, 400);
+
+		const runtime = createBoardRuntime({
+			renderer,
+			position: 'start',
+			movability: { mode: 'free', color: 'white' }
+		});
+		runtime.mount(container);
+
+		// White pawn on e2 (square 12) should be allowed
+		expect(runtime.canStartMoveFrom(12)).toBe(true);
+		// White knight on b1 (square 1) should be allowed
+		expect(runtime.canStartMoveFrom(1)).toBe(true);
+	});
+
+	it('free movability rejects start from disallowed color piece', () => {
+		// Verifies: free mode with white rejects starting from black pieces
+		const renderer = createTestRenderer();
+		const container = createMockContainer(400, 400);
+
+		const runtime = createBoardRuntime({
+			renderer,
+			position: 'start',
+			movability: { mode: 'free', color: 'white' }
+		});
+		runtime.mount(container);
+
+		// Black pawn on e7 (square 52) should be rejected
+		expect(runtime.canStartMoveFrom(52)).toBe(false);
+		// Black knight on b8 (square 57) should be rejected
+		expect(runtime.canStartMoveFrom(57)).toBe(false);
+	});
+
+	it('strict movability allows start only when source has destinations', () => {
+		// Verifies: strict mode requires destinations[from] to exist and have length > 0
+		const renderer = createTestRenderer();
+		const container = createMockContainer(400, 400);
+
+		const runtime = createBoardRuntime({
+			renderer,
+			position: 'start',
+			movability: {
+				mode: 'strict',
+				color: 'white',
+				destinations: {
+					12: [28, 20] // e2 can move to e4 or e3
+				}
+			}
+		});
+		runtime.mount(container);
+
+		// e2 (square 12) has destinations, should be allowed
+		expect(runtime.canStartMoveFrom(12)).toBe(true);
+		// d2 (square 11) has no destinations, should be rejected
+		expect(runtime.canStartMoveFrom(11)).toBe(false);
+	});
+
+	it('strict movability rejects start when source has no destinations', () => {
+		// Verifies: strict mode rejects pieces without destinations
+		const renderer = createTestRenderer();
+		const container = createMockContainer(400, 400);
+
+		const runtime = createBoardRuntime({
+			renderer,
+			position: 'start',
+			movability: {
+				mode: 'strict',
+				color: 'white',
+				destinations: {
+					12: [28] // only e2 has destinations
+				}
+			}
+		});
+		runtime.mount(container);
+
+		// f2 (square 13) has no destinations, should be rejected
+		expect(runtime.canStartMoveFrom(13)).toBe(false);
+		// g1 (square 6) knight has no destinations, should be rejected
+		expect(runtime.canStartMoveFrom(6)).toBe(false);
+	});
+
+	it('strict movability allows only listed target squares', () => {
+		// Verifies: strict mode allows moves only to listed destinations
+		const renderer = createTestRenderer();
+		const container = createMockContainer(400, 400);
+
+		const runtime = createBoardRuntime({
+			renderer,
+			position: 'start',
+			movability: {
+				mode: 'strict',
+				color: 'white',
+				destinations: {
+					12: [28, 20] // e2 can move to e4 (28) or e3 (20)
+				}
+			}
+		});
+		runtime.mount(container);
+
+		// e2 to e4 (12 -> 28) is in list, should be allowed
+		expect(runtime.isMoveAttemptAllowed(12, 28)).toBe(true);
+		// e2 to e3 (12 -> 20) is in list, should be allowed
+		expect(runtime.isMoveAttemptAllowed(12, 20)).toBe(true);
+	});
+
+	it('strict movability rejects unlisted target squares', () => {
+		// Verifies: strict mode rejects moves to unlisted destinations
+		const renderer = createTestRenderer();
+		const container = createMockContainer(400, 400);
+
+		const runtime = createBoardRuntime({
+			renderer,
+			position: 'start',
+			movability: {
+				mode: 'strict',
+				color: 'white',
+				destinations: {
+					12: [28] // e2 can only move to e4 (28)
+				}
+			}
+		});
+		runtime.mount(container);
+
+		// e2 to e3 (12 -> 20) is NOT in list, should be rejected
+		expect(runtime.isMoveAttemptAllowed(12, 20)).toBe(false);
+		// e2 to e5 (12 -> 36) is NOT in list, should be rejected
+		expect(runtime.isMoveAttemptAllowed(12, 36)).toBe(false);
+	});
+
+	it('changing movability via setMovability changes eligibility behavior', () => {
+		// Verifies: setMovability updates affect query results
+		const renderer = createTestRenderer();
+		const container = createMockContainer(400, 400);
+
+		const runtime = createBoardRuntime({
+			renderer,
+			position: 'start',
+			movability: { mode: 'disabled' }
+		});
+		runtime.mount(container);
+
+		// Initially disabled, should reject
+		expect(runtime.canStartMoveFrom(12)).toBe(false);
+
+		// Change to free white
+		runtime.setMovability({ mode: 'free', color: 'white' });
+
+		// Now should allow white pieces
+		expect(runtime.canStartMoveFrom(12)).toBe(true);
+
+		// Change to free black
+		runtime.setMovability({ mode: 'free', color: 'black' });
+
+		// Now should reject white pieces
+		expect(runtime.canStartMoveFrom(12)).toBe(false);
+		// But allow black pieces
+		expect(runtime.canStartMoveFrom(52)).toBe(true);
+	});
+
+	it('turn does not affect movability eligibility', () => {
+		// Verifies: movability is independent of turn
+		const renderer = createTestRenderer();
+		const container = createMockContainer(400, 400);
+
+		const runtime = createBoardRuntime({
+			renderer,
+			position: 'start', // turn is white
+			movability: { mode: 'free', color: 'black' }
+		});
+		runtime.mount(container);
+
+		// Even though turn is white, black pieces should be movable
+		// because movability says black
+		expect(runtime.canStartMoveFrom(52)).toBe(true); // black pawn on e7
+		expect(runtime.isMoveAttemptAllowed(52, 36)).toBe(true); // e7 to e5
+
+		// White pieces should NOT be movable
+		expect(runtime.canStartMoveFrom(12)).toBe(false); // white pawn on e2
+	});
 });
