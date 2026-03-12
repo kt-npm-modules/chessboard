@@ -2,7 +2,7 @@ import { Square } from '../state/boardTypes';
 import { markDirtyLayer, markDirtySquares } from './reducers';
 import { InvalidationStateInternal, InvalidationStateSnapshot, InvalidationWriter } from './types';
 
-export function createInitialInvalidationState(): InvalidationStateInternal {
+export function createInvalidationState(): InvalidationStateInternal {
 	return {
 		layers: 0,
 		squares: new Set<Square>()

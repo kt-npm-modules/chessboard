@@ -15,7 +15,7 @@
 import { makeRenderGeometry } from '../renderer/geometry';
 import type { Renderer, RenderGeometry } from '../renderer/types';
 import {
-	createInitialInvalidationState,
+	createInvalidationState,
 	createInvalidationWriter,
 	getInvalidationSnapshot
 } from '../scheduler/invalidationState';
@@ -108,7 +108,7 @@ export function createBoardRuntime(opts: BoardRuntimeInitOptions): BoardRuntime 
 	// Internal state
 	const boardState: BoardStateInternal = createBoardState(boardOpts);
 	const viewState: ViewStateInternal = createViewState(viewOpts);
-	const invalidationState = createInitialInvalidationState();
+	const invalidationState = createInvalidationState();
 	const invalidationWriter = createInvalidationWriter(invalidationState);
 	let boardSize: number | null = null;
 	let geometry: RenderGeometry | null = null;

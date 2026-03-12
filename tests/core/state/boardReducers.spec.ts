@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-	createInitialInvalidationState,
+	createInvalidationState,
 	createInvalidationWriter
 } from '../../../src/core/scheduler/invalidationState';
 import { DirtyLayer } from '../../../src/core/scheduler/types';
@@ -12,7 +12,7 @@ import { decodePiece } from '../../../src/core/state/encode';
 
 /** Helper: fresh invalidation state + writer pair for each test */
 function makeInv() {
-	const state = createInitialInvalidationState();
+	const state = createInvalidationState();
 	const writer = createInvalidationWriter(state);
 	return { inv: state, writer };
 }

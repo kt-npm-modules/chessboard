@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-	createInitialInvalidationState,
+	createInvalidationState,
 	createInvalidationWriter,
 	getInvalidationSnapshot
 } from '../../../src/core/scheduler/invalidationState';
@@ -9,9 +9,9 @@ import type { Square } from '../../../src/core/state/boardTypes';
 import { fromAlgebraic } from '../../../src/core/state/coords';
 
 describe('scheduler/invalidationState', () => {
-	describe('createInitialInvalidationState', () => {
+	describe('createInvalidationState', () => {
 		it('creates empty state: layers=0, squares empty', () => {
-			const state = createInitialInvalidationState();
+			const state = createInvalidationState();
 			expect(state.layers).toBe(0);
 			expect(state.squares.size).toBe(0);
 		});
@@ -19,7 +19,7 @@ describe('scheduler/invalidationState', () => {
 
 	describe('createInvalidationWriter', () => {
 		it('markLayer ORs the bitmask into layers', () => {
-			const state = createInitialInvalidationState();
+			const state = createInvalidationState();
 			const writer = createInvalidationWriter(state);
 
 			writer.markLayer(DirtyLayer.Board);
@@ -31,7 +31,7 @@ describe('scheduler/invalidationState', () => {
 		});
 
 		it('markLayer clears squares (whole-layer invalidation supersedes square-level)', () => {
-			const state = createInitialInvalidationState();
+			const state = createInvalidationState();
 			const writer = createInvalidationWriter(state);
 
 			const e4 = fromAlgebraic('e4') as Square;
@@ -43,7 +43,7 @@ describe('scheduler/invalidationState', () => {
 		});
 
 		it('markSquares ORs the bitmask and adds squares', () => {
-			const state = createInitialInvalidationState();
+			const state = createInvalidationState();
 			const writer = createInvalidationWriter(state);
 
 			const e2 = fromAlgebraic('e2') as Square;
@@ -58,7 +58,7 @@ describe('scheduler/invalidationState', () => {
 		});
 
 		it('markSquares accepts an iterable of squares', () => {
-			const state = createInitialInvalidationState();
+			const state = createInvalidationState();
 			const writer = createInvalidationWriter(state);
 
 			const e2 = fromAlgebraic('e2') as Square;
@@ -73,7 +73,7 @@ describe('scheduler/invalidationState', () => {
 
 	describe('getInvalidationSnapshot', () => {
 		it('returns layers and a copy of squares when non-empty', () => {
-			const state = createInitialInvalidationState();
+			const state = createInvalidationState();
 			const writer = createInvalidationWriter(state);
 
 			const e4 = fromAlgebraic('e4') as Square;
@@ -89,7 +89,7 @@ describe('scheduler/invalidationState', () => {
 		});
 
 		it('omits squares field when squares set is empty', () => {
-			const state = createInitialInvalidationState();
+			const state = createInvalidationState();
 			const writer = createInvalidationWriter(state);
 
 			writer.markLayer(DirtyLayer.Board);
@@ -101,7 +101,7 @@ describe('scheduler/invalidationState', () => {
 		});
 
 		it('returns layers=0 and no squares for fresh state', () => {
-			const state = createInitialInvalidationState();
+			const state = createInvalidationState();
 
 			const snap = getInvalidationSnapshot(state);
 
