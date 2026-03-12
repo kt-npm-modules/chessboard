@@ -3,23 +3,20 @@ We are continuing work on `kt-npm-modules/chessboard`.
 ## Handoff summary
 
 - **Project:** `kt-npm-modules/chessboard` on branch `feat/v1`.
-- **Current task:** Pre-Phase 2 and Phase 2.3 are complete; phase 2.4 is the next step.
-- **Confirmed decisions:** board/view split is final.
+- **Current task:** Phase 2.4 runtime test tightening was completed; next step is Phase 2.5 from the plan.
+- **Confirmed decisions:** board/view split remains final; do not reopen settled architecture.
 - **Board state:** `BoardStateInternal` owns only `pieces`, `ids`, `turn`, `nextId`; `BoardStateSnapshot` exposes only `pieces`, `ids`, `turn`.
-- **View state:** `ViewStateInternal` owns `orientation`, `selected`, `movability`; `ViewStateSnapshot` mirrors view-owned state only.
-- **Invalidation:** separate from both board and view state; invalidation reducers are internal plumbing, not public runtime API.
-- **Scheduler contract:** scheduler works with `BoardStateSnapshot` and `InvalidationStateSnapshot`.
-- **Renderer contract:** core renderer no longer depends on full view state; orientation for core rendering is derived through geometry, not board snapshot.
-- **Reducer/runtime contract:** if a reducer takes `InvalidationWriter`, runtime schedules after successful change; if a reducer does not take `InvalidationWriter`, runtime does not schedule.
-- **Runtime shape:** runtime owns `boardState`, `viewState`, and `invalidationState`; runtime orchestrates scheduler calls and future extension hooks.
+- **View state:** `ViewStateInternal` owns `orientation`, `selected`, `movability`; `ViewStateSnapshot` mirrors only view-owned state.
+- **Invalidation:** separate internal plumbing state; reducers use `InvalidationWriter`; runtime schedules only after successful reducers that take invalidation.
+- **Runtime shape:** runtime owns `boardState`, `viewState`, and `invalidationState`; scheduler works with `BoardStateSnapshot` and `InvalidationStateSnapshot`.
+- **Renderer contract:** core renderer does not depend on full view state; orientation for core rendering comes through geometry, not board snapshot.
 - **API decisions:** `move()` returns `Move`; simple setters return `boolean`.
-- **2.3 result:** movability is stored internally, consulted by runtime/input, and remains renderer-independent.
-- **Bugfix completed:** black-orientation coordinate label placement was fixed with focused renderer test coverage.
-- **Tests:** targeted test rewrite for the split is complete; mirrored `tests/...` structure now follows `src/...` per-file naming.
-- **Comments:** narrow comment/docstring pass is complete; stale combined-state comments were corrected without bloating docs.
-- **Constraints:** keep steps narrow, no redesign of settled architecture, do not invent speculative APIs, and mirror test structure to source structure.
-- **Relevant files:** `src/core/state/{boardState,viewState,boardReducers,viewReducers,boardTypes,viewTypes}.ts`, `src/core/runtime/boardRuntime.ts`, `src/core/scheduler/{scheduler,invalidationState,reducers,types}.ts`, `src/core/renderer/{types,SvgRenderer}.ts`, matching `tests/core/...` files, plus attached `current-plan.md`.
-- **Next step:** Phase 2.4 — review and tighten runtime tests around wiring and invalidation flow: state change → invalidation → render scheduling, plus no-op and narrow-update behavior.
+- **Phase 2.4 result:** runtime wiring coverage is now strong enough to mark the step complete, assuming local tests pass.
+- **Phase 2.4 tests added:** coalescing multiple scheduling mutations into one render; `setOrientation()` render receives `DirtyLayer.All`; `move()` render receives `DirtyLayer.Pieces` plus dirty source/destination squares.
+- **Constraints:** keep steps narrow; no redesign of runtime architecture; no speculative APIs; mirror test structure to source structure.
+- **Relevant files:** `tests/core/runtime/boardRuntime.spec.ts`, `src/core/runtime/boardRuntime.ts`, `src/core/scheduler/{scheduler,invalidationState,reducers,types}.ts`, `src/core/state/{boardState,viewState,boardReducers,viewReducers,boardTypes,viewTypes}.ts`, and `current-plan.md`.
+- **Patch review verdict:** the Phase 2.4 test diff was accepted as narrow and sufficient.
+- **Next step:** start Phase 2.5 only; review the plan, inspect the relevant current files, and keep the work limited to that phase’s scope.
 
 ## Attached plan
 
@@ -28,18 +25,30 @@ Use it as the roadmap reference, but in this chat focus only on the task below.
 
 ## Task for this chat
 
-Focus only on: **Phase 2.4 runtime tests**
+Focus only on **Phase 2.5** from `current-plan.md`.
 
 Goals:
 
-- Review whether current runtime tests adequately cover wiring between board/view state, invalidation, scheduler, and renderer.
-- Identify any missing focused tests for state change → invalidation → render scheduling and for no-op / narrow updates.
-- Produce a narrow implementation prompt for Cline if test gaps are found.
+- Review the current implementation only for the exact scope of Phase 2.5.
+- Check whether the current code already satisfies the step or whether there are narrow gaps.
+- Produce a brief verdict and, only if needed, a precise implementation prompt for Cline.
 
 Do not:
 
-- Redesign runtime architecture or reopen the board/view split.
-- Expand into phase 2.5 piece rendering review or phase 3 drag/interaction work.
+- Reopen the board/view split or redesign settled runtime architecture.
+- Rework Phase 2.4 runtime tests unless a Phase 2.5 issue directly depends on them.
+- Expand into later phases.
+
+Working mode:
+
+1. brief analysis
+2. concrete recommendation
+3. precise implementation prompt for Cline + GPT-5 only if gaps are found
+4. focused review of resulting diff later
+
+Use the current branch `feat/v1` and ask for specific files if needed.
+Do not invent file contents.
+Keep the step narrow and architecture-first.
 
 ## Working mode
 
