@@ -125,6 +125,8 @@
 
 ### 2.5 Piece rendering review
 
+**Status: COMPLETE**
+
 - Review current piece sprite rendering strategy before deeper drag/input work
 - Evaluate whether full-sprite `<image>` + `clip-path` is acceptable for piece hit-targeting and drag ownership
 - If needed, normalize per-piece DOM structure without redesigning unrelated renderer parts
