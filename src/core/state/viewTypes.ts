@@ -34,7 +34,7 @@ export interface ViewStateInternal {
 }
 
 /**
- * State snapshot shape exposed to consumers.
+ * State snapshot shape exposed to consumers. Contains only view-owned fields; board state is separate.
  */
 export interface ViewStateSnapshot {
 	readonly orientation: Orientation;

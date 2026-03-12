@@ -20,6 +20,10 @@ export function createInvalidationWriter(state: InvalidationStateInternal): Inva
 	};
 }
 
+/**
+ * Build a snapshot of the current invalidation state.
+ * Squares are copied into a new Set (not the live internal set); omitted when empty.
+ */
 export function getInvalidationSnapshot(
 	state: InvalidationStateInternal
 ): InvalidationStateSnapshot {

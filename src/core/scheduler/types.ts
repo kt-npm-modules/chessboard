@@ -14,7 +14,7 @@ export enum DirtyLayer {
 /**
  * Invalidation internal payload.
  * - layers: DirtyLayer bitmask
- * - squares: a shallow copy of dirtySquares (if non-empty)
+ * - squares: live mutable set of dirty squares
  */
 export interface InvalidationStateInternal {
 	layers: number;
@@ -29,6 +29,11 @@ export interface InvalidationStateSnapshot {
 	readonly squares?: ReadonlySet<Square>;
 }
 
+/**
+ * Write-only handle passed to reducers that need to mark invalidation.
+ * Reducers that receive this can signal which layers or squares need re-rendering.
+ * Reducers that do not receive this do not directly mark invalidation.
+ */
 export interface InvalidationWriter {
 	markLayer(layerMask: number): void;
 	markSquares(layerMask: number, squares: Square | Iterable<Square>): void;

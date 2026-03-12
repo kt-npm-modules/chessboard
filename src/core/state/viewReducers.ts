@@ -6,6 +6,8 @@ import { Movability, ViewStateInternal } from './viewTypes';
 
 /**
  * Set board orientation (view).
+ * Takes an InvalidationWriter and marks DirtyLayer.All on change,
+ * so the runtime can schedule a full re-render.
  */
 export function setOrientation(
 	state: ViewStateInternal,
@@ -22,6 +24,7 @@ export function setOrientation(
 /**
  * Set movability (externally-provided interaction policy).
  * No-op if movability is structurally equal to current value.
+ * Does not take an InvalidationWriter and does not directly mark invalidation.
  */
 export function setMovability(state: ViewStateInternal, m: Movability): boolean {
 	if (movabilityEquals(state.movability, m)) return false; // no-op
@@ -74,6 +77,7 @@ function movabilityEquals(a: Movability, b: Movability): boolean {
 /**
  * Select a square or clear selection with null.
  * Accepts numeric or algebraic square.
+ * Does not take an InvalidationWriter and does not directly mark invalidation.
  */
 export function select(state: ViewStateInternal, sq: SquareInput | null): boolean {
 	const newSel: Square | null = sq === null ? null : toValidSquare(sq as Square | SquareString); // toValidSquare will validate the square input

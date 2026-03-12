@@ -1,6 +1,6 @@
 /**
- * Renderer contracts (Phase 1/3).
- * - Purpose: define the minimal public contracts between scheduler/state and renderer.
+ * Renderer contracts.
+ * - Purpose: define the minimal public contracts between runtime/state and renderer.
  * - The renderer interprets DirtyLayer bitmask and (optionally) a set of specific squares.
  */
 
@@ -45,9 +45,9 @@ export interface RenderGeometry {
 }
 
 /**
- * Minimal renderer interface understood by the scheduler.
+ * Minimal renderer interface called by the runtime via the scheduler render callback.
  * - mount/unmount attach/detach DOM.
- * - render applies updates according to invalidation.
+ * - render applies updates according to board snapshot, invalidation, and geometry.
  */
 export interface Renderer {
 	mount(container: HTMLElement): void;

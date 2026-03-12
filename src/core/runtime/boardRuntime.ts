@@ -1,21 +1,15 @@
 /**
- * Internal runtime/composition layer (Phase 2 Steps 1-2).
- * Wires state + scheduler + renderer with mount-time DOM measurement and resize observation.
+ * Internal runtime/composition layer.
+ * Wires board state, view state, invalidation, scheduler, and renderer with
+ * mount-time DOM measurement and resize observation.
  *
  * Purpose:
  * - Internal lifecycle orchestrator (not public API)
- * - Owns InternalState, Scheduler, mount state, and host-derived board size
+ * - Owns board state, view state, invalidation state, scheduler, mount state, and host-derived board size
  * - Delegates rendering to Renderer via Scheduler
  * - Supports pre-mount state mutations
  * - Recreates immutable geometry on orientation change
  * - Observes host resize and refreshes geometry accordingly
- *
- * Not included in this step:
- * - Public Chessboard facade/class
- * - Input handling, drag lifecycle
- * - Event bus integration
- * - Extension APIs
- * - Policy integration
  */
 
 import { makeRenderGeometry } from '../renderer/geometry';
@@ -66,6 +60,12 @@ export interface BoardRuntimeInitOptions {
 	view?: ViewStateInitOptions;
 }
 
+/**
+ * Public interface for the internal runtime.
+ * Orchestrates board state, view state, and invalidation.
+ * Board/view reducers own mutation logic; the runtime coordinates scheduling
+ * and geometry updates in response to state changes.
+ */
 export interface BoardRuntime {
 	// Lifecycle
 	mount(container: HTMLElement): void;

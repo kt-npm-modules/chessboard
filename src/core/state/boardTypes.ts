@@ -140,7 +140,7 @@ export interface BoardStateInternal {
 }
 
 /**
- * State snapshot shape exposed to consumers.
+ * State snapshot shape exposed to consumers. Contains only board-owned fields; view state is separate.
  */
 export interface BoardStateSnapshot {
 	readonly pieces: Readonly<Uint8Array>;

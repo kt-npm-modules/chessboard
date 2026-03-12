@@ -27,11 +27,8 @@ import { normalizeColor, normalizeRole } from './normalize';
  * Semantics
  * - Clears the board first, then applies the provided position.
  * - Regenerates piece IDs for all occupied squares (ids[i] >= 1); empties get -1.
- * - Resets selection and last move:
- *   - selected = null
- *   - lastMove = null
  * - Marks dirty layers for a full redraw:
- *   - DirtyLayer.Board | DirtyLayer.Coords | DirtyLayer.Pieces
+ *   - DirtyLayer.Board | DirtyLayer.Pieces
  * - Turn handling:
  *   - If input is 'start' or a FEN string, state.turn is set from the FEN active color.
  *   - If input is a PositionMap/PositionMapShort (sparse map), state.turn is NOT changed.
@@ -49,7 +46,6 @@ import { normalizeColor, normalizeRole } from './normalize';
  *
  * @param state Internal mutable state
  * @param input 'start' | FEN | PositionMap | PositionMapShort
- * @returns void
  * @example
  * setBoardPosition(state, 'start');                      // standard start, white to move
  * setBoardPosition(state, '8/8/8/8/8/8/8/8 w - - 0 1');  // empty board, white to move
@@ -128,12 +124,10 @@ export interface MoveOptions {
  * - Promotion:
  *   - If opts.promotion is provided, the moving piece role is replaced by the promoted role.
  *   - RolePromotionInput accepts both long and short forms (e.g., 'queen' or 'Q').
- * - Updates turn and last move:
- *   - lastMove = { from, to }
- *   - turn toggles between 'white' and 'black'
+ * - Toggles turn between 'white' and 'black'.
  * - Dirty tracking:
- *   - Dirty squares: from, to
- *   - Dirty layers: DirtyLayer.Pieces | DirtyLayer.LastMove | DirtyLayer.Highlights
+ *   - Dirty squares: from, to (and capturedSquare if en passant-like)
+ *   - Dirty layers: DirtyLayer.Pieces
  *
  * Limitations (by design)
  * - No rules/legality checks (e.g., legal moves, check, en passant, castling) — handled by higher-level policy/integration.
