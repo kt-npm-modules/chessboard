@@ -191,6 +191,30 @@
 - Add tests for `currentTarget` updates, including off-board / `null` cases
 - Add tests for drag rendering behavior if source-piece suppression / drag preview ownership is renderer-visible
 
+### 3.6 Input / UI adapter wiring
+
+**Status: IN PROGRESS**
+
+- Add DOM/pointer adapter that reads board-local pointer coordinates
+- Use geometry + `mapBoardPointToSquare(...)` to resolve square or `null`
+- Feed controller on pointer down / move / up / cancel
+- Update `currentTarget` during active interaction through the adapter path
+- Clear target on off-board / leave / cancel according to settled semantics
+- Keep DOM event plumbing separate from controller/runtime logic
+- Do not expand public API in this step
+
+### 3.7 Input adapter tests
+
+**Status: TODO**
+
+- Add focused tests for DOM/pointer → controller/runtime wiring
+- Add tests for board-local coordinate extraction and square / `null` mapping through the adapter path
+- Add tests that pointer move updates `currentTarget` through the adapter
+- Add tests for off-board / leave behavior through the adapter
+- Add tests for pointer cancel / release behavior through the adapter
+- Confirm adapter wiring does not leak DOM concerns into controller/runtime contracts
+- Keep tests narrow and avoid re-covering controller lifecycle already validated in Phase 3.5
+
 ---
 
 ## Phase 4 — Extension / overlay model
