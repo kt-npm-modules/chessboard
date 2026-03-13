@@ -139,6 +139,11 @@ export function isMoveAttemptAllowed(
 		return dests !== undefined && dests.includes(to);
 	}
 
+	// Same-square is never a valid move attempt
+	if (from === to) {
+		return false;
+	}
+
 	// For free mode, color match is sufficient (any destination allowed)
 	return true;
 }

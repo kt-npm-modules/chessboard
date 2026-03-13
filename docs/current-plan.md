@@ -205,7 +205,7 @@
 
 ### 3.7 Input adapter tests
 
-**Status: TODO**
+**Status: COMPLETE**
 
 - Add focused tests for DOM/pointer → controller/runtime wiring
 - Add tests for board-local coordinate extraction and square / `null` mapping through the adapter path
