@@ -4,7 +4,6 @@
  * - Requires requestAnimationFrame in the environment; use flushNow() if you need an immediate render without rAF (e.g., SSR/tests).
  */
 
-import assert from '@ktarmyshov/assert';
 import type { BoardStateSnapshot } from '../state/boardTypes';
 import type { InvalidationStateSnapshot } from './types';
 
@@ -57,11 +56,7 @@ export function createScheduler(opts: SchedulerOptions): Scheduler {
 
 	return {
 		schedule() {
-			const raf = globalThis?.requestAnimationFrame;
-			assert.ok(
-				raf,
-				'requestAnimationFrame is required for scheduling; run in a browser context or polyfill it. You can still call flushNow() explicitly.'
-			);
+			const raf = globalThis.requestAnimationFrame;
 			if (scheduled || rafHandle != null) return;
 			scheduled = true;
 			const id = ++runId;
@@ -77,11 +72,7 @@ export function createScheduler(opts: SchedulerOptions): Scheduler {
 				scheduled = false;
 			}
 			if (rafHandle != null) {
-				const caf = globalThis?.cancelAnimationFrame;
-				assert.ok(
-					caf,
-					'cancelAnimationFrame is required to cancel pending frames in flushNow(); run in a browser context or polyfill it.'
-				);
+				const caf = globalThis.cancelAnimationFrame;
 				caf(rafHandle);
 				rafHandle = null;
 			}
@@ -90,11 +81,7 @@ export function createScheduler(opts: SchedulerOptions): Scheduler {
 		destroy() {
 			scheduled = false;
 			if (rafHandle != null) {
-				const caf = globalThis?.cancelAnimationFrame;
-				assert.ok(
-					caf,
-					'cancelAnimationFrame is required to cancel pending frames in destroy(); run in a browser context or polyfill it.'
-				);
+				const caf = globalThis.cancelAnimationFrame;
 				caf(rafHandle);
 			}
 			rafHandle = null;
