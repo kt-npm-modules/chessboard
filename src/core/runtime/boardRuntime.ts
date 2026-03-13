@@ -80,6 +80,8 @@ export interface InteractionSnapshot {
 	readonly view: Record<string, never>;
 	readonly interaction: {
 		readonly selectedSquare: Square | null;
+		readonly destinations: readonly Square[] | null;
+		readonly currentTarget: Square | null;
 		readonly dragSession: { readonly fromSquare: Square } | null;
 	};
 }
@@ -419,6 +421,8 @@ export function createBoardRuntime(opts: BoardRuntimeInitOptions): BoardRuntime 
 				view: {},
 				interaction: {
 					selectedSquare: interactionState.selectedSquare,
+					destinations: interactionState.destinations,
+					currentTarget: interactionState.currentTarget,
 					dragSession:
 						interactionState.dragSession !== null
 							? { fromSquare: interactionState.dragSession.fromSquare }

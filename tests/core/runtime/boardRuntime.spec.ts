@@ -973,4 +973,264 @@ describe('core/runtime/boardRuntime', () => {
 		// re-selecting works cleanly after the clear
 		expect(runtime.select(12)).toBe(true);
 	});
+
+	// ── Phase 3.5 runtime interaction/drag behavior ───────────────────────────
+
+	describe('Phase 3.5 runtime interaction/drag behavior', () => {
+		it('select() under strict movability derives active destinations', async () => {
+			const renderer = createTestRenderer();
+			const container = createMockContainer(400, 400);
+
+			const runtime = createBoardRuntime({
+				renderer,
+				board: { position: 'start' },
+				view: { movability: { mode: 'strict', color: 'white', destinations: { 12: [28, 20] } } }
+			});
+			runtime.mount(container);
+
+			await waitForRender();
+
+			const changed = runtime.select(12);
+			expect(changed).toBe(true);
+
+			const snap = runtime.getInteractionSnapshot();
+			expect(snap.interaction.selectedSquare).toBe(12);
+			expect(snap.interaction.destinations).toEqual([28, 20]);
+			expect(snap.interaction.dragSession).toBeNull();
+			expect(snap.interaction.currentTarget).toBeNull();
+		});
+
+		it('select(null) clears selectedSquare, destinations, dragSession, and currentTarget', async () => {
+			const renderer = createTestRenderer();
+			const container = createMockContainer(400, 400);
+
+			const runtime = createBoardRuntime({
+				renderer,
+				board: { position: 'start' },
+				view: { movability: { mode: 'strict', color: 'white', destinations: { 12: [28, 20] } } }
+			});
+			runtime.mount(container);
+
+			await waitForRender();
+
+			runtime.select(12);
+
+			const cleared = runtime.select(null);
+			expect(cleared).toBe(true);
+
+			const snap = runtime.getInteractionSnapshot();
+			expect(snap.interaction.selectedSquare).toBeNull();
+			expect(snap.interaction.destinations).toBeNull();
+			expect(snap.interaction.dragSession).toBeNull();
+			expect(snap.interaction.currentTarget).toBeNull();
+		});
+
+		it('dragStart(from) after select(from) creates dragSession and keeps selectedSquare/destinations and schedules render with drag source', async () => {
+			const renderer = createTestRenderer();
+			const renderSpy = vi.spyOn(renderer, 'render');
+			const container = createMockContainer(400, 400);
+
+			const runtime = createBoardRuntime({
+				renderer,
+				board: { position: 'start' },
+				view: { movability: { mode: 'strict', color: 'white', destinations: { 12: [28, 20] } } }
+			});
+			runtime.mount(container);
+
+			await waitForRender();
+			renderSpy.mockClear();
+
+			runtime.select(12);
+			const before = runtime.getInteractionSnapshot();
+			expect(before.interaction.selectedSquare).toBe(12);
+			expect(before.interaction.destinations).toEqual([28, 20]);
+			expect(before.interaction.dragSession).toBeNull();
+
+			const result = runtime.dragStart(12);
+			expect(result).toBe(true);
+
+			const after = runtime.getInteractionSnapshot();
+			expect(after.interaction.selectedSquare).toBe(12);
+			expect(after.interaction.destinations).toEqual([28, 20]);
+			expect(after.interaction.dragSession).not.toBeNull();
+
+			await waitForRender();
+
+			expect(renderSpy).toHaveBeenCalled();
+			const [ctx] = renderSpy.mock.calls[0];
+			expect(ctx.drag).not.toBeNull();
+			expect(ctx.drag!.sourceSquare).toBe(12);
+		});
+
+		it('setCurrentTarget() updates currentTarget to a square and back to null', () => {
+			const renderer = createTestRenderer();
+			const container = createMockContainer(400, 400);
+
+			const runtime = createBoardRuntime({
+				renderer,
+				board: { position: 'start' },
+				view: { movability: { mode: 'strict', color: 'white', destinations: { 12: [28, 20] } } }
+			});
+			runtime.mount(container);
+
+			runtime.select(12);
+			runtime.dragStart(12);
+
+			let snap = runtime.getInteractionSnapshot();
+			expect(snap.interaction.currentTarget).toBeNull();
+
+			runtime.setCurrentTarget(28);
+			snap = runtime.getInteractionSnapshot();
+			expect(snap.interaction.currentTarget).toBe(28);
+
+			runtime.setCurrentTarget(null);
+			snap = runtime.getInteractionSnapshot();
+			expect(snap.interaction.currentTarget).toBeNull();
+		});
+
+		it('cancelInteraction() clears only dragSession + currentTarget, keeps selectedSquare + destinations', () => {
+			const renderer = createTestRenderer();
+			const container = createMockContainer(400, 400);
+
+			const runtime = createBoardRuntime({
+				renderer,
+				board: { position: 'start' },
+				view: { movability: { mode: 'strict', color: 'white', destinations: { 12: [28, 20] } } }
+			});
+			runtime.mount(container);
+
+			runtime.select(12);
+			runtime.dragStart(12);
+			runtime.setCurrentTarget(28);
+
+			const changed = runtime.cancelInteraction();
+			expect(changed).toBe(true);
+
+			const snap = runtime.getInteractionSnapshot();
+			expect(snap.interaction.dragSession).toBeNull();
+			expect(snap.interaction.currentTarget).toBeNull();
+			expect(snap.interaction.selectedSquare).toBe(12);
+			expect(snap.interaction.destinations).toEqual([28, 20]);
+		});
+
+		it('legal dropTo(to) from active drag clears all interaction and applies the move; render ctx after completion has drag === null', async () => {
+			const renderer = createTestRenderer();
+			const renderSpy = vi.spyOn(renderer, 'render');
+			const container = createMockContainer(400, 400);
+
+			const runtime = createBoardRuntime({
+				renderer,
+				board: { position: 'start' },
+				view: { movability: { mode: 'strict', color: 'white', destinations: { 12: [28, 20] } } }
+			});
+			runtime.mount(container);
+
+			await waitForRender();
+			renderSpy.mockClear();
+
+			runtime.select(12);
+			runtime.dragStart(12);
+
+			renderSpy.mockClear();
+			const move = runtime.dropTo(28);
+			expect(move).toBeTruthy();
+
+			const snap = runtime.getInteractionSnapshot();
+			expect(snap.interaction.selectedSquare).toBeNull();
+			expect(snap.interaction.destinations).toBeNull();
+			expect(snap.interaction.dragSession).toBeNull();
+			expect(snap.interaction.currentTarget).toBeNull();
+
+			await waitForRender();
+
+			expect(renderSpy).toHaveBeenCalled();
+			const [ctx] = renderSpy.mock.calls[0];
+			expect(ctx.drag).toBeNull();
+			expect(ctx.board.pieces[28]).not.toBe(0);
+			expect(ctx.board.pieces[12]).toBe(0);
+		});
+
+		it('illegal dropTo(to) in lifted-piece mode clears dragSession + currentTarget and keeps selectedSquare + destinations', () => {
+			const renderer = createTestRenderer();
+			const container = createMockContainer(400, 400);
+
+			const runtime = createBoardRuntime({
+				renderer,
+				board: { position: 'start' },
+				view: { movability: { mode: 'strict', color: 'white', destinations: { 12: [28, 20] } } }
+			});
+			runtime.mount(container);
+
+			runtime.select(12);
+			runtime.dragStart(12);
+
+			const res = runtime.dropTo(36); // unlisted target
+			expect(res).toBeNull();
+
+			const snap = runtime.getInteractionSnapshot();
+			expect(snap.interaction.dragSession).toBeNull();
+			expect(snap.interaction.currentTarget).toBeNull();
+			expect(snap.interaction.selectedSquare).toBe(12);
+			expect(snap.interaction.destinations).toEqual([28, 20]);
+		});
+
+		it('illegal dropTo(to) with selected non-drag clears all interaction fields', () => {
+			const renderer = createTestRenderer();
+			const container = createMockContainer(400, 400);
+
+			const runtime = createBoardRuntime({
+				renderer,
+				board: { position: 'start' },
+				view: { movability: { mode: 'strict', color: 'white', destinations: { 12: [28, 20] } } }
+			});
+			runtime.mount(container);
+
+			runtime.select(12); // selected, no drag (release-targeting mode)
+			const res = runtime.dropTo(36); // unlisted target
+			expect(res).toBeNull();
+
+			const snap = runtime.getInteractionSnapshot();
+			expect(snap.interaction.selectedSquare).toBeNull();
+			expect(snap.interaction.destinations).toBeNull();
+			expect(snap.interaction.dragSession).toBeNull();
+			expect(snap.interaction.currentTarget).toBeNull();
+		});
+
+		it('renderer-visible ownership: source leaves piecesRoot during drag; dragRoot has one image; after illegal drop returns', async () => {
+			const renderer = createTestRenderer();
+			const container = createMockContainer(400, 400);
+
+			// Single movable piece on e2 ensures piecesRoot empties during drag
+			const runtime = createBoardRuntime({
+				renderer,
+				board: { position: { e2: { color: 'w', role: 'p' } } },
+				view: { movability: { mode: 'strict', color: 'white', destinations: { 12: [28, 20] } } }
+			});
+			runtime.mount(container);
+
+			await waitForRender();
+
+			runtime.select(12);
+			runtime.dragStart(12);
+
+			await waitForRender();
+
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const piecesRoot = (renderer as any).piecesRoot as SVGGElement;
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const dragRoot = (renderer as any).dragRoot as SVGGElement;
+
+			// During drag: source piece leaves piecesRoot, exactly one image in dragRoot
+			expect(piecesRoot.children.length).toBe(0);
+			expect(dragRoot.children.length).toBe(1);
+
+			// Illegal lifted-piece drop: piece returns, dragRoot empties
+			runtime.dropTo(36);
+
+			await waitForRender();
+
+			expect(dragRoot.children.length).toBe(0);
+			expect(piecesRoot.children.length).toBe(1);
+		});
+	});
 });
