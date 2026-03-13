@@ -3,20 +3,24 @@ We are continuing work on `kt-npm-modules/chessboard`.
 ## Handoff summary
 
 - **Project:** `kt-npm-modules/chessboard` on branch `feat/v1`.
-- **Current task completed:** reviewed and accepted **Phase 3.4** from `current-plan.md`.
-- **Phase 3.4 result:** added a pure input-layer helper for board-local coordinate → square mapping.
-- **Confirmed implementation:** `src/core/input/squareMapping.ts` now provides `mapBoardPointToSquare(x, y, geometry): Square | null`.
-- **Confirmed mapping model:** helper uses **O(1) arithmetic mapping** from board-local coordinates; no iteration over 64 squares.
-- **Confirmed orientation inversion:** white maps top-left to `a8` / bottom-right to `h1`; black maps top-left to `h1` / bottom-right to `a8`.
-- **Confirmed no-square convention:** helper returns `null` for off-board and non-finite coordinates; `null` remains the single no-square convention.
-- **Confirmed architectural boundary:** Phase 3.4 stayed input-layer only; no runtime, controller, or renderer contract redesign.
-- **Confirmed non-goals preserved:** no DOM event plumbing, no pointer coordinates added to runtime/renderer, no public API expansion.
-- **Tests status:** focused tests for white/black mapping, off-board/null behavior, and boundary cases were added and accepted.
-- **Acceptance verdict:** **Phase 3.4 accepted and closed.**
-- **Relevant files:** `src/core/input/squareMapping.ts`, `tests/core/input/squareMapping.spec.ts`, `src/core/renderer/geometry.ts`, `src/core/state/coords.ts`, `current-plan.md`.
-- **Constraint carried forward:** do not reopen settled Phase 3.1 / 3.2 / 3.3 / 3.4 decisions unless the exact next step requires it.
+- **Current task completed:** reviewed and accepted **Phase 3.5**.
+- **Phase 3.5 result:** runtime interaction snapshot observability was extended minimally for testing.
+- **Confirmed implementation:** `InteractionSnapshot.interaction` in `src/core/runtime/boardRuntime.ts` now includes `destinations` and `currentTarget` as internal passthrough runtime state.
+- **Confirmed boundary:** this snapshot change is internal/test-facing only; no public API expansion was accepted.
+- **Confirmed tests added:** `tests/core/runtime/boardRuntime.spec.ts` now covers runtime-side interaction/drag behavior rather than duplicating controller specs.
+- **Confirmed covered behaviors:** strict-movability selection state, `select(null)` clearing, drag start, `setCurrentTarget`, `cancelInteraction`, legal drop, illegal dragged drop, illegal selected non-drag drop, and one renderer-visible drag ownership check.
+- **Confirmed semantic distinction:** illegal drop from active drag (“lifted-piece path”) preserves selection/destinations while clearing drag/currentTarget; illegal drop from selected non-drag (“release-targeting path”) clears all interaction fields.
+- **Confirmed cleanup:** an initially weak/duplicative “strict movability flow” test was removed; a misleading release-targeting test was renamed to match actual coverage.
+- **Acceptance verdict:** **Phase 3.5 accepted and closed.**
+- **Plan update decided:** roadmap was recognized as missing an explicit implementation step for DOM/pointer → controller wiring after square mapping.
+- **Confirmed new roadmap steps:** add **3.6 Input / UI adapter wiring** and **3.7 Input adapter tests** to `current-plan.md`.
+- **3.6 scope agreed:** DOM/pointer adapter reads board-local coordinates, uses `geometry` + `mapBoardPointToSquare(...)`, feeds controller on down/move/up/cancel, updates `currentTarget`, and clears target on off-board/leave/cancel without expanding public API.
+- **3.7 scope agreed:** focused adapter-path tests for DOM/pointer → controller/runtime wiring, coordinate extraction, square/`null` mapping, `currentTarget` updates, off-board/leave, and cancel/release behavior.
+- **Relevant files:** `src/core/runtime/boardRuntime.ts`, `tests/core/runtime/boardRuntime.spec.ts`, `src/core/input/squareMapping.ts`, `tests/core/input/interactionController.spec.ts`, `src/core/renderer/geometry.ts`, `current-plan.md`.
+- **Constraint carried forward:** do not reopen settled Phase 3.1 / 3.2 / 3.3 / 3.4 / 3.5 decisions unless the exact next step requires it.
 - **Working style carried forward:** narrow, architecture-first review; inspect actual current files only; produce a precise Cline prompt only if a real gap exists.
-- **Next step:** start **Phase 3.5** only, using `current-plan.md` as the roadmap and keeping scope tightly limited to that phase.
+- **Model workflow carried forward:** return to Sonnet 4.6 for ordinary narrow implementation steps; use GPT-5 selectively for architectural ambiguity or scope-discipline problems.
+- **Next step:** start **Phase 3.6 Input / UI adapter wiring** only, then later review diff and follow with **Phase 3.7** adapter-path tests.
 
 ## Attached plan
 
@@ -25,25 +29,27 @@ Use it as the roadmap reference, but in this chat focus only on the task below.
 
 ## Task for this chat
 
-Focus only on the **next exact step after Phase 3.4** from `current-plan.md` (**Phase 3.5**).
+Focus only on **Phase 3.6 Input / UI adapter wiring** from `current-plan.md`.
 
 Goals:
 
-- Review the current implementation only for the exact scope of **Phase 3.5**.
-- Check whether the current code already satisfies any part of that step or whether there are narrow gaps.
+- Review the current implementation only for the exact scope of **Phase 3.6**.
+- Check whether a DOM/pointer adapter already exists partially or whether there are narrow gaps.
+- Keep the step limited to wiring pointer/UI input into the existing controller/runtime flow using the already accepted square-mapping helper.
 - Produce a brief verdict and, only if needed, a precise implementation prompt for Cline.
 
 Do not:
 
-- Reopen settled Phase 3.1 / 3.2 / 3.3 / 3.4 decisions.
-- Redesign controller/runtime/renderer/input boundaries unless Phase 3.5 directly requires it.
-- Expand into later Phase 3+ steps.
+- Reopen settled Phase 3.1 / 3.2 / 3.3 / 3.4 / 3.5 decisions.
+- Redesign controller/runtime/renderer boundaries unless Phase 3.6 directly requires it.
+- Expand into Phase 3.7 tests except to mention them briefly if they affect this step.
+- Expand public API.
 
 Working mode:
 
 1. brief analysis
 2. concrete recommendation
-3. precise implementation prompt for Cline + GPT-5 only if gaps are found
+3. precise implementation prompt for Cline + Sonnet 4.6 only if gaps are found
 4. focused review of resulting diff later
 
 Keep the step narrow, architecture-first, and grounded in the actual current files on branch `feat/v1`.
