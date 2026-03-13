@@ -17,5 +17,4 @@ export type { Renderer, RenderGeometry } from './core/renderer/types';
 export { isLightSquare, makeRenderGeometry } from './core/renderer/geometry';
 
 // SVG renderer and assets
-export { cburnettSpriteUrl } from './core/renderer/assets';
 export { SvgRenderer } from './core/renderer/SvgRenderer';
