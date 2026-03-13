@@ -19,3 +19,5 @@ Ignore:
 Maximum length: 15–20 lines.
 Output only the summary.
 Output as markdown block.
+
+Also generate a separate block for the next-chat-template.md/## Task for this chat.

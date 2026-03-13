@@ -3,20 +3,22 @@ We are continuing work on `kt-npm-modules/chessboard`.
 ## Handoff summary
 
 - **Project:** `kt-npm-modules/chessboard` on branch `feat/v1`.
-- **Current task completed:** Phase 2.5 is complete.
-- **Phase 2.5 result:** renderer no longer uses runtime sprite-sheet cropping for pieces.
-- **Confirmed renderer decision:** piece rendering now uses per-piece cburnett SVG assets instead of `pieces.svg` sprite slicing.
-- **Asset set in use:** `assets/pieces/cburnett/{wk,wq,wr,wb,wn,wp,bk,bq,br,bb,bn,bp}.svg`.
-- **Legacy asset status:** `assets/pieces/cburnett/pieces.svg` remains only as legacy/source reference, not runtime piece rendering input.
-- **Renderer structure decision:** one local `<image>` per piece, keyed by stable piece id; no per-piece `clipPath`, no sprite tile offset logic, no full-sheet `<image>`.
-- **DOM locality issue:** resolved; piece nodes now inspect as local square-sized image elements.
-- **Manual verification:** orientation `black` renders correctly; coordinates/labels also look correct.
-- **Tests updated:** renderer structure tests were narrowed to the new per-piece asset model and reuse behavior.
-- **Confirmed architecture decisions remain unchanged:** board/view split stays final; do not reopen settled runtime architecture.
-- **Constraints:** keep steps narrow; no redesign of runtime/state/input; no speculative drag APIs; mirror test structure to source structure.
-- **Relevant files:** `src/core/renderer/SvgRenderer.ts`, `src/core/renderer/assets.ts`, `tests/core/renderer/svgRenderer.structure.spec.ts`, `assets/pieces/cburnett/*`, and `current-plan.md`.
-- **Review verdict:** Phase 2.5 accepted and closed.
-- **Next step:** start **Phase 3.1** only, using `current-plan.md` as the roadmap reference and keeping work limited to that step’s exact scope.
+- **Current task completed:** **Phase 3.1** is implemented, reviewed, and accepted.
+- **Phase 3.1 result:** core now has a dedicated `interactionState`; `selected` no longer lives in `viewState`.
+- **Confirmed state split:** `boardState` = board facts; `viewState` = presentation/config + interaction policy config; `interactionState` = active interaction facts.
+- **Confirmed `viewState` contents:** `orientation` and `movability` remain in `viewState`.
+- **Confirmed `interactionState` contents:** `selectedSquare`, `destinations`, `dragSession`, `currentTarget`.
+- **Confirmed selection modeling:** selected piece context is **derived from board state + selectedSquare**; no stored `selectedPiece` or selection object.
+- **Confirmed drag modeling:** `DragSession` is minimal and currently stores only `fromSquare`.
+- **Confirmed target modeling:** `currentTarget` is the square under active interaction focus/pointer; it is not restricted to valid destinations.
+- **Confirmed validity rule:** target validity is derived separately via membership in `destinations`; `currentTarget` is a pointer fact, not a legality fact.
+- **Confirmed destinations modeling:** `interactionState.destinations` is the **active destination set for the current selected/drag source only**, not the full strict movability map.
+- **Runtime wiring:** `runtime.select()` now routes through `interactionState`; `setBoardPosition()` clears interaction state via `clearInteraction(...)`.
+- **Tests added/updated:** new interaction state/reducer tests plus focused runtime wiring tests; local tests pass.
+- **Constraints preserved:** keep steps narrow; no reopening settled board/view/runtime architecture; no Phase 3.2+ behavior; no renderer redesign; no speculative public API expansion.
+- **Relevant files:** `src/core/state/viewTypes.ts`, `src/core/state/viewState.ts`, `src/core/state/viewReducers.ts`, `src/core/state/interactionTypes.ts`, `src/core/state/interactionState.ts`, `src/core/state/interactionReducers.ts`, `src/core/runtime/boardRuntime.ts`, `tests/core/state/*`, `tests/core/runtime/boardRuntime.spec.ts`, `current-plan.md`.
+- **Review verdict:** Phase 3.1 accepted and closed.
+- **Next step:** start the **next exact step from `current-plan.md`** only, using the same narrow architecture-first review process before implementation.
 
 ## Attached plan
 
@@ -25,19 +27,19 @@ Use it as the roadmap reference, but in this chat focus only on the task below.
 
 ## Task for this chat
 
-Focus only on **Phase 3.1** from `current-plan.md`.
+Focus only on the **next exact step after Phase 3.1** from `current-plan.md`.
 
 Goals:
 
-- Review the current implementation only for the exact scope of Phase 3.1.
+- Review the current implementation only for the exact scope of that step.
 - Check whether the current code already satisfies the step or whether there are narrow gaps.
 - Produce a brief verdict and, only if needed, a precise implementation prompt for Cline.
 
 Do not:
 
-- Reopen the board/view split or redesign settled runtime architecture.
-- Rework Phase 2.5 renderer changes unless a Phase 3.1 issue directly depends on them.
-- Expand into later Phase 3 steps.
+- Reopen the settled board/view/runtime split.
+- Rework Phase 3.1 unless the next step directly depends on it.
+- Expand into later Phase 3+ steps.
 
 Working mode:
 
