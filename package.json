@@ -1,7 +1,7 @@
 {
 	"name": "@ktarmyshov/chessboard",
 	"description": "A chessboard UI library for JavaScript and TypeScript projects, providing an interactive and customizable chessboard component.",
-	"version": "0.0.4",
+	"version": "0.0.5",
 	"license": "MIT",
 	"author": {
 		"name": "Konstantin Tarmyshov",
