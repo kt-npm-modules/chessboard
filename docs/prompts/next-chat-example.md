@@ -2,23 +2,23 @@ We are continuing work on `mirasen-io/chessboard`.
 
 ## Handoff summary
 
-- **Project:** `kt-npm-modules/chessboard` on branch `feat/v1`.
-- **Phase status:** Phase 3.1–3.7 is accepted and closed; manual runtime playground now mounts and basic runtime interaction works.
-- **Current task:** prepare Phase 3 follow-up work for visual/runtime bug fixes and animation.
-- **Confirmed decisions:** add **3.8 Drag visual bug-fix pass**, **3.9 Move animation architecture + base implementation**, **3.10 Castling animation integration** to `current-plan.md`.
-- **Confirmed 3.8 scope:** active drag currently commits moves on release but drag preview is missing; fix drag visual path without reopening settled interaction architecture.
-- **Confirmed 3.8 extra bug:** prevent native text selection / coordinate-label selection during active board dragging.
-- **Confirmed preferred 3.8 direction:** do not overload `setCurrentTarget(...)` with implicit drag-redraw semantics.
-- **Confirmed runtime/controller direction:** extend `InteractionRuntimeSurface` with a separate drag-motion redraw signal (preferred name discussed: `notifyDragMove()`), while keeping `setCurrentTarget(...)` as semantic target update only.
-- **Confirmed controller behavior for 3.8:** on pointer move, update target square; if a drag session exists, also notify drag movement for transient drag visual redraw.
-- **Confirmed runtime behavior for 3.8:** `notifyDragMove()` should mark `DirtyLayer.Drag` and schedule render, even when pointer movement stays within the same square.
-- **Confirmed reason:** same-square pointer movement may leave semantic target unchanged, but drag visuals still must rerender because transient pointer-position visuals move.
-- **Confirmed test gap:** current tests do not catch missing drag redraw on pointer move; add/update drag tests to verify rerender after `onPointerMove`, especially for same-square movement.
-- **Confirmed 3.9 direction:** move animation must be designed from the start for both single-piece and multi-piece committed moves; ownership stays in renderer/view layer.
-- **Confirmed 3.10 direction:** castling animation should use the general animation model from 3.9, not a separate one-off system.
-- **Relevant files:** `current-plan.md`, `src/core/input/interactionController.ts`, `src/core/runtime/boardRuntime.ts`, `src/core/renderer/SvgRenderer.ts`, `src/core/renderer/assets.ts`, `tests/core/input/inputAdapter.spec.ts`, runtime/manual playground files under `tests/chessboard-test`.
-- **Related fix already found:** asset URLs in renderer needed correction to reach package-level `assets/` from built `dist/` files.
-- **Next step:** start a new chat focused on **3.8 Drag visual bug-fix pass**, beginning with runtime/controller/renderer integration for drag redraw and the missing drag-preview behavior, then update tests accordingly.
+- **Project:** `mirasen-io/chessboard` on branch `feat/v1`.
+- **Current task:** Phase 3.8 drag visual bug-fix pass is implemented and manually verified; prepare next chat for Phase 4 follow-up work.
+- **Phase 3.8 result:** accepted in substance after manual check: drag preview initializes immediately on `pointerdown`, follows pointer smoothly, same-square movement redraw works, and native text / coordinate selection during drag is prevented.
+- **Confirmed 3.8 architecture:** runtime owns `transientVisuals`; renderer now receives `interaction` + `transientVisuals` through `RenderingContext`; old derived `drag` payload / `DragRenderInfo` was removed.
+- **Confirmed input/runtime contracts:** controller pointer move uses `onPointerMove(target: Square | null, point: BoardPoint | null)`; runtime uses `notifyDragMove(point: BoardPoint | null)`; drag start now initializes visual pointer on `pointerdown` rather than waiting for first `pointermove`.
+- **Confirmed runtime direction:** `dragStart(from, point)` initializes `transientVisuals.dragPointer` immediately; `notifyDragMove(point)` remains for subsequent drag motion updates.
+- **Confirmed manual behavior:** dragged piece “jumps into hand” immediately on `pointerdown`; drag is smooth; text does not get selected while dragging.
+- **Known remaining UX topic:** repeated same-piece drag / selection behavior after `drop-to-source` is not yet finalized and should be revisited only after selection becomes visually observable.
+- **Confirmed decision:** do **not** chase that repeated-drag UX now in Phase 3.8; postpone it to Phase 4 after a minimal selected-square highlight extension exists.
+- **Phase 4 plan additions agreed:** add **4.3a Selected-square highlight as first diagnostic interaction visual** and **4.3b UX alignment pass for repeated same-piece drag after drop-to-source**.
+- **Confirmed 4.3a scope:** first interaction overlay should be a minimal selected-square highlight only; purpose is observability/manual debugging, not final UX polish; no animation and no broad annotation system yet.
+- **Confirmed 4.3b scope:** after selected-square highlight exists, manually verify repeated same-piece flow against chess.com-style UX and, if needed, implement a narrow semantic alignment pass only for that flow.
+- **Extension test addition agreed:** under `4.5 Extension tests`, add focused tests that selected-square highlight reflects core interaction selection state and clears when selection clears; keep tests narrow and avoid broad renderer snapshot suites unless necessary.
+- **Relevant files touched in 3.8:** `src/core/input/inputAdapter.ts`, `src/core/input/interactionController.ts`, `src/core/runtime/boardRuntime.ts`, renderer context/types files, `src/core/renderer/SvgRenderer.ts`, and focused tests under `tests/core/input/`, `tests/core/runtime/`, and `tests/core/renderer/`.
+- **Relevant planning file:** `current-plan.md` should be updated with the agreed new Phase 4 items and the small `4.5` test addition.
+- **Workflow constraint:** for Cline work, prompts in the plan -> correction -> revised plan loop must contain only delta corrections / constraint reinforcements; do not tell Cline to proceed, start implementation, or switch to Act. The user switches Act manually in the UI.
+- **Next step:** start a new chat to update `current-plan.md` with the agreed Phase 4 additions and then prepare the next narrow task around the first selected-square highlight extension.
 
 ## Attached plan
 
@@ -27,32 +27,42 @@ Use it as the roadmap reference, but in this chat focus only on the task below.
 
 ## Task for this chat
 
-Focus only on **Phase 3.8 Drag visual bug-fix pass** from `current-plan.md`.
+Update `current-plan.md` for Phase 4 using the decisions from the previous chat.
 
-Goals:
+Apply these additions in the style and numbering of the existing plan:
 
-- Investigate why active drag is not visually rendered in the runtime/manual sandbox.
-- Confirm whether drag interaction is starting correctly and why drag preview is missing while move commit on release already works.
-- Implement the preferred fix direction:
-  - keep `setCurrentTarget(...)` as semantic target update
-  - add a separate drag-motion redraw signal on `InteractionRuntimeSurface` (for example `notifyDragMove()`)
-  - controller should update target on pointer move and, when a drag session exists, also notify drag movement
-  - runtime should mark `DirtyLayer.Drag` and schedule render for drag-motion redraw, including same-square pointer movement
-- Prevent native text selection / coordinate-label selection during active board dragging.
-- Add/update focused tests so active drag redraw is verified after pointer move, especially when movement stays within the same square.
+1. Add a new Phase 4 item:
+   **4.3a Selected-square highlight as first diagnostic interaction visual**
+   - start interaction overlay work with the smallest useful visual: currently selected square highlight
+   - treat this first step primarily as observability / manual-debug aid, not final UX polish
+   - keep the initial version narrow:
+     - selected square highlight only
+     - no animation required
+     - no broader annotation system yet
+   - use it to make selection persistence / clearing behavior visible during manual interaction testing
 
-Do not:
+2. Add a second new Phase 4 item:
+   **4.3b UX alignment pass for repeated same-piece drag after drop-to-source**
+   - after selected-square highlighting is visible, manually verify:
+     - pointerdown on piece → selection + drag start
+     - drop back to source → drag stop with selection persistence
+     - repeated pointerdown on the same selected piece
+     - repeated drop back to source
+   - compare observed behavior against intended chess.com-style UX
+   - if needed, implement a narrow interaction-semantic follow-up only for this flow
+   - do not broaden into general interaction redesign
 
-- Reopen settled Phase 3.1–3.7 interaction architecture unless a concrete bug proves it necessary.
-- Start Phase 3.9 move animation work yet.
-- Broaden into unrelated renderer refactors.
+3. Update `4.5 Extension tests` with a small addition:
+   - add focused tests for the first interaction-overlay extension pass:
+     - selected-square highlight reflects core interaction selection state
+     - selected-square highlight appears for the currently selected square and clears when selection clears
+   - keep these tests narrow and avoid broad renderer snapshot suites unless needed
 
-Working mode:
+Constraints:
 
-1. brief analysis
-2. concrete recommendation
-3. precise implementation prompt for Cline
-4. focused review of resulting diff later
+- Do not reopen Phase 3.8 architecture.
+- Do not start Phase 3.9+ work.
+- Keep the update to the plan only unless another narrow follow-up is explicitly requested.
 
 ## Working mode
 
