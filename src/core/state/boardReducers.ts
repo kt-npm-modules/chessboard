@@ -89,6 +89,9 @@ export function setBoardPosition(
 		state.turn = turnFromPosition;
 	}
 
+	// Increment position epoch to prevent false animation across position resets
+	state.positionEpoch++;
+
 	invalidation.markLayer(DirtyLayer.Board | DirtyLayer.Pieces);
 	return true;
 }

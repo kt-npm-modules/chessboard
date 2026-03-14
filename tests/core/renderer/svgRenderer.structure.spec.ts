@@ -10,7 +10,7 @@ function makeBoardSnapshot(
 ): BoardStateSnapshot {
 	const pieces = overrides?.pieces ?? new Uint8Array(64);
 	const ids = overrides?.ids ?? new Int16Array(64).fill(-1);
-	return { pieces, ids, turn: 'white' };
+	return { pieces, ids, turn: 'white', positionEpoch: 0 };
 }
 
 describe('SvgRenderer structure (root/slot normalization)', () => {
@@ -24,7 +24,7 @@ describe('SvgRenderer structure (root/slot normalization)', () => {
 		expect(svg).toBeTruthy();
 
 		const children = Array.from(svg!.children);
-		expect(children.length).toBe(10);
+		expect(children.length).toBe(11);
 
 		// Assert exact order
 		expect(children[0].tagName).toBe('defs'); // defsStatic
@@ -33,10 +33,11 @@ describe('SvgRenderer structure (root/slot normalization)', () => {
 		expect(children[3].tagName).toBe('g'); // extensionsUnderPiecesRoot
 		expect(children[4].tagName).toBe('g'); // piecesRoot
 		expect(children[5].tagName).toBe('g'); // extensionsOverPiecesRoot
-		expect(children[6].tagName).toBe('g'); // extensionsDragUnderRoot
-		expect(children[7].tagName).toBe('g'); // dragRoot
-		expect(children[8].tagName).toBe('g'); // extensionsDragOverRoot
-		expect(children[9].tagName).toBe('defs'); // defsDynamic
+		expect(children[6].tagName).toBe('g'); // animationRoot
+		expect(children[7].tagName).toBe('g'); // extensionsDragUnderRoot
+		expect(children[8].tagName).toBe('g'); // dragRoot
+		expect(children[9].tagName).toBe('g'); // extensionsDragOverRoot
+		expect(children[10].tagName).toBe('defs'); // defsDynamic
 
 		renderer.unmount();
 	});
@@ -50,9 +51,9 @@ describe('SvgRenderer structure (root/slot normalization)', () => {
 		const svg = container.querySelector('svg');
 		expect(svg).toBeTruthy();
 
-		// Exactly 10 children: 2 defs + 8 g elements
+		// Exactly 11 children: 2 defs + 9 g elements
 		const gElements = Array.from(svg!.children).filter((el) => el.tagName === 'g');
-		expect(gElements.length).toBe(8);
+		expect(gElements.length).toBe(9);
 
 		renderer.unmount();
 	});
@@ -109,7 +110,7 @@ describe('SvgRenderer structure (root/slot normalization)', () => {
 		renderer.mount(container);
 
 		const svg = container.querySelector('svg');
-		const defsDynamic = svg!.children[9] as SVGDefsElement; // 10th child (index 9)
+		const defsDynamic = svg!.children[10] as SVGDefsElement; // 11th child (index 10)
 
 		const pieces = new Uint8Array(64);
 		const ids = new Int16Array(64).fill(-1);

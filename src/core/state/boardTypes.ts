@@ -137,6 +137,7 @@ export interface BoardStateInternal {
 	turn: Color;
 
 	nextId: number;
+	positionEpoch: number;
 }
 
 /**
@@ -146,6 +147,7 @@ export interface BoardStateSnapshot {
 	readonly pieces: Readonly<Uint8Array>;
 	readonly ids: Readonly<Int16Array>;
 	readonly turn: Color;
+	readonly positionEpoch: number;
 }
 
 // Position map acceptance forms (public inputs)

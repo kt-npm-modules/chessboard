@@ -9,7 +9,8 @@ import type { BoardStateSnapshot } from '../../../src/core/state/boardTypes';
 const emptyBoard: BoardStateSnapshot = {
 	pieces: new Uint8Array(64),
 	ids: new Int16Array(64).fill(-1),
-	turn: 'white'
+	turn: 'white',
+	positionEpoch: 0
 };
 
 describe('SvgRenderer coordinates rendering', () => {

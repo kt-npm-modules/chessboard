@@ -19,6 +19,15 @@ type PieceNodeRecord = {
 	root: SVGImageElement; // per-piece <image> — locally bounded piece node
 };
 
+type AnimationActor = {
+	pieceId: number;
+	fromSq: Square;
+	toSq: Square;
+	startTime: number;
+	duration: number;
+	node: SVGImageElement;
+};
+
 /**
  * Minimal SVG renderer with invalidation awareness.
  * Structure (ownership-based roots/slots):
@@ -28,10 +37,11 @@ type PieceNodeRecord = {
  *  4) extensionsUnderPiecesRoot
  *  5) piecesRoot
  *  6) extensionsOverPiecesRoot
- *  7) extensionsDragUnderRoot
- *  8) dragRoot
- *  9) extensionsDragOverRoot
- * 10) defsDynamic
+ *  7) animationRoot           <-- committed move animations only
+ *  8) extensionsDragUnderRoot
+ *  9) dragRoot
+ * 10) extensionsDragOverRoot
+ * 11) defsDynamic
  *
  * Notes:
  * - Legacy highlight/overlay groups were removed.
@@ -45,6 +55,7 @@ export class SvgRenderer implements Renderer {
 	private boardRoot!: SVGGElement;
 	private coordsRoot!: SVGGElement;
 	private piecesRoot!: SVGGElement;
+	private animationRoot!: SVGGElement; // committed animations only
 	private dragRoot!: SVGGElement;
 
 	// Reserved extension slots
@@ -61,6 +72,13 @@ export class SvgRenderer implements Renderer {
 
 	// Incremental piece DOM cache keyed by stable piece id from state.ids
 	private pieceNodes: Map<number, PieceNodeRecord> = new Map();
+
+	// Committed move animation bookkeeping (renderer-local)
+	private previousCommittedIds: Int16Array | null = null;
+	private previousPositionEpoch: number | null = null;
+	private suppressedPieceIds: Set<number> = new Set();
+	private activeAnimations: Map<number, AnimationActor> = new Map();
+	private rafHandle: number | null = null;
 
 	constructor(opts: SvgRendererOptions = {}) {
 		this.config = {
@@ -91,6 +109,8 @@ export class SvgRenderer implements Renderer {
 		const piecesRoot = document.createElementNS(SVG_NS, 'g');
 		const extensionsOverPiecesRoot = document.createElementNS(SVG_NS, 'g');
 
+		const animationRoot = document.createElementNS(SVG_NS, 'g'); // new committed animation layer
+
 		const extensionsDragUnderRoot = document.createElementNS(SVG_NS, 'g');
 		const dragRoot = document.createElementNS(SVG_NS, 'g');
 		const extensionsDragOverRoot = document.createElementNS(SVG_NS, 'g');
@@ -104,6 +124,7 @@ export class SvgRenderer implements Renderer {
 		svg.appendChild(extensionsUnderPiecesRoot);
 		svg.appendChild(piecesRoot);
 		svg.appendChild(extensionsOverPiecesRoot);
+		svg.appendChild(animationRoot); // inserted between overPieces and drag-under
 		svg.appendChild(extensionsDragUnderRoot);
 		svg.appendChild(dragRoot);
 		svg.appendChild(extensionsDragOverRoot);
@@ -115,6 +136,7 @@ export class SvgRenderer implements Renderer {
 		this.boardRoot = boardRoot;
 		this.coordsRoot = coordsRoot;
 		this.piecesRoot = piecesRoot;
+		this.animationRoot = animationRoot;
 		this.dragRoot = dragRoot;
 
 		this.extensionsUnderPiecesRoot = extensionsUnderPiecesRoot;
@@ -125,6 +147,13 @@ export class SvgRenderer implements Renderer {
 		this.defsStatic = defsStatic;
 		this.defsDynamic = defsDynamic;
 
+		// Initialize renderer-local animation state
+		this.previousCommittedIds = null;
+		this.previousPositionEpoch = null;
+		this.suppressedPieceIds.clear();
+		this.activeAnimations.clear();
+		this.rafHandle = null;
+
 		container.appendChild(svg);
 	}
 
@@ -133,8 +162,16 @@ export class SvgRenderer implements Renderer {
 			this.svgRoot.parentNode.removeChild(this.svgRoot);
 		}
 		this.svgRoot = null!;
-		// Do not clear caches here; a future mount will recreate DOM afresh
+		// Clear caches and animation state; future mount will recreate DOM afresh
 		this.pieceNodes.clear();
+		this.suppressedPieceIds.clear();
+		this.activeAnimations.clear();
+		if (this.rafHandle !== null) {
+			cancelAnimationFrame(this.rafHandle);
+			this.rafHandle = null;
+		}
+		this.previousCommittedIds = null;
+		this.previousPositionEpoch = null;
 	}
 
 	render(ctx: RenderingContext): void {
@@ -147,13 +184,17 @@ export class SvgRenderer implements Renderer {
 		this.svgRoot.setAttribute('height', size);
 		this.svgRoot.setAttribute('viewBox', `0 0 ${size} ${size}`);
 
-		// Decide what to update based on layers bitmask
+		// Decide what to update on layers bitmask
 		const layers = invalidation.layers;
 		if (layers & DirtyLayer.Board) {
 			this.drawBoard(this.config.light, this.config.dark, geometry);
 			this.drawCoords(geometry.orientation, geometry);
 		}
 		if (layers & DirtyLayer.Pieces) {
+			// Committed move animation detection runs when committed piece state is being redrawn.
+			// In the current architecture, this is the DirtyLayer.Pieces path.
+			this.handleCommittedAnimationCycle(board, geometry);
+
 			// Suppress the source square when a drag is active so the piece
 			// is not rendered twice (once in piecesRoot and once in dragRoot).
 			const suppressSquare = interaction.dragSession?.fromSquare ?? null;
@@ -161,6 +202,146 @@ export class SvgRenderer implements Renderer {
 		}
 		if (layers & DirtyLayer.Drag) {
 			this.drawDrag(interaction, transientVisuals, board, geometry);
+		}
+	}
+
+	private handleCommittedAnimationCycle(board: BoardStateSnapshot, g: RenderGeometry) {
+		// 1) Cancel/clear any in-flight animation actors
+		if (this.rafHandle !== null) {
+			cancelAnimationFrame(this.rafHandle);
+			this.rafHandle = null;
+		}
+		this.clear(this.animationRoot);
+		this.activeAnimations.clear();
+		this.suppressedPieceIds.clear();
+
+		// 2) First-time render: seed snapshot, do not animate
+		const nextIds = board.ids;
+		const nextEpoch = board.positionEpoch;
+		if (this.previousCommittedIds === null) {
+			this.previousCommittedIds = nextIds.slice() as Int16Array;
+			this.previousPositionEpoch = nextEpoch;
+			return;
+		}
+
+		// 3) Position epoch mismatch: reseed snapshot, do not animate
+		if (nextEpoch !== this.previousPositionEpoch) {
+			this.previousCommittedIds = nextIds.slice() as Int16Array;
+			this.previousPositionEpoch = nextEpoch;
+			return;
+		}
+
+		// 4) Build id->square maps for valid ids only (id > 0)
+		const prevMap = new Map<number, number>();
+		const nextMap = new Map<number, number>();
+		for (let i = 0; i < 64; i++) {
+			const pid = this.previousCommittedIds[i];
+			if (pid > 0) prevMap.set(pid, i);
+			const nid = nextIds[i];
+			if (nid > 0) nextMap.set(nid, i);
+		}
+
+		// 5) Collect movers: id present in both maps with changed square
+		const movers: Array<{ id: number; fromSq: Square; toSq: Square }> = [];
+		for (const [id, fromIndex] of prevMap) {
+			const toIndex = nextMap.get(id);
+			if (toIndex !== undefined && toIndex !== fromIndex) {
+				movers.push({ id, fromSq: fromIndex as Square, toSq: toIndex as Square });
+			}
+		}
+
+		if (movers.length === 0) {
+			// No movers: update snapshot and exit
+			this.previousCommittedIds = nextIds.slice() as Int16Array;
+			this.previousPositionEpoch = nextEpoch;
+			return;
+		}
+
+		// 6) Create transient actors and suppression; prepare assets using current board state (destination)
+		for (const m of movers) {
+			// Compute rects
+			const fromRect = g.squareRect(m.fromSq);
+
+			// Asset: use the committed piece at destination square
+			const piece = decodePiece(board.pieces[m.toSq]);
+			if (!piece) continue;
+			const pieceUrl = cburnettPieceUrl(piece.color, piece.role);
+
+			// Create transient node
+			const img = document.createElementNS(SVG_NS, 'image');
+			img.setAttribute('x', String(fromRect.x));
+			img.setAttribute('y', String(fromRect.y));
+			img.setAttribute('width', String(fromRect.size));
+			img.setAttribute('height', String(fromRect.size));
+			img.setAttributeNS('http://www.w3.org/1999/xlink', 'href', pieceUrl);
+			img.setAttribute('href', pieceUrl);
+			this.animationRoot.appendChild(img);
+
+			// Suppress static rendering by pieceId while animating
+			this.suppressedPieceIds.add(m.id);
+
+			// Register actor with a short duration and immediate start
+			this.activeAnimations.set(m.id, {
+				pieceId: m.id,
+				fromSq: m.fromSq,
+				toSq: m.toSq,
+				startTime: performance.now(),
+				duration: 180, // ms
+				node: img
+			});
+		}
+
+		// 7) After transient setup/suppression, update previous snapshot
+		this.previousCommittedIds = nextIds.slice() as Int16Array;
+		this.previousPositionEpoch = nextEpoch;
+
+		// 8) Start RAF loop if we have actors
+		if (this.activeAnimations.size > 0) {
+			const step = (now: number) => {
+				// Advance each actor
+				for (const actor of this.activeAnimations.values()) {
+					const fromRect = g.squareRect(actor.fromSq);
+					const toRect = g.squareRect(actor.toSq);
+					const elapsed = now - actor.startTime;
+					const t = Math.min(1, Math.max(0, elapsed / actor.duration));
+					// simple ease in-out
+					const te = t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+
+					const x = fromRect.x + (toRect.x - fromRect.x) * te;
+					const y = fromRect.y + (toRect.y - fromRect.y) * te;
+					const w = fromRect.size + (toRect.size - fromRect.size) * te;
+					const h = w;
+
+					actor.node.setAttribute('x', String(x));
+					actor.node.setAttribute('y', String(y));
+					actor.node.setAttribute('width', String(w));
+					actor.node.setAttribute('height', String(h));
+
+					if (t === 1) {
+						// Complete: remove transient, clear suppression, and explicitly append prepared static node
+						if (actor.node.parentNode) {
+							actor.node.parentNode.removeChild(actor.node);
+						}
+						this.activeAnimations.delete(actor.pieceId);
+						this.suppressedPieceIds.delete(actor.pieceId);
+
+						// Append the already-prepared static node back into piecesRoot immediately
+						const rec = this.pieceNodes.get(actor.pieceId);
+						if (rec && rec.root.parentNode !== this.piecesRoot) {
+							this.piecesRoot.appendChild(rec.root);
+						}
+					}
+				}
+
+				// Continue or stop
+				if (this.activeAnimations.size > 0) {
+					this.rafHandle = requestAnimationFrame(step);
+				} else {
+					this.rafHandle = null;
+				}
+			};
+			// Kick the loop
+			this.rafHandle = requestAnimationFrame(step);
 		}
 	}
 
@@ -266,7 +447,7 @@ export class SvgRenderer implements Renderer {
 	 * - defsDynamic is not used; no per-piece clipPaths are created.
 	 *
 	 * @param suppressSquare - If non-null, the piece at this square is not appended to piecesRoot
-	 *   (used during drag to hide the source piece here while it renders in dragRoot).
+	   (used during drag to hide the source piece here while it renders in dragRoot).
 	 *   Its cached node is still tracked in seenIds so the sweep does not delete it.
 	 */
 	private drawPieces(
@@ -288,44 +469,40 @@ export class SvgRenderer implements Renderer {
 			const id = board.ids[sq] ?? -1;
 			if (id <= 0) continue;
 
-			// Always track the id as seen — even for the suppressed square — so the
-			// sweep below does not delete the cached node while the drag is active.
+			// Always track the id as seen — even for suppressed cases — so the
+			// sweep below not delete the cached node.
 			seenIds.add(id);
-
-			// During drag: skip appending the source piece to piecesRoot.
-			// It will be rendered once in dragRoot by drawDrag().
-			if (suppressSquare !== null && sq === suppressSquare) continue;
 
 			const r = g.squareRect(sq);
 			const pieceUrl = cburnettPieceUrl(piece.color, piece.role);
 
 			let rec = this.pieceNodes.get(id);
-			if (rec) {
-				// Update position, size, and asset URL (handles moves and promotions)
-				rec.root.setAttribute('x', r.x.toString());
-				rec.root.setAttribute('y', r.y.toString());
-				rec.root.setAttribute('width', r.size.toString());
-				rec.root.setAttribute('height', r.size.toString());
-				rec.root.setAttributeNS('http://www.w3.org/1999/xlink', 'href', pieceUrl);
-				rec.root.setAttribute('href', pieceUrl);
+			if (!rec) {
+				// Create a locally-bounded per-piece <image> element and cache it
+				const img = document.createElementNS(SVG_NS, 'image');
+				rec = { root: img };
+				this.pieceNodes.set(id, rec);
+			}
 
-				// Ensure it's present in the current layer (if DOM moved elsewhere)
+			// Update position size, and asset URL (handles moves and promotions)
+			rec.root.setAttribute('x', r.x.toString());
+			rec.root.setAttribute('y', r.y.toString());
+			rec.root.setAttribute('width', r.size.toString());
+			rec.root.setAttribute('height', r.size.toString());
+			rec.root.setAttributeNS('http://www.w3.org/1999/xlink', 'href', pieceUrl);
+			rec.root.setAttribute('href', pieceUrl);
+
+			// Decide suppression: by drag square or by committed animation pieceId
+			const suppressedBySquare = suppressSquare !== null && sq === suppressSquare;
+			const suppressedById = this.suppressedPieceIds.has(id);
+			const suppressed = suppressedBySquare || suppressedById;
+
+			// Only append to the static layer if not suppressed
+			if (!suppressed) {
+				// Ensure it's present in the current layer
 				if (rec.root.parentNode !== layer) {
 					layer.appendChild(rec.root);
 				}
-			} else {
-				// Create a locally-bounded per-piece <image> element
-				const img = document.createElementNS(SVG_NS, 'image');
-				img.setAttribute('x', r.x.toString());
-				img.setAttribute('y', r.y.toString());
-				img.setAttribute('width', r.size.toString());
-				img.setAttribute('height', r.size.toString());
-				img.setAttributeNS('http://www.w3.org/1999/xlink', 'href', pieceUrl);
-				img.setAttribute('href', pieceUrl);
-
-				layer.appendChild(img);
-				rec = { root: img };
-				this.pieceNodes.set(id, rec);
 			}
 		}
 
@@ -340,7 +517,7 @@ export class SvgRenderer implements Renderer {
 
 	/**
 	 * Render the active drag piece preview into dragRoot.
-	 * - Clears dragRoot on every call.
+	 * - Clears dragRoot on every.
 	 * - If no active drag session or no drag pointer, leaves dragRoot empty.
 	 * - Otherwise derives the piece from board.pieces[dragSession.fromSquare] and renders
 	 *   exactly one <image> centered at the drag pointer position.

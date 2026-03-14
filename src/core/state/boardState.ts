@@ -59,7 +59,8 @@ export function createBoardState(opts: BoardStateInitOptions = {}): BoardStateIn
 		pieces,
 		ids,
 		turn,
-		nextId
+		nextId,
+		positionEpoch: 0
 	};
 }
 
@@ -72,7 +73,8 @@ export function getBoardStateSnapshot(state: BoardStateInternal): BoardStateSnap
 	const snap: BoardStateSnapshot = {
 		pieces: new Uint8Array(state.pieces),
 		ids: new Int16Array(state.ids),
-		turn: state.turn
+		turn: state.turn,
+		positionEpoch: state.positionEpoch
 	};
 	// Cast to the readonly deep snapshot type. Data is either cloned or immutable primitives.
 	return snap;

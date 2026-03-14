@@ -29,7 +29,7 @@ function makePawnBoard(): BoardStateSnapshot {
 	const ids = new Int16Array(64).fill(-1);
 	pieces[12] = 1; // white pawn encoding
 	ids[12] = 1; // stable piece id
-	return { pieces, ids, turn: 'white' };
+	return { pieces, ids, turn: 'white', positionEpoch: 0 };
 }
 
 /** Minimal empty board snapshot. */
@@ -37,7 +37,8 @@ function makeEmptyBoard(): BoardStateSnapshot {
 	return {
 		pieces: new Uint8Array(64),
 		ids: new Int16Array(64).fill(-1),
-		turn: 'white'
+		turn: 'white',
+		positionEpoch: 0
 	};
 }
 
@@ -69,6 +70,10 @@ describe('SvgRenderer drag rendering (Phase 3.3/3.8)', () => {
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		const dragRoot = (renderer as any).dragRoot as SVGGElement;
 		expect(dragRoot.children.length).toBe(0);
+		//Root must remain unused under drag-only renders
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		const animationRoot = (renderer as any).animationRoot as SVGGElement;
+		expect(animationRoot.children.length).toBe(0);
 
 		renderer.unmount();
 	});
@@ -210,7 +215,7 @@ describe('SvgRenderer drag rendering (Phase 3.3/3.8)', () => {
 		ids[12] = 1;
 		pieces[0] = 9; // white rook encoding (rook=4, white → 4*2+1=9)
 		ids[0] = 2;
-		const board: BoardStateSnapshot = { pieces, ids, turn: 'white' };
+		const board: BoardStateSnapshot = { pieces, ids, turn: 'white', positionEpoch: 0 };
 
 		const renderer = new SvgRenderer();
 		const container = document.createElement('div');
