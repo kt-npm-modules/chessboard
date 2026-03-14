@@ -5,13 +5,7 @@ import { squareOf, toAlgebraic } from '../state/coords';
 import { decodePiece } from '../state/encode';
 import { cburnettPieceUrl } from './assets';
 import { isLightSquare } from './geometry';
-import type {
-	DragRenderInfo,
-	RenderConfig,
-	Renderer,
-	RenderGeometry,
-	RenderingContext
-} from './types';
+import type { RenderConfig, Renderer, RenderGeometry, RenderingContext } from './types';
 import { DEFAULT_RENDER_CONFIG } from './types';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
@@ -146,7 +140,7 @@ export class SvgRenderer implements Renderer {
 	render(ctx: RenderingContext): void {
 		if (!this.svgRoot) throw new Error('SvgRenderer: Cannot render before mount()');
 
-		const { board, invalidation, geometry, drag } = ctx;
+		const { board, invalidation, geometry, interaction, transientVisuals } = ctx;
 		// Ensure size/viewBox matches geometry
 		const size = String(geometry.boardSize);
 		this.svgRoot.setAttribute('width', size);
@@ -162,10 +156,11 @@ export class SvgRenderer implements Renderer {
 		if (layers & DirtyLayer.Pieces) {
 			// Suppress the source square when a drag is active so the piece
 			// is not rendered twice (once in piecesRoot and once in dragRoot).
-			this.drawPieces(board, geometry, drag?.sourceSquare ?? null);
+			const suppressSquare = interaction.dragSession?.fromSquare ?? null;
+			this.drawPieces(board, geometry, suppressSquare);
 		}
 		if (layers & DirtyLayer.Drag) {
-			this.drawDrag(drag, board, geometry);
+			this.drawDrag(interaction, transientVisuals, board, geometry);
 		}
 	}
 
@@ -346,27 +341,36 @@ export class SvgRenderer implements Renderer {
 	/**
 	 * Render the active drag piece preview into dragRoot.
 	 * - Clears dragRoot on every call.
-	 * - If drag is null (no active drag), leaves dragRoot empty.
-	 * - Otherwise derives the piece from board.pieces[drag.sourceSquare] and renders
-	 *   exactly one <image> at the source square position (source-anchored preview).
+	 * - If no active drag session or no drag pointer, leaves dragRoot empty.
+	 * - Otherwise derives the piece from board.pieces[dragSession.fromSquare] and renders
+	 *   exactly one <image> centered at the drag pointer position.
 	 * - No node caching: dragRoot is always rebuilt from scratch (drag is transient).
 	 */
-	private drawDrag(drag: DragRenderInfo | null, board: BoardStateSnapshot, g: RenderGeometry) {
+	private drawDrag(
+		interaction: { dragSession: { fromSquare: Square } | null },
+		transientVisuals: { dragPointer: { x: number; y: number } | null },
+		board: BoardStateSnapshot,
+		g: RenderGeometry
+	) {
 		this.clear(this.dragRoot);
-		if (drag === null) return;
+		// Only render if both drag session and drag pointer are available
+		if (interaction.dragSession === null || transientVisuals.dragPointer === null) return;
 
-		const sq = drag.sourceSquare;
+		const sq = interaction.dragSession.fromSquare;
 		const piece = decodePiece(board.pieces[sq]);
 		if (!piece) return; // no piece at source square — defensive, should not occur in normal flow
 
-		const r = g.squareRect(sq);
 		const pieceUrl = cburnettPieceUrl(piece.color, piece.role);
+		const squareSize = g.squareSize;
+		// Center the piece under the pointer
+		const x = transientVisuals.dragPointer.x - squareSize / 2;
+		const y = transientVisuals.dragPointer.y - squareSize / 2;
 
 		const img = document.createElementNS(SVG_NS, 'image');
-		img.setAttribute('x', r.x.toString());
-		img.setAttribute('y', r.y.toString());
-		img.setAttribute('width', r.size.toString());
-		img.setAttribute('height', r.size.toString());
+		img.setAttribute('x', x.toString());
+		img.setAttribute('y', y.toString());
+		img.setAttribute('width', squareSize.toString());
+		img.setAttribute('height', squareSize.toString());
 		img.setAttributeNS('http://www.w3.org/1999/xlink', 'href', pieceUrl);
 		img.setAttribute('href', pieceUrl);
 

@@ -18,7 +18,7 @@ import { createInputAdapter } from '../input/inputAdapter';
 import type { InteractionController } from '../input/interactionController';
 import { createInteractionController } from '../input/interactionController';
 import { makeRenderGeometry } from '../renderer/geometry';
-import type { Renderer, RenderGeometry } from '../renderer/types';
+import type { BoardPoint, Renderer, RenderGeometry, TransientVisualState } from '../renderer/types';
 import {
 	createInvalidationState,
 	createInvalidationWriter,
@@ -121,7 +121,8 @@ export interface BoardRuntime {
 	// Interaction lifecycle — internal runtime methods (not exported from public API)
 	// dragStart: strict lifecycle step — requires selectedSquare === from, throws otherwise.
 	// Controller is responsible for calling select(from) before dragStart(from).
-	dragStart(from: Square): boolean;
+	// Accepts initial pointer position to initialize drag visual immediately.
+	dragStart(from: Square, point: BoardPoint): boolean;
 	// setCurrentTarget: update the current target square during drag or hover.
 	setCurrentTarget(target: Square | null): boolean;
 	/**
@@ -143,6 +144,11 @@ export interface BoardRuntime {
 	dropTo(to: Square | null): Move | null;
 	// cancelInteraction: clear transient drag state, keep selection.
 	cancelInteraction(): boolean;
+	/**
+	 * Notify runtime of drag pointer movement for visual updates.
+	 * Updates transient visual state and triggers drag-layer invalidation when drag is active.
+	 */
+	notifyDragMove(point: BoardPoint | null): void;
 	// Controller-facing snapshot accessor — curated, read-only, grouped by origin.
 	getInteractionSnapshot(): InteractionSnapshot;
 	// Helpers
@@ -178,6 +184,10 @@ export function createBoardRuntime(opts: BoardRuntimeInitOptions): BoardRuntime 
 	const interactionState: InteractionStateInternal = createInteractionState();
 	const invalidationState = createInvalidationState();
 	const invalidationWriter = createInvalidationWriter(invalidationState);
+	// Runtime-owned transient visual state
+	const transientVisuals: TransientVisualState = {
+		dragPointer: null
+	};
 	let boardSize: number | null = null;
 	let geometry: RenderGeometry | null = null;
 	let mounted = false;
@@ -192,17 +202,19 @@ export function createBoardRuntime(opts: BoardRuntimeInitOptions): BoardRuntime 
 		render: (boardSnapshot, invalidationSnapshot) => {
 			// Guard: only render if geometry exists (implies mounted)
 			if (geometry) {
-				// Build curated drag info from interaction state.
-				// Only sourceSquare is passed — no pointer coordinates.
-				const drag =
-					interactionState.dragSession !== null
-						? { sourceSquare: interactionState.dragSession.fromSquare }
-						: null;
+				// Pass interaction snapshot and transient visuals to renderer
+				const interactionSnapshot = {
+					selectedSquare: interactionState.selectedSquare,
+					destinations: interactionState.destinations,
+					currentTarget: interactionState.currentTarget,
+					dragSession: interactionState.dragSession
+				};
 				renderer.render({
 					board: boardSnapshot,
 					invalidation: invalidationSnapshot,
 					geometry,
-					drag
+					interaction: interactionSnapshot,
+					transientVisuals
 				});
 			}
 		},
@@ -270,6 +282,7 @@ export function createBoardRuntime(opts: BoardRuntimeInitOptions): BoardRuntime 
 			const changed = setBoardPositionReducer(boardState, invalidationWriter, input);
 			if (changed) {
 				clearInteractionReducer(interactionState); // clear all interaction state on new position
+				transientVisuals.dragPointer = null; // clear transient visuals
 				// TODO: extension hooks to process the change
 				if (mounted) {
 					scheduler.schedule();
@@ -337,7 +350,7 @@ export function createBoardRuntime(opts: BoardRuntimeInitOptions): BoardRuntime 
 			return prevSq !== newSq;
 		},
 
-		dragStart(from: Square): boolean {
+		dragStart(from: Square, point: BoardPoint): boolean {
 			// Strict lifecycle contract:
 			// 1. No drag must already be active.
 			// 2. selectedSquare must already equal from — controller calls select(from) first.
@@ -352,6 +365,7 @@ export function createBoardRuntime(opts: BoardRuntimeInitOptions): BoardRuntime 
 			const session: DragSession = { fromSquare: from };
 			setDragSessionReducer(interactionState, session);
 			setCurrentTargetReducer(interactionState, null);
+			transientVisuals.dragPointer = point; // initialize drag visual immediately
 			// Drag started: source piece moves from piecesRoot to dragRoot.
 			markDirtyLayer(invalidationState, DirtyLayer.Drag | DirtyLayer.Pieces);
 			if (mounted) scheduler.schedule();
@@ -374,6 +388,7 @@ export function createBoardRuntime(opts: BoardRuntimeInitOptions): BoardRuntime 
 				// Legal completion: apply move, clear all interaction.
 				const appliedMove = moveReducer(boardState, invalidationWriter, { from: source, to });
 				clearInteractionReducer(interactionState);
+				transientVisuals.dragPointer = null; // clear transient visuals
 				// moveReducer already marked DirtyLayer.Pieces (with squares) via invalidationWriter.
 				// OR in DirtyLayer.Drag directly to avoid clearing those squares.
 				invalidationState.layers |= DirtyLayer.Drag;
@@ -390,6 +405,7 @@ export function createBoardRuntime(opts: BoardRuntimeInitOptions): BoardRuntime 
 				// The user can retry by releasing on a different target.
 				setDragSessionReducer(interactionState, null);
 				setCurrentTargetReducer(interactionState, null);
+				transientVisuals.dragPointer = null; // clear transient visuals
 				// Drag cleared: source piece returns to piecesRoot, dragRoot empties.
 				markDirtyLayer(invalidationState, DirtyLayer.Drag | DirtyLayer.Pieces);
 				if (mounted) scheduler.schedule();
@@ -409,6 +425,7 @@ export function createBoardRuntime(opts: BoardRuntimeInitOptions): BoardRuntime 
 			const wasDragging = interactionState.dragSession !== null;
 			const a = setDragSessionReducer(interactionState, null);
 			const b = setCurrentTargetReducer(interactionState, null);
+			transientVisuals.dragPointer = null; // clear transient visuals
 			// Only mark drag dirty if a drag was actually active — currentTarget-only
 			// changes do not affect drag rendering.
 			if (wasDragging && mounted) {
@@ -416,6 +433,16 @@ export function createBoardRuntime(opts: BoardRuntimeInitOptions): BoardRuntime 
 				scheduler.schedule();
 			}
 			return a || b;
+		},
+
+		notifyDragMove(point: BoardPoint | null): void {
+			// Only update transient visuals and schedule render if a drag is active
+			if (interactionState.dragSession === null) return;
+			transientVisuals.dragPointer = point;
+			markDirtyLayer(invalidationState, DirtyLayer.Drag);
+			if (mounted) {
+				scheduler.schedule();
+			}
 		},
 
 		setMovability(m: Movability): boolean {

@@ -31,15 +31,19 @@ function waitForRender(): Promise<void> {
 
 /**
  * Minimal fake renderer for testing.
- * Captures the latest board snapshot for test assertions.
+ * Captures the latest board snapshot and render context for test assertions.
  */
 class FakeRenderer implements Renderer {
 	lastBoardSnapshot: BoardStateSnapshot | null = null;
+	lastRenderContext: RenderingContext | null = null;
+	renderCount = 0;
 
 	mount(): void {}
 	unmount(): void {}
 	render(ctx: RenderingContext): void {
 		this.lastBoardSnapshot = ctx.board;
+		this.lastRenderContext = ctx;
+		this.renderCount++;
 	}
 }
 
@@ -459,6 +463,51 @@ describe('InputAdapter integration (Phase 3.7)', () => {
 		snap = runtime.getInteractionSnapshot();
 		// If geometry is live, this should map to h8 (63) in black orientation
 		expect(snap.interaction.selectedSquare).toBe(sq(63)); // h8, proving live geometry
+
+		runtime.destroy();
+	});
+
+	// ── 10. Phase 3.8 regression guard: drag preview initialized on pointerdown, updates on same-square pointermove ─────
+
+	it('Phase 3.8: drag preview initialized on pointerdown, updates on same-square pointermove', async () => {
+		const host = createTestHost(800);
+		patchPointerCapture(host);
+		const renderer = new FakeRenderer();
+		const runtime = createBoardRuntime({
+			renderer,
+			board: { position: { e2: { color: 'w', role: 'p' } } },
+			view: { movability: { mode: 'free', color: 'white' } }
+		});
+		runtime.mount(host);
+
+		await waitForRender();
+
+		// Start drag on e2 (sq 12): file e=4, rank 2=1 → (4*100, 6*100) = (400, 600)
+		dispatchPointer(host, 'pointerdown', { clientX: 450, clientY: 650 });
+
+		await waitForRender();
+
+		// Assert 1: drag preview initialized immediately on pointerdown (guards missing-initial-preview bug)
+		expect(renderer.lastRenderContext?.interaction.dragSession).not.toBeNull();
+		expect(renderer.lastRenderContext?.transientVisuals.dragPointer).not.toBeNull();
+		expect(renderer.lastRenderContext?.transientVisuals.dragPointer?.x).toBe(450);
+		expect(renderer.lastRenderContext?.transientVisuals.dragPointer?.y).toBe(650);
+
+		const renderCountAfterDown = renderer.renderCount;
+
+		// Move pointer within same square e2 but different pixel position
+		// Still on e2 (400-500, 600-700) but moved from (450, 650) to (480, 680)
+		dispatchPointer(host, 'pointermove', { clientX: 480, clientY: 680 });
+
+		await waitForRender();
+
+		// Assert 2: drag visual updated on same-square pointermove (guards same-square no-redraw bug)
+		expect(renderer.renderCount).toBeGreaterThan(renderCountAfterDown);
+		expect(renderer.lastRenderContext?.transientVisuals.dragPointer?.x).toBe(480);
+		expect(renderer.lastRenderContext?.transientVisuals.dragPointer?.y).toBe(680);
+
+		// Verify semantic target remains the same (still e2)
+		expect(renderer.lastRenderContext?.interaction.currentTarget).toBe(sq(12));
 
 		runtime.destroy();
 	});

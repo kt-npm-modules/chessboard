@@ -26,7 +26,13 @@ describe('SvgRenderer coordinates rendering', () => {
 			board: emptyBoard,
 			invalidation: { layers: DirtyLayer.Board },
 			geometry,
-			drag: null
+			interaction: {
+				selectedSquare: null,
+				destinations: null,
+				currentTarget: null,
+				dragSession: null
+			},
+			transientVisuals: { dragPointer: null }
 		});
 
 		const labels = Array.from(coordsRoot.querySelectorAll('text'));
@@ -48,7 +54,13 @@ describe('SvgRenderer coordinates rendering', () => {
 			board: emptyBoard,
 			invalidation: { layers: DirtyLayer.Board },
 			geometry,
-			drag: null
+			interaction: {
+				selectedSquare: null,
+				destinations: null,
+				currentTarget: null,
+				dragSession: null
+			},
+			transientVisuals: { dragPointer: null }
 		});
 
 		const labels = Array.from(coordsRoot.querySelectorAll('text'));
@@ -90,7 +102,13 @@ describe('SvgRenderer coordinates rendering', () => {
 			board: emptyBoard,
 			invalidation: { layers: DirtyLayer.Board },
 			geometry,
-			drag: null
+			interaction: {
+				selectedSquare: null,
+				destinations: null,
+				currentTarget: null,
+				dragSession: null
+			},
+			transientVisuals: { dragPointer: null }
 		});
 
 		const labels = Array.from(coordsRoot.querySelectorAll('text'));
@@ -133,7 +151,13 @@ describe('SvgRenderer coordinates rendering', () => {
 			board: emptyBoard,
 			invalidation: { layers: DirtyLayer.Board },
 			geometry,
-			drag: null
+			interaction: {
+				selectedSquare: null,
+				destinations: null,
+				currentTarget: null,
+				dragSession: null
+			},
+			transientVisuals: { dragPointer: null }
 		});
 
 		const labels = Array.from(coordsRoot.querySelectorAll('text'));
@@ -176,7 +200,13 @@ describe('SvgRenderer coordinates rendering', () => {
 			board: emptyBoard,
 			invalidation: { layers: DirtyLayer.Board },
 			geometry,
-			drag: null
+			interaction: {
+				selectedSquare: null,
+				destinations: null,
+				currentTarget: null,
+				dragSession: null
+			},
+			transientVisuals: { dragPointer: null }
 		});
 
 		const labels = Array.from(coordsRoot.querySelectorAll('text'));
@@ -218,7 +248,13 @@ describe('SvgRenderer coordinates rendering', () => {
 			board: emptyBoard,
 			invalidation: { layers: DirtyLayer.Board },
 			geometry,
-			drag: null
+			interaction: {
+				selectedSquare: null,
+				destinations: null,
+				currentTarget: null,
+				dragSession: null
+			},
+			transientVisuals: { dragPointer: null }
 		});
 
 		const labels = Array.from(coordsRoot.querySelectorAll('text'));
@@ -255,7 +291,13 @@ describe('SvgRenderer coordinates rendering', () => {
 			board: emptyBoard,
 			invalidation: { layers: DirtyLayer.Board },
 			geometry,
-			drag: null
+			interaction: {
+				selectedSquare: null,
+				destinations: null,
+				currentTarget: null,
+				dragSession: null
+			},
+			transientVisuals: { dragPointer: null }
 		});
 
 		const labels = Array.from(coordsRoot.querySelectorAll('text'));

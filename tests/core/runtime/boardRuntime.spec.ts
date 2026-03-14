@@ -1046,7 +1046,7 @@ describe('core/runtime/boardRuntime', () => {
 			expect(before.interaction.destinations).toEqual([28, 20]);
 			expect(before.interaction.dragSession).toBeNull();
 
-			const result = runtime.dragStart(12);
+			const result = runtime.dragStart(12, { x: 450, y: 650 });
 			expect(result).toBe(true);
 
 			const after = runtime.getInteractionSnapshot();
@@ -1058,8 +1058,8 @@ describe('core/runtime/boardRuntime', () => {
 
 			expect(renderSpy).toHaveBeenCalled();
 			const [ctx] = renderSpy.mock.calls[0];
-			expect(ctx.drag).not.toBeNull();
-			expect(ctx.drag!.sourceSquare).toBe(12);
+			expect(ctx.interaction.dragSession).not.toBeNull();
+			expect(ctx.interaction.dragSession!.fromSquare).toBe(12);
 		});
 
 		it('setCurrentTarget() updates currentTarget to a square and back to null', () => {
@@ -1074,7 +1074,7 @@ describe('core/runtime/boardRuntime', () => {
 			runtime.mount(container);
 
 			runtime.select(12);
-			runtime.dragStart(12);
+			runtime.dragStart(12, { x: 450, y: 650 });
 
 			let snap = runtime.getInteractionSnapshot();
 			expect(snap.interaction.currentTarget).toBeNull();
@@ -1100,7 +1100,7 @@ describe('core/runtime/boardRuntime', () => {
 			runtime.mount(container);
 
 			runtime.select(12);
-			runtime.dragStart(12);
+			runtime.dragStart(12, { x: 450, y: 650 });
 			runtime.setCurrentTarget(28);
 
 			const changed = runtime.cancelInteraction();
@@ -1129,7 +1129,7 @@ describe('core/runtime/boardRuntime', () => {
 			renderSpy.mockClear();
 
 			runtime.select(12);
-			runtime.dragStart(12);
+			runtime.dragStart(12, { x: 450, y: 650 });
 
 			renderSpy.mockClear();
 			const move = runtime.dropTo(28);
@@ -1145,7 +1145,7 @@ describe('core/runtime/boardRuntime', () => {
 
 			expect(renderSpy).toHaveBeenCalled();
 			const [ctx] = renderSpy.mock.calls[0];
-			expect(ctx.drag).toBeNull();
+			expect(ctx.interaction.dragSession).toBeNull();
 			expect(ctx.board.pieces[28]).not.toBe(0);
 			expect(ctx.board.pieces[12]).toBe(0);
 		});
@@ -1162,7 +1162,7 @@ describe('core/runtime/boardRuntime', () => {
 			runtime.mount(container);
 
 			runtime.select(12);
-			runtime.dragStart(12);
+			runtime.dragStart(12, { x: 450, y: 650 });
 
 			const res = runtime.dropTo(36); // unlisted target
 			expect(res).toBeNull();
@@ -1211,7 +1211,9 @@ describe('core/runtime/boardRuntime', () => {
 			await waitForRender();
 
 			runtime.select(12);
-			runtime.dragStart(12);
+			runtime.dragStart(12, { x: 450, y: 650 });
+			// Simulate drag pointer movement to trigger drag visual rendering
+			runtime.notifyDragMove({ x: 200, y: 300 });
 
 			await waitForRender();
 

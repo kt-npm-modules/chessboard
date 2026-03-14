@@ -217,7 +217,7 @@
 
 ### 3.8 Drag visual bug-fix pass
 
-**Status: TODO**
+**Status: COMPLETE**
 
 - Investigate why active drag is not visually rendered in the runtime/manual sandbox
 - Confirm whether drag interaction is actually starting, or only completing on release
@@ -288,6 +288,29 @@
   - optional press / interaction halo feedback
 - Keep interaction facts in core and interaction visuals in the extension layer
 
+### 4.3a Selected-square highlight as first diagnostic interaction visual
+
+- Start the interaction overlay work with the smallest useful visual:
+  - currently selected square highlight
+- Treat this first step primarily as observability / manual-debug aid, not final UX polish
+- Keep the initial version deliberately narrow:
+  - selected square highlight only
+  - no animation required
+  - no broader annotation system yet
+- Use this to make selection persistence / clearing behavior visible during manual interaction testing
+
+### 4.3b UX alignment pass for repeated same-piece drag after drop-to-source
+
+- After selected-square highlighting is visible, manually verify the repeated same-piece interaction flow:
+  - pointerdown on piece → selection + drag start
+  - drop back to source → drag stop with selection persistence
+  - repeated pointerdown on the same selected piece
+  - repeated drop back to source
+- Compare the observed behavior against the intended chess.com-style UX
+- If needed, implement a narrow interaction-semantic follow-up so repeated same-piece drag / selection behavior aligns with the chosen standard
+- Keep this pass narrowly focused on this specific UX flow
+- Do not broaden it into general interaction redesign
+
 ### 4.4 Extension lifecycle / invalidation contract
 
 - Define minimal extension lifecycle:
@@ -305,6 +328,12 @@
 - Add tests for extension subtree ownership and cleanup
 - Add tests for `lastMove` behavior
 - Add tests for interaction overlay reading core interaction state correctly
+- Add focused tests for the first interaction-overlay extension pass:
+  - selected-square highlight reflects core interaction selection state
+  - selected-square highlight appears for the currently selected square and clears when selection clears
+- Keep these tests narrow:
+  - verify extension input/output behavior
+  - do not turn them into broad renderer snapshot suites unless needed
 
 ---
 

@@ -17,7 +17,8 @@
  *   - Pointer capture is set on down so move/up/cancel continue to route
  *     correctly after the pointer leaves the element.
  */
-import type { RenderGeometry } from '../renderer/types';
+import type { BoardPoint, RenderGeometry } from '../renderer/types';
+import type { Square } from '../state/boardTypes';
 import type { InteractionController } from './interactionController';
 import { mapBoardPointToSquare } from './squareMapping';
 
@@ -47,11 +48,24 @@ export function createInputAdapter({
 	/** The pointer id currently being tracked, or null when idle. */
 	let activePointerId: number | null = null;
 
-	function resolveSquare(e: PointerEvent) {
+	/**
+	 * Resolve pointer target square and board-local point from a pointer event.
+	 * Returns { target: Square | null, point: BoardPoint | null }.
+	 * - target is null if the pointer is outside the mapped square grid.
+	 * - point is null only if geometry is unavailable; otherwise it's the board-local coordinate.
+	 */
+	function resolvePointerTarget(e: PointerEvent): {
+		target: Square | null;
+		point: BoardPoint | null;
+	} {
 		const geometry = getGeometry();
-		if (!geometry) return null;
+		if (!geometry) return { target: null, point: null };
 		const rect = element.getBoundingClientRect();
-		return mapBoardPointToSquare(e.clientX - rect.left, e.clientY - rect.top, geometry);
+		const x = e.clientX - rect.left;
+		const y = e.clientY - rect.top;
+		const target = mapBoardPointToSquare(x, y, geometry);
+		const point: BoardPoint = { x, y };
+		return { target, point };
 	}
 
 	/** Release capture for the currently tracked pointer and clear tracking state. */
@@ -67,23 +81,26 @@ export function createInputAdapter({
 		if (!e.isPrimary) return; // ignore non-primary pointers
 		if (e.button !== 0) return; // ignore non-left-button
 		if (activePointerId !== null) return; // already tracking
-		const sq = resolveSquare(e);
-		if (sq === null) return; // off-board press: nothing to start
+		const { target, point } = resolvePointerTarget(e);
+		if (target === null) return; // off-board press: nothing to start
 		activePointerId = e.pointerId;
 		element.setPointerCapture(e.pointerId);
-		controller.onPointerDown(sq);
+		e.preventDefault(); // prevent native text selection during drag
+		controller.onPointerDown(target, point!); // point is guaranteed non-null when target is non-null
 	}
 
 	function onPointerMove(e: PointerEvent): void {
 		if (e.pointerId !== activePointerId) return;
-		controller.onPointerMove(resolveSquare(e));
+		e.preventDefault(); // prevent native text selection during drag
+		const { target, point } = resolvePointerTarget(e);
+		controller.onPointerMove(target, point);
 	}
 
 	function onPointerUp(e: PointerEvent): void {
 		if (e.pointerId !== activePointerId) return;
-		const sq = resolveSquare(e); // resolve before releasing capture
+		const { target } = resolvePointerTarget(e); // resolve before releasing capture
 		releaseCapture();
-		controller.onPointerUp(sq);
+		controller.onPointerUp(target);
 	}
 
 	function onPointerCancel(e: PointerEvent): void {
@@ -101,7 +118,7 @@ export function createInputAdapter({
 	 */
 	function onPointerLeave(e: PointerEvent): void {
 		if (e.pointerId !== activePointerId) return;
-		controller.onPointerMove(null);
+		controller.onPointerMove(null, null);
 	}
 
 	element.addEventListener('pointerdown', onPointerDown);

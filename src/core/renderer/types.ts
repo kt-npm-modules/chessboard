@@ -6,14 +6,22 @@
 
 import type { InvalidationStateSnapshot } from '../scheduler/types';
 import type { BoardStateSnapshot, Color, Square } from '../state/boardTypes';
+import type { InteractionStateSnapshot } from '../state/interactionTypes';
 
 /**
- * Curated drag render info passed to the renderer.
- * Contains only what the renderer needs to render the drag preview.
- * No pointer coordinates — drag preview is source-anchored.
+ * Board-local pointer coordinates for drag visual positioning.
  */
-export interface DragRenderInfo {
-	sourceSquare: Square;
+export interface BoardPoint {
+	x: number;
+	y: number;
+}
+
+/**
+ * Runtime-owned transient visual state passed to renderer.
+ */
+export interface TransientVisualState {
+	/** Board-local pointer coordinates for drag visual positioning. Null when no drag is active. */
+	dragPointer: BoardPoint | null;
 }
 
 /**
@@ -57,8 +65,10 @@ export type RenderingContext = {
 	board: BoardStateSnapshot;
 	invalidation: InvalidationStateSnapshot;
 	geometry: RenderGeometry;
-	/** Active drag info, or null if no drag is in progress. */
-	drag: DragRenderInfo | null;
+	/** Interaction state snapshot for renderer to derive drag source and other interaction visuals. */
+	interaction: InteractionStateSnapshot;
+	/** Runtime-owned transient visual state for drag positioning and other transient visuals. */
+	transientVisuals: TransientVisualState;
 };
 
 /**

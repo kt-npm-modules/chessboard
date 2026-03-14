@@ -14,6 +14,7 @@ import {
 	createInteractionController,
 	type InteractionRuntimeSurface
 } from '../../../src/core/input/interactionController';
+import type { BoardPoint } from '../../../src/core/renderer/types';
 import type { InteractionSnapshot } from '../../../src/core/runtime/boardRuntime';
 import type { Move, Square } from '../../../src/core/state/boardTypes';
 
@@ -56,6 +57,7 @@ function createMockRuntime(
 		setCurrentTarget: vi.fn().mockReturnValue(true),
 		dropTo: vi.fn().mockReturnValue(null),
 		cancelInteraction: vi.fn().mockReturnValue(false),
+		notifyDragMove: vi.fn(),
 		...overrides
 	};
 }
@@ -73,10 +75,10 @@ describe('InteractionController', () => {
 			});
 			const controller = createInteractionController(runtime);
 
-			controller.onPointerDown(sq(12));
+			controller.onPointerDown(sq(12), { x: 450, y: 650 });
 
 			expect(runtime.select).toHaveBeenCalledWith(sq(12));
-			expect(runtime.dragStart).toHaveBeenCalledWith(sq(12));
+			expect(runtime.dragStart).toHaveBeenCalledWith(sq(12), { x: 450, y: 650 });
 		});
 
 		it('non-drag-capable square: select(sq) called, dragStart NOT called', () => {
@@ -86,7 +88,7 @@ describe('InteractionController', () => {
 			});
 			const controller = createInteractionController(runtime);
 
-			controller.onPointerDown(sq(12));
+			controller.onPointerDown(sq(12), { x: 450, y: 650 });
 
 			expect(runtime.select).toHaveBeenCalledWith(sq(12));
 			expect(runtime.dragStart).not.toHaveBeenCalled();
@@ -106,18 +108,18 @@ describe('InteractionController', () => {
 			});
 			const controller = createInteractionController(runtime);
 
-			controller.onPointerDown(sq(12));
+			controller.onPointerDown(sq(12), { x: 450, y: 650 });
 
 			expect(callOrder).toEqual(['select', 'dragStart']);
 			expect(runtime.select).toHaveBeenCalledWith(sq(12));
-			expect(runtime.dragStart).toHaveBeenCalledWith(sq(12));
+			expect(runtime.dragStart).toHaveBeenCalledWith(sq(12), { x: 450, y: 650 });
 		});
 
 		it('off-board (null) is a no-op', () => {
 			const runtime = createMockRuntime();
 			const controller = createInteractionController(runtime);
 
-			controller.onPointerDown(null);
+			controller.onPointerDown(null, { x: 450, y: 650 });
 
 			expect(runtime.select).not.toHaveBeenCalled();
 			expect(runtime.dragStart).not.toHaveBeenCalled();
@@ -132,7 +134,7 @@ describe('InteractionController', () => {
 			const runtime = createMockRuntime(() => makeSnapshot(sq(12), null));
 			const controller = createInteractionController(runtime);
 
-			controller.onPointerDown(sq(28));
+			controller.onPointerDown(sq(28), { x: 450, y: 650 });
 
 			expect(runtime.setCurrentTarget).toHaveBeenCalledWith(sq(28));
 			expect(runtime.select).not.toHaveBeenCalled();
@@ -144,7 +146,7 @@ describe('InteractionController', () => {
 			const runtime = createMockRuntime(() => makeSnapshot(sq(12), null));
 			const controller = createInteractionController(runtime);
 
-			controller.onPointerDown(sq(12)); // same as selectedSquare
+			controller.onPointerDown(sq(12), { x: 450, y: 650 }); // same as selectedSquare
 
 			expect(runtime.setCurrentTarget).toHaveBeenCalledWith(sq(12));
 			expect(runtime.select).not.toHaveBeenCalled();
@@ -172,12 +174,12 @@ describe('InteractionController', () => {
 			});
 			const controller = createInteractionController(runtime);
 
-			controller.onPointerDown(sq(20));
+			controller.onPointerDown(sq(20), { x: 450, y: 650 });
 
 			expect(callOrder).toEqual(['cancel', 'select', 'dragStart']);
 			expect(runtime.cancelInteraction).toHaveBeenCalledTimes(1);
 			expect(runtime.select).toHaveBeenCalledWith(sq(20));
-			expect(runtime.dragStart).toHaveBeenCalledWith(sq(20));
+			expect(runtime.dragStart).toHaveBeenCalledWith(sq(20), { x: 450, y: 650 });
 		});
 	});
 
@@ -188,8 +190,9 @@ describe('InteractionController', () => {
 			const runtime = createMockRuntime();
 			const controller = createInteractionController(runtime);
 
-			controller.onPointerDown(sq(12)); // sets targeting = true
-			controller.onPointerMove(sq(28));
+			controller.onPointerDown(sq(12), { x: 450, y: 650 }); // sets targeting = true
+			const point: BoardPoint = { x: 100, y: 200 };
+			controller.onPointerMove(sq(28), point);
 
 			expect(runtime.setCurrentTarget).toHaveBeenLastCalledWith(sq(28));
 		});
@@ -198,7 +201,8 @@ describe('InteractionController', () => {
 			const runtime = createMockRuntime();
 			const controller = createInteractionController(runtime);
 
-			controller.onPointerMove(sq(28)); // no prior pointer-down
+			const point: BoardPoint = { x: 100, y: 200 };
+			controller.onPointerMove(sq(28), point); // no prior pointer-down
 
 			// setCurrentTarget should NOT have been called (no targeting active)
 			expect(runtime.setCurrentTarget).not.toHaveBeenCalled();
@@ -208,11 +212,12 @@ describe('InteractionController', () => {
 			const runtime = createMockRuntime();
 			const controller = createInteractionController(runtime);
 
-			controller.onPointerDown(sq(12));
+			controller.onPointerDown(sq(12), { x: 450, y: 650 });
 			controller.onPointerUp(sq(28)); // clears targeting
 			(runtime.setCurrentTarget as ReturnType<typeof vi.fn>).mockClear();
 
-			controller.onPointerMove(sq(20)); // should be no-op
+			const point: BoardPoint = { x: 100, y: 200 };
+			controller.onPointerMove(sq(20), point); // should be no-op
 
 			expect(runtime.setCurrentTarget).not.toHaveBeenCalled();
 		});
@@ -221,10 +226,49 @@ describe('InteractionController', () => {
 			const runtime = createMockRuntime();
 			const controller = createInteractionController(runtime);
 
-			controller.onPointerDown(sq(12));
-			controller.onPointerMove(null);
+			controller.onPointerDown(sq(12), { x: 450, y: 650 });
+			controller.onPointerMove(null, null);
 
 			expect(runtime.setCurrentTarget).toHaveBeenLastCalledWith(null);
+		});
+
+		it('calls notifyDragMove when drag session is active', () => {
+			const runtime = createMockRuntime(() => makeSnapshot(sq(12), { fromSquare: sq(12) }));
+			const controller = createInteractionController(runtime);
+
+			controller.onPointerDown(sq(12), { x: 450, y: 650 }); // start drag
+			const point: BoardPoint = { x: 150, y: 250 };
+			controller.onPointerMove(sq(28), point);
+
+			expect(runtime.notifyDragMove).toHaveBeenCalledWith(point);
+		});
+
+		it('does not call notifyDragMove when no drag session is active', () => {
+			const runtime = createMockRuntime(() => makeSnapshot(sq(12), null));
+			const controller = createInteractionController(runtime);
+
+			controller.onPointerDown(sq(28), { x: 450, y: 650 }); // Path B: release-targeting mode
+			const point: BoardPoint = { x: 150, y: 250 };
+			controller.onPointerMove(sq(28), point);
+
+			expect(runtime.notifyDragMove).not.toHaveBeenCalled();
+		});
+
+		it('calls notifyDragMove on same-square movement during drag', () => {
+			const runtime = createMockRuntime(() => makeSnapshot(sq(12), { fromSquare: sq(12) }));
+			const controller = createInteractionController(runtime);
+
+			controller.onPointerDown(sq(12), { x: 450, y: 650 }); // start drag
+			const point1: BoardPoint = { x: 150, y: 250 };
+			controller.onPointerMove(sq(12), point1); // same square, different point
+
+			expect(runtime.notifyDragMove).toHaveBeenCalledWith(point1);
+
+			const point2: BoardPoint = { x: 160, y: 260 };
+			controller.onPointerMove(sq(12), point2); // still same square
+
+			expect(runtime.notifyDragMove).toHaveBeenCalledWith(point2);
+			expect(runtime.notifyDragMove).toHaveBeenCalledTimes(2);
 		});
 	});
 
@@ -238,7 +282,7 @@ describe('InteractionController', () => {
 			});
 			const controller = createInteractionController(runtime);
 
-			controller.onPointerDown(sq(12));
+			controller.onPointerDown(sq(12), { x: 450, y: 650 });
 			const result = controller.onPointerUp(sq(28));
 
 			expect(runtime.dropTo).toHaveBeenCalledWith(sq(28));
@@ -251,7 +295,7 @@ describe('InteractionController', () => {
 			});
 			const controller = createInteractionController(runtime);
 
-			controller.onPointerDown(sq(12));
+			controller.onPointerDown(sq(12), { x: 450, y: 650 });
 			const result = controller.onPointerUp(sq(36));
 
 			expect(runtime.dropTo).toHaveBeenCalledWith(sq(36));
@@ -264,7 +308,7 @@ describe('InteractionController', () => {
 			});
 			const controller = createInteractionController(runtime);
 
-			controller.onPointerDown(sq(12));
+			controller.onPointerDown(sq(12), { x: 450, y: 650 });
 			controller.onPointerUp(null);
 
 			expect(runtime.dropTo).toHaveBeenCalledWith(null);
@@ -281,7 +325,7 @@ describe('InteractionController', () => {
 			});
 			const controller = createInteractionController(runtime);
 
-			controller.onPointerDown(sq(28)); // Path B: setCurrentTarget
+			controller.onPointerDown(sq(28), { x: 450, y: 650 }); // Path B: setCurrentTarget
 			const result = controller.onPointerUp(sq(28));
 
 			expect(runtime.dropTo).toHaveBeenCalledWith(sq(28));
@@ -293,7 +337,7 @@ describe('InteractionController', () => {
 			const runtime = createMockRuntime(() => makeSnapshot(sq(12), null));
 			const controller = createInteractionController(runtime);
 
-			controller.onPointerDown(sq(12)); // Path B
+			controller.onPointerDown(sq(12), { x: 450, y: 650 }); // Path B
 			const result = controller.onPointerUp(sq(12)); // release on same square
 
 			expect(runtime.select).toHaveBeenCalledWith(null);
@@ -310,8 +354,9 @@ describe('InteractionController', () => {
 			});
 			const controller = createInteractionController(runtime);
 
-			controller.onPointerDown(sq(12)); // Path B — setCurrentTarget(12), no select(null)
-			controller.onPointerMove(sq(28));
+			controller.onPointerDown(sq(12), { x: 450, y: 650 }); // Path B — setCurrentTarget(12), no select(null)
+			const point: BoardPoint = { x: 150, y: 250 };
+			controller.onPointerMove(sq(28), point);
 			const result = controller.onPointerUp(sq(28)); // release on different square
 
 			// select(null) must NOT have been called during pointer-down
@@ -328,7 +373,7 @@ describe('InteractionController', () => {
 			});
 			const controller = createInteractionController(runtime);
 
-			controller.onPointerDown(sq(36));
+			controller.onPointerDown(sq(36), { x: 450, y: 650 });
 			const result = controller.onPointerUp(sq(36));
 
 			expect(runtime.dropTo).toHaveBeenCalledWith(sq(36));
@@ -366,11 +411,12 @@ describe('InteractionController', () => {
 			const runtime = createMockRuntime();
 			const controller = createInteractionController(runtime);
 
-			controller.onPointerDown(sq(12));
+			controller.onPointerDown(sq(12), { x: 450, y: 650 });
 			controller.onPointerCancel();
 			(runtime.setCurrentTarget as ReturnType<typeof vi.fn>).mockClear();
 
-			controller.onPointerMove(sq(20)); // should be no-op
+			const point: BoardPoint = { x: 100, y: 200 };
+			controller.onPointerMove(sq(20), point); // should be no-op
 
 			expect(runtime.setCurrentTarget).not.toHaveBeenCalled();
 		});
@@ -386,7 +432,7 @@ describe('InteractionController', () => {
 			const runtime = createMockRuntime(
 				() => {
 					// First call (in onPointerDown): no interaction yet
-					// Subsequent calls (in onPointerUp): drag active
+					// Subsequent calls (in onPointerMove/onPointerUp): drag active
 					callCount++;
 					return callCount === 1
 						? makeSnapshot(null, null)
@@ -396,13 +442,17 @@ describe('InteractionController', () => {
 			);
 			const controller = createInteractionController(runtime);
 
-			controller.onPointerDown(sq(12)); // Path A: select + dragStart
-			controller.onPointerMove(sq(20)); // update target
-			controller.onPointerMove(sq(28)); // update target
+			controller.onPointerDown(sq(12), { x: 450, y: 650 }); // Path A: select + dragStart
+			const point1: BoardPoint = { x: 100, y: 200 };
+			controller.onPointerMove(sq(20), point1); // update target + drag visual
+			const point2: BoardPoint = { x: 150, y: 250 };
+			controller.onPointerMove(sq(28), point2); // update target + drag visual
 			const result = controller.onPointerUp(sq(28)); // dropTo
 
 			expect(runtime.select).toHaveBeenCalledWith(sq(12));
-			expect(runtime.dragStart).toHaveBeenCalledWith(sq(12));
+			expect(runtime.dragStart).toHaveBeenCalledWith(sq(12), { x: 450, y: 650 });
+			expect(runtime.notifyDragMove).toHaveBeenCalledWith(point1);
+			expect(runtime.notifyDragMove).toHaveBeenCalledWith(point2);
 			expect(runtime.dropTo).toHaveBeenCalledWith(sq(28));
 			expect(result).toBe(move);
 		});
@@ -414,11 +464,13 @@ describe('InteractionController', () => {
 			});
 			const controller = createInteractionController(runtime);
 
-			controller.onPointerDown(sq(28)); // Path B: setCurrentTarget
-			controller.onPointerMove(sq(28)); // update target
+			controller.onPointerDown(sq(28), { x: 450, y: 650 }); // Path B: setCurrentTarget
+			const point: BoardPoint = { x: 150, y: 250 };
+			controller.onPointerMove(sq(28), point); // update target (no drag visual)
 			const result = controller.onPointerUp(sq(28)); // dropTo
 
 			expect(runtime.setCurrentTarget).toHaveBeenCalledWith(sq(28));
+			expect(runtime.notifyDragMove).not.toHaveBeenCalled(); // no drag session
 			expect(runtime.dropTo).toHaveBeenCalledWith(sq(28));
 			expect(result).toBe(move);
 		});
@@ -446,13 +498,13 @@ describe('InteractionController', () => {
 
 			// First interaction: lifted-piece, illegal drop
 			phase = 0;
-			controller.onPointerDown(sq(12));
+			controller.onPointerDown(sq(12), { x: 450, y: 650 });
 			phase = 1;
 			controller.onPointerUp(sq(36)); // illegal — runtime keeps selection
 
 			// Second interaction: release-targeting, legal drop
 			phase = 2;
-			controller.onPointerDown(sq(28)); // Path B
+			controller.onPointerDown(sq(28), { x: 450, y: 650 }); // Path B
 			const result = controller.onPointerUp(sq(28));
 
 			expect(result).toBe(move);
@@ -462,11 +514,12 @@ describe('InteractionController', () => {
 			const runtime = createMockRuntime();
 			const controller = createInteractionController(runtime);
 
-			controller.onPointerDown(sq(12));
+			controller.onPointerDown(sq(12), { x: 450, y: 650 });
 			controller.onPointerCancel();
 			(runtime.setCurrentTarget as ReturnType<typeof vi.fn>).mockClear();
 
-			controller.onPointerMove(sq(28)); // should be no-op
+			const point: BoardPoint = { x: 100, y: 200 };
+			controller.onPointerMove(sq(28), point); // should be no-op
 
 			expect(runtime.cancelInteraction).toHaveBeenCalledTimes(1);
 			expect(runtime.setCurrentTarget).not.toHaveBeenCalled();

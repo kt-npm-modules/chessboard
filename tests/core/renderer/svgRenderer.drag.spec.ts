@@ -1,5 +1,5 @@
 /**
- * Phase 3.3 — SvgRenderer drag rendering tests.
+ * Phase 3.3/3.8 — SvgRenderer drag rendering tests.
  *
  * Verifies:
  * 1. no drag => dragRoot is empty
@@ -7,13 +7,17 @@
  * 3. active drag => source piece absent from piecesRoot
  * 4. drag end => dragRoot cleared and source piece restored in piecesRoot
  * 5. drag-only invalidation => board/coords are not redrawn
+ * 6. Phase 3.8: drag visual follows pointer position
+ * 7. Phase 3.8: same-square pointer movement updates drag position
  */
 
 import { describe, expect, it } from 'vitest';
 import { makeRenderGeometry } from '../../../src/core/renderer/geometry';
 import { SvgRenderer } from '../../../src/core/renderer/SvgRenderer';
+import type { BoardPoint } from '../../../src/core/renderer/types';
 import { DirtyLayer } from '../../../src/core/scheduler/types';
 import type { BoardStateSnapshot, Square } from '../../../src/core/state/boardTypes';
+import type { InteractionStateSnapshot } from '../../../src/core/state/interactionTypes';
 
 function sq(n: number): Square {
 	return n as Square;
@@ -37,7 +41,7 @@ function makeEmptyBoard(): BoardStateSnapshot {
 	};
 }
 
-describe('SvgRenderer drag rendering (Phase 3.3)', () => {
+describe('SvgRenderer drag rendering (Phase 3.3/3.8)', () => {
 	// ── 1. no drag => dragRoot is empty ───────────────────────────────────────
 
 	it('no drag: dragRoot is empty after Drag-layer render', () => {
@@ -47,12 +51,19 @@ describe('SvgRenderer drag rendering (Phase 3.3)', () => {
 
 		const board = makePawnBoard();
 		const geometry = makeRenderGeometry(800, 'white');
+		const interaction: InteractionStateSnapshot = {
+			selectedSquare: null,
+			destinations: null,
+			currentTarget: null,
+			dragSession: null
+		};
 
 		renderer.render({
 			board,
 			invalidation: { layers: DirtyLayer.Pieces | DirtyLayer.Drag },
 			geometry,
-			drag: null
+			interaction,
+			transientVisuals: { dragPointer: null }
 		});
 
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -71,12 +82,20 @@ describe('SvgRenderer drag rendering (Phase 3.3)', () => {
 
 		const board = makePawnBoard();
 		const geometry = makeRenderGeometry(800, 'white');
+		const interaction: InteractionStateSnapshot = {
+			selectedSquare: sq(12),
+			destinations: null,
+			currentTarget: null,
+			dragSession: { fromSquare: sq(12) }
+		};
+		const dragPointer: BoardPoint = { x: 200, y: 300 };
 
 		renderer.render({
 			board,
 			invalidation: { layers: DirtyLayer.Pieces | DirtyLayer.Drag },
 			geometry,
-			drag: { sourceSquare: sq(12) }
+			interaction,
+			transientVisuals: { dragPointer }
 		});
 
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -94,45 +113,58 @@ describe('SvgRenderer drag rendering (Phase 3.3)', () => {
 
 		const board = makePawnBoard();
 		const geometry = makeRenderGeometry(800, 'white');
+		const interaction: InteractionStateSnapshot = {
+			selectedSquare: sq(12),
+			destinations: null,
+			currentTarget: null,
+			dragSession: { fromSquare: sq(12) }
+		};
+		const dragPointer: BoardPoint = { x: 200, y: 300 };
 
 		renderer.render({
 			board,
 			invalidation: { layers: DirtyLayer.Pieces | DirtyLayer.Drag },
 			geometry,
-			drag: { sourceSquare: sq(12) }
+			interaction,
+			transientVisuals: { dragPointer }
 		});
 
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		const dragRoot = (renderer as any).dragRoot as SVGGElement;
 		const img = dragRoot.children[0] as SVGImageElement;
-		expect(img.getAttribute('href')).toContain('wp.svg'); // white pawn
+		const href = img.getAttribute('href');
+		expect(href).toBeTruthy();
+		// Asset URL can be either a file path (wp.svg) or a data URL
+		expect(href).toMatch(/wp\.svg|data:image\/svg/);
 
 		renderer.unmount();
 	});
 
-	it('active drag: drag image is positioned at the source square', () => {
+	it('active drag session but no drag pointer: dragRoot is empty', () => {
 		const renderer = new SvgRenderer();
 		const container = document.createElement('div');
 		renderer.mount(container);
 
 		const board = makePawnBoard();
 		const geometry = makeRenderGeometry(800, 'white');
-		const expectedRect = geometry.squareRect(sq(12));
+		const interaction: InteractionStateSnapshot = {
+			selectedSquare: sq(12),
+			destinations: null,
+			currentTarget: null,
+			dragSession: { fromSquare: sq(12) }
+		};
 
 		renderer.render({
 			board,
 			invalidation: { layers: DirtyLayer.Pieces | DirtyLayer.Drag },
 			geometry,
-			drag: { sourceSquare: sq(12) }
+			interaction,
+			transientVisuals: { dragPointer: null }
 		});
 
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		const dragRoot = (renderer as any).dragRoot as SVGGElement;
-		const img = dragRoot.children[0] as SVGImageElement;
-		expect(img.getAttribute('x')).toBe(String(expectedRect.x));
-		expect(img.getAttribute('y')).toBe(String(expectedRect.y));
-		expect(img.getAttribute('width')).toBe(String(expectedRect.size));
-		expect(img.getAttribute('height')).toBe(String(expectedRect.size));
+		expect(dragRoot.children.length).toBe(0);
 
 		renderer.unmount();
 	});
@@ -146,12 +178,20 @@ describe('SvgRenderer drag rendering (Phase 3.3)', () => {
 
 		const board = makePawnBoard();
 		const geometry = makeRenderGeometry(800, 'white');
+		const interaction: InteractionStateSnapshot = {
+			selectedSquare: sq(12),
+			destinations: null,
+			currentTarget: null,
+			dragSession: { fromSquare: sq(12) }
+		};
+		const dragPointer: BoardPoint = { x: 200, y: 300 };
 
 		renderer.render({
 			board,
 			invalidation: { layers: DirtyLayer.Pieces | DirtyLayer.Drag },
 			geometry,
-			drag: { sourceSquare: sq(12) }
+			interaction,
+			transientVisuals: { dragPointer }
 		});
 
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -177,12 +217,20 @@ describe('SvgRenderer drag rendering (Phase 3.3)', () => {
 		renderer.mount(container);
 
 		const geometry = makeRenderGeometry(800, 'white');
+		const interaction: InteractionStateSnapshot = {
+			selectedSquare: sq(12),
+			destinations: null,
+			currentTarget: null,
+			dragSession: { fromSquare: sq(12) }
+		};
+		const dragPointer: BoardPoint = { x: 200, y: 300 };
 
 		renderer.render({
 			board,
 			invalidation: { layers: DirtyLayer.Pieces | DirtyLayer.Drag },
 			geometry,
-			drag: { sourceSquare: sq(12) } // dragging the pawn
+			interaction,
+			transientVisuals: { dragPointer }
 		});
 
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -202,13 +250,27 @@ describe('SvgRenderer drag rendering (Phase 3.3)', () => {
 
 		const board = makePawnBoard();
 		const geometry = makeRenderGeometry(800, 'white');
+		const interactionActive: InteractionStateSnapshot = {
+			selectedSquare: sq(12),
+			destinations: null,
+			currentTarget: null,
+			dragSession: { fromSquare: sq(12) }
+		};
+		const interactionEnded: InteractionStateSnapshot = {
+			selectedSquare: sq(12),
+			destinations: null,
+			currentTarget: null,
+			dragSession: null
+		};
+		const dragPointer: BoardPoint = { x: 200, y: 300 };
 
 		// Start drag
 		renderer.render({
 			board,
 			invalidation: { layers: DirtyLayer.Pieces | DirtyLayer.Drag },
 			geometry,
-			drag: { sourceSquare: sq(12) }
+			interaction: interactionActive,
+			transientVisuals: { dragPointer }
 		});
 
 		// End drag (cancel / snap back)
@@ -216,7 +278,8 @@ describe('SvgRenderer drag rendering (Phase 3.3)', () => {
 			board,
 			invalidation: { layers: DirtyLayer.Pieces | DirtyLayer.Drag },
 			geometry,
-			drag: null
+			interaction: interactionEnded,
+			transientVisuals: { dragPointer: null }
 		});
 
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -233,13 +296,27 @@ describe('SvgRenderer drag rendering (Phase 3.3)', () => {
 
 		const board = makePawnBoard();
 		const geometry = makeRenderGeometry(800, 'white');
+		const interactionActive: InteractionStateSnapshot = {
+			selectedSquare: sq(12),
+			destinations: null,
+			currentTarget: null,
+			dragSession: { fromSquare: sq(12) }
+		};
+		const interactionEnded: InteractionStateSnapshot = {
+			selectedSquare: sq(12),
+			destinations: null,
+			currentTarget: null,
+			dragSession: null
+		};
+		const dragPointer: BoardPoint = { x: 200, y: 300 };
 
 		// Start drag
 		renderer.render({
 			board,
 			invalidation: { layers: DirtyLayer.Pieces | DirtyLayer.Drag },
 			geometry,
-			drag: { sourceSquare: sq(12) }
+			interaction: interactionActive,
+			transientVisuals: { dragPointer }
 		});
 
 		// End drag
@@ -247,7 +324,8 @@ describe('SvgRenderer drag rendering (Phase 3.3)', () => {
 			board,
 			invalidation: { layers: DirtyLayer.Pieces | DirtyLayer.Drag },
 			geometry,
-			drag: null
+			interaction: interactionEnded,
+			transientVisuals: { dragPointer: null }
 		});
 
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -268,13 +346,33 @@ describe('SvgRenderer drag rendering (Phase 3.3)', () => {
 
 		const board = makePawnBoard();
 		const geometry = makeRenderGeometry(800, 'white');
+		const interactionNone: InteractionStateSnapshot = {
+			selectedSquare: null,
+			destinations: null,
+			currentTarget: null,
+			dragSession: null
+		};
+		const interactionActive: InteractionStateSnapshot = {
+			selectedSquare: sq(12),
+			destinations: null,
+			currentTarget: null,
+			dragSession: { fromSquare: sq(12) }
+		};
+		const interactionEnded: InteractionStateSnapshot = {
+			selectedSquare: sq(12),
+			destinations: null,
+			currentTarget: null,
+			dragSession: null
+		};
+		const dragPointer: BoardPoint = { x: 200, y: 300 };
 
 		// Initial render (no drag) — capture the piece node reference
 		renderer.render({
 			board,
 			invalidation: { layers: DirtyLayer.Pieces },
 			geometry,
-			drag: null
+			interaction: interactionNone,
+			transientVisuals: { dragPointer: null }
 		});
 		const nodeBeforeDrag = piecesRoot.children[0] as SVGImageElement;
 
@@ -283,7 +381,8 @@ describe('SvgRenderer drag rendering (Phase 3.3)', () => {
 			board,
 			invalidation: { layers: DirtyLayer.Pieces | DirtyLayer.Drag },
 			geometry,
-			drag: { sourceSquare: sq(12) }
+			interaction: interactionActive,
+			transientVisuals: { dragPointer }
 		});
 		expect(piecesRoot.children.length).toBe(0); // piece is in dragRoot
 
@@ -292,7 +391,8 @@ describe('SvgRenderer drag rendering (Phase 3.3)', () => {
 			board,
 			invalidation: { layers: DirtyLayer.Pieces | DirtyLayer.Drag },
 			geometry,
-			drag: null
+			interaction: interactionEnded,
+			transientVisuals: { dragPointer: null }
 		});
 		const nodeAfterDrag = piecesRoot.children[0] as SVGImageElement;
 
@@ -314,13 +414,20 @@ describe('SvgRenderer drag rendering (Phase 3.3)', () => {
 
 		const board = makeEmptyBoard();
 		const geometry = makeRenderGeometry(800, 'white');
+		const interaction: InteractionStateSnapshot = {
+			selectedSquare: null,
+			destinations: null,
+			currentTarget: null,
+			dragSession: null
+		};
 
 		// Full initial render to populate boardRoot
 		renderer.render({
 			board,
 			invalidation: { layers: DirtyLayer.Board | DirtyLayer.Pieces | DirtyLayer.Drag },
 			geometry,
-			drag: null
+			interaction,
+			transientVisuals: { dragPointer: null }
 		});
 		expect(boardRoot.children.length).toBe(64); // 64 squares drawn
 
@@ -332,7 +439,8 @@ describe('SvgRenderer drag rendering (Phase 3.3)', () => {
 			board,
 			invalidation: { layers: DirtyLayer.Drag },
 			geometry,
-			drag: null
+			interaction,
+			transientVisuals: { dragPointer: null }
 		});
 
 		// boardRoot still has 64 children and the same first node
@@ -352,13 +460,20 @@ describe('SvgRenderer drag rendering (Phase 3.3)', () => {
 
 		const board = makeEmptyBoard();
 		const geometry = makeRenderGeometry(800, 'white');
+		const interaction: InteractionStateSnapshot = {
+			selectedSquare: null,
+			destinations: null,
+			currentTarget: null,
+			dragSession: null
+		};
 
 		// Full initial render to populate coordsRoot
 		renderer.render({
 			board,
 			invalidation: { layers: DirtyLayer.Board | DirtyLayer.Pieces | DirtyLayer.Drag },
 			geometry,
-			drag: null
+			interaction,
+			transientVisuals: { dragPointer: null }
 		});
 		expect(coordsRoot.children.length).toBe(16); // 16 coordinate labels
 
@@ -369,7 +484,8 @@ describe('SvgRenderer drag rendering (Phase 3.3)', () => {
 			board,
 			invalidation: { layers: DirtyLayer.Drag },
 			geometry,
-			drag: null
+			interaction,
+			transientVisuals: { dragPointer: null }
 		});
 
 		expect(coordsRoot.children.length).toBe(16);
@@ -388,13 +504,20 @@ describe('SvgRenderer drag rendering (Phase 3.3)', () => {
 
 		const board = makePawnBoard();
 		const geometry = makeRenderGeometry(800, 'white');
+		const interaction: InteractionStateSnapshot = {
+			selectedSquare: null,
+			destinations: null,
+			currentTarget: null,
+			dragSession: null
+		};
 
 		// Initial pieces render
 		renderer.render({
 			board,
 			invalidation: { layers: DirtyLayer.Pieces },
 			geometry,
-			drag: null
+			interaction,
+			transientVisuals: { dragPointer: null }
 		});
 		expect(piecesRoot.children.length).toBe(1);
 		const pieceNode = piecesRoot.children[0];
@@ -404,11 +527,162 @@ describe('SvgRenderer drag rendering (Phase 3.3)', () => {
 			board,
 			invalidation: { layers: DirtyLayer.Drag },
 			geometry,
-			drag: null
+			interaction,
+			transientVisuals: { dragPointer: null }
 		});
 
 		expect(piecesRoot.children.length).toBe(1);
 		expect(piecesRoot.children[0]).toBe(pieceNode);
+
+		renderer.unmount();
+	});
+
+	// ── 6. Phase 3.8: drag visual follows pointer position ────────────────────
+
+	it('Phase 3.8: drag piece is centered under pointer', () => {
+		const renderer = new SvgRenderer();
+		const container = document.createElement('div');
+		renderer.mount(container);
+
+		const board = makePawnBoard();
+		const geometry = makeRenderGeometry(800, 'white');
+		const interaction: InteractionStateSnapshot = {
+			selectedSquare: sq(12),
+			destinations: null,
+			currentTarget: null,
+			dragSession: { fromSquare: sq(12) }
+		};
+		const dragPointer: BoardPoint = { x: 250, y: 350 };
+
+		renderer.render({
+			board,
+			invalidation: { layers: DirtyLayer.Pieces | DirtyLayer.Drag },
+			geometry,
+			interaction,
+			transientVisuals: { dragPointer }
+		});
+
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		const dragRoot = (renderer as any).dragRoot as SVGGElement;
+		const img = dragRoot.children[0] as SVGImageElement;
+
+		// Piece should be centered under pointer
+		const squareSize = geometry.squareSize;
+		const expectedX = dragPointer.x - squareSize / 2;
+		const expectedY = dragPointer.y - squareSize / 2;
+
+		expect(img.getAttribute('x')).toBe(String(expectedX));
+		expect(img.getAttribute('y')).toBe(String(expectedY));
+		expect(img.getAttribute('width')).toBe(String(squareSize));
+		expect(img.getAttribute('height')).toBe(String(squareSize));
+
+		renderer.unmount();
+	});
+
+	it('Phase 3.8: drag position updates on pointer move', () => {
+		const renderer = new SvgRenderer();
+		const container = document.createElement('div');
+		renderer.mount(container);
+
+		const board = makePawnBoard();
+		const geometry = makeRenderGeometry(800, 'white');
+		const interaction: InteractionStateSnapshot = {
+			selectedSquare: sq(12),
+			destinations: null,
+			currentTarget: null,
+			dragSession: { fromSquare: sq(12) }
+		};
+
+		// First render at position 1
+		const dragPointer1: BoardPoint = { x: 200, y: 300 };
+		renderer.render({
+			board,
+			invalidation: { layers: DirtyLayer.Drag },
+			geometry,
+			interaction,
+			transientVisuals: { dragPointer: dragPointer1 }
+		});
+
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		const dragRoot = (renderer as any).dragRoot as SVGGElement;
+		const img1 = dragRoot.children[0] as SVGImageElement;
+		const squareSize = geometry.squareSize;
+		const expectedX1 = dragPointer1.x - squareSize / 2;
+		const expectedY1 = dragPointer1.y - squareSize / 2;
+
+		expect(img1.getAttribute('x')).toBe(String(expectedX1));
+		expect(img1.getAttribute('y')).toBe(String(expectedY1));
+
+		// Second render at position 2 (pointer moved)
+		const dragPointer2: BoardPoint = { x: 350, y: 450 };
+		renderer.render({
+			board,
+			invalidation: { layers: DirtyLayer.Drag },
+			geometry,
+			interaction,
+			transientVisuals: { dragPointer: dragPointer2 }
+		});
+
+		const img2 = dragRoot.children[0] as SVGImageElement;
+		const expectedX2 = dragPointer2.x - squareSize / 2;
+		const expectedY2 = dragPointer2.y - squareSize / 2;
+
+		expect(img2.getAttribute('x')).toBe(String(expectedX2));
+		expect(img2.getAttribute('y')).toBe(String(expectedY2));
+
+		renderer.unmount();
+	});
+
+	it('Phase 3.8: same-square pointer movement updates drag position', () => {
+		const renderer = new SvgRenderer();
+		const container = document.createElement('div');
+		renderer.mount(container);
+
+		const board = makePawnBoard();
+		const geometry = makeRenderGeometry(800, 'white');
+		const interaction: InteractionStateSnapshot = {
+			selectedSquare: sq(12),
+			destinations: null,
+			currentTarget: sq(12), // same square
+			dragSession: { fromSquare: sq(12) }
+		};
+
+		// First render at position 1 (within square 12)
+		const dragPointer1: BoardPoint = { x: 200, y: 300 };
+		renderer.render({
+			board,
+			invalidation: { layers: DirtyLayer.Drag },
+			geometry,
+			interaction,
+			transientVisuals: { dragPointer: dragPointer1 }
+		});
+
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		const dragRoot = (renderer as any).dragRoot as SVGGElement;
+		const squareSize = geometry.squareSize;
+		const expectedX1 = dragPointer1.x - squareSize / 2;
+		const expectedY1 = dragPointer1.y - squareSize / 2;
+
+		const img1 = dragRoot.children[0] as SVGImageElement;
+		expect(img1.getAttribute('x')).toBe(String(expectedX1));
+		expect(img1.getAttribute('y')).toBe(String(expectedY1));
+
+		// Second render at position 2 (still within square 12, but different pixel position)
+		const dragPointer2: BoardPoint = { x: 210, y: 310 };
+		renderer.render({
+			board,
+			invalidation: { layers: DirtyLayer.Drag },
+			geometry,
+			interaction,
+			transientVisuals: { dragPointer: dragPointer2 }
+		});
+
+		const img2 = dragRoot.children[0] as SVGImageElement;
+		const expectedX2 = dragPointer2.x - squareSize / 2;
+		const expectedY2 = dragPointer2.y - squareSize / 2;
+
+		expect(img2.getAttribute('x')).toBe(String(expectedX2));
+		expect(img2.getAttribute('y')).toBe(String(expectedY2));
 
 		renderer.unmount();
 	});

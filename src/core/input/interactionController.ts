@@ -69,6 +69,7 @@
  *   update currentTarget. This prevents generic global hover tracking.
  */
 
+import type { BoardPoint } from '../renderer/types';
 import type { InteractionSnapshot } from '../runtime/boardRuntime';
 import type { Move, Square } from '../state/boardTypes';
 
@@ -84,8 +85,13 @@ export interface InteractionRuntimeSurface {
 	 * Selection itself is NOT gated by this — only dragStart is.
 	 */
 	canStartMoveFrom(from: Square): boolean;
+	/**
+	 * Notify runtime of drag pointer movement for visual updates.
+	 * Called by controller when a drag session is active.
+	 */
+	notifyDragMove(point: BoardPoint | null): void;
 	select(sq: Square | null): boolean;
-	dragStart(from: Square): boolean;
+	dragStart(from: Square, point: BoardPoint): boolean;
 	setCurrentTarget(target: Square | null): boolean;
 	dropTo(to: Square | null): Move | null;
 	cancelInteraction(): boolean;
@@ -103,19 +109,23 @@ export interface InteractionController {
 	 *
 	 * sq === null: off-board pointer-down → no-op.
 	 *
-	 * Path A (no active interaction): select(sq) + dragStart(sq) → lifted-piece mode.
+	 * Path A (no active interaction): select(sq) + dragStart(sq, point) → lifted-piece mode.
 	 * Path B (release-targeting mode): setCurrentTarget(sq) → begin destination targeting.
-	 * Path C (lifted-piece mode, defensive): cancelInteraction() + select(sq) + dragStart(sq).
+	 * Path C (lifted-piece mode, defensive): cancelInteraction() + select(sq) + dragStart(sq, point).
 	 */
-	onPointerDown(sq: Square | null): void;
+	onPointerDown(sq: Square | null, point: BoardPoint): void;
 
 	/**
 	 * Called when the pointer moves to a new square (or off-board).
 	 *
 	 * Updates currentTarget ONLY while targeting is active (pointer is down).
+	 * If a drag session is active, also updates drag visual position.
 	 * No-op if pointer is not currently down.
+	 *
+	 * @param target - The semantic target square (null if off-board or outside grid)
+	 * @param point - Board-local pointer coordinates (null only if geometry unavailable)
 	 */
-	onPointerMove(sq: Square | null): void;
+	onPointerMove(target: Square | null, point: BoardPoint | null): void;
 
 	/**
 	 * Called when the pointer is released.
@@ -149,7 +159,7 @@ export function createInteractionController(
 	let targeting = false;
 
 	return {
-		onPointerDown(sq: Square | null): void {
+		onPointerDown(sq: Square | null, point: BoardPoint): void {
 			if (sq === null) return; // off-board pointer-down: no-op
 
 			const snap = runtime.getInteractionSnapshot();
@@ -160,7 +170,7 @@ export function createInteractionController(
 				runtime.cancelInteraction();
 				runtime.select(sq);
 				if (runtime.canStartMoveFrom(sq)) {
-					runtime.dragStart(sq);
+					runtime.dragStart(sq, point);
 				}
 				targeting = true;
 				return;
@@ -179,16 +189,21 @@ export function createInteractionController(
 			// Lifted-piece entry is gated: only if the square is drag-capable.
 			runtime.select(sq);
 			if (runtime.canStartMoveFrom(sq)) {
-				runtime.dragStart(sq); // enter lifted-piece mode
+				runtime.dragStart(sq, point); // enter lifted-piece mode with initial pointer position
 			}
 			// else: selection only — non-lifted path (no dragSession)
 			targeting = true;
 		},
 
-		onPointerMove(sq: Square | null): void {
+		onPointerMove(target: Square | null, point: BoardPoint | null): void {
 			// Only update currentTarget while the pointer is down and an interaction is active.
 			if (!targeting) return;
-			runtime.setCurrentTarget(sq);
+			runtime.setCurrentTarget(target);
+			// If a drag session is active, also update drag visual position.
+			const snap = runtime.getInteractionSnapshot();
+			if (snap.interaction.dragSession !== null) {
+				runtime.notifyDragMove(point);
+			}
 		},
 
 		onPointerUp(sq: Square | null): Move | null {

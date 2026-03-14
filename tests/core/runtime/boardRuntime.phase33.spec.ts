@@ -76,7 +76,7 @@ describe('Phase 3.3 / BoardRuntime — drag rendering invalidation', () => {
 			renderSpy.mockClear();
 
 			runtime.select(sq(12)); // e2
-			runtime.dragStart(sq(12));
+			runtime.dragStart(sq(12), { x: 450, y: 650 });
 
 			await waitForRender();
 
@@ -99,7 +99,7 @@ describe('Phase 3.3 / BoardRuntime — drag rendering invalidation', () => {
 			renderSpy.mockClear();
 
 			runtime.select(sq(12));
-			runtime.dragStart(sq(12));
+			runtime.dragStart(sq(12), { x: 450, y: 650 });
 
 			await waitForRender();
 
@@ -124,14 +124,14 @@ describe('Phase 3.3 / BoardRuntime — drag rendering invalidation', () => {
 			renderSpy.mockClear();
 
 			runtime.select(sq(12));
-			runtime.dragStart(sq(12));
+			runtime.dragStart(sq(12), { x: 450, y: 650 });
 
 			await waitForRender();
 
 			expect(renderSpy).toHaveBeenCalled();
 			const [ctx] = renderSpy.mock.calls[0];
-			expect(ctx.drag).not.toBeNull();
-			expect(ctx.drag!.sourceSquare).toBe(sq(12));
+			expect(ctx.interaction.dragSession).not.toBeNull();
+			expect(ctx.interaction.dragSession!.fromSquare).toBe(sq(12));
 		});
 
 		it('before dragStart(), renderer receives drag: null', async () => {
@@ -149,7 +149,7 @@ describe('Phase 3.3 / BoardRuntime — drag rendering invalidation', () => {
 			// Initial render — no drag active
 			expect(renderSpy).toHaveBeenCalled();
 			const [ctx] = renderSpy.mock.calls[0];
-			expect(ctx.drag).toBeNull();
+			expect(ctx.interaction.dragSession).toBeNull();
 		});
 	});
 
@@ -169,7 +169,7 @@ describe('Phase 3.3 / BoardRuntime — drag rendering invalidation', () => {
 			await waitForRender();
 
 			runtime.select(sq(12));
-			runtime.dragStart(sq(12));
+			runtime.dragStart(sq(12), { x: 450, y: 650 });
 
 			await waitForRender();
 			renderSpy.mockClear();
@@ -196,7 +196,7 @@ describe('Phase 3.3 / BoardRuntime — drag rendering invalidation', () => {
 			await waitForRender();
 
 			runtime.select(sq(12));
-			runtime.dragStart(sq(12));
+			runtime.dragStart(sq(12), { x: 450, y: 650 });
 
 			await waitForRender();
 			renderSpy.mockClear();
@@ -207,7 +207,7 @@ describe('Phase 3.3 / BoardRuntime — drag rendering invalidation', () => {
 
 			expect(renderSpy).toHaveBeenCalled();
 			const [ctx] = renderSpy.mock.calls[0];
-			expect(ctx.drag).toBeNull();
+			expect(ctx.interaction.dragSession).toBeNull();
 		});
 
 		it('cancelInteraction() with no active drag does not schedule a render', async () => {
@@ -255,7 +255,7 @@ describe('Phase 3.3 / BoardRuntime — drag rendering invalidation', () => {
 			await waitForRender();
 
 			runtime.select(sq(12));
-			runtime.dragStart(sq(12));
+			runtime.dragStart(sq(12), { x: 450, y: 650 });
 
 			await waitForRender();
 			renderSpy.mockClear();
@@ -288,7 +288,7 @@ describe('Phase 3.3 / BoardRuntime — drag rendering invalidation', () => {
 			await waitForRender();
 
 			runtime.select(sq(12));
-			runtime.dragStart(sq(12));
+			runtime.dragStart(sq(12), { x: 450, y: 650 });
 
 			await waitForRender();
 			renderSpy.mockClear();
@@ -299,7 +299,7 @@ describe('Phase 3.3 / BoardRuntime — drag rendering invalidation', () => {
 
 			expect(renderSpy).toHaveBeenCalled();
 			const [ctx] = renderSpy.mock.calls[0];
-			expect(ctx.drag).toBeNull();
+			expect(ctx.interaction.dragSession).toBeNull();
 		});
 
 		it('illegal lifted drop also marks DirtyLayer.Pieces (source piece returns to piecesRoot)', async () => {
@@ -321,7 +321,7 @@ describe('Phase 3.3 / BoardRuntime — drag rendering invalidation', () => {
 			await waitForRender();
 
 			runtime.select(sq(12));
-			runtime.dragStart(sq(12));
+			runtime.dragStart(sq(12), { x: 450, y: 650 });
 
 			await waitForRender();
 			renderSpy.mockClear();
@@ -352,7 +352,7 @@ describe('Phase 3.3 / BoardRuntime — drag rendering invalidation', () => {
 			await waitForRender();
 
 			runtime.select(sq(12));
-			runtime.dragStart(sq(12));
+			runtime.dragStart(sq(12), { x: 450, y: 650 });
 
 			await waitForRender();
 			renderSpy.mockClear();
@@ -379,7 +379,7 @@ describe('Phase 3.3 / BoardRuntime — drag rendering invalidation', () => {
 			await waitForRender();
 
 			runtime.select(sq(12));
-			runtime.dragStart(sq(12));
+			runtime.dragStart(sq(12), { x: 450, y: 650 });
 
 			await waitForRender();
 			renderSpy.mockClear();
@@ -390,7 +390,7 @@ describe('Phase 3.3 / BoardRuntime — drag rendering invalidation', () => {
 
 			expect(renderSpy).toHaveBeenCalled();
 			const [ctx] = renderSpy.mock.calls[0];
-			expect(ctx.drag).toBeNull();
+			expect(ctx.interaction.dragSession).toBeNull();
 		});
 
 		it('legal drop also marks DirtyLayer.Pieces and preserves dirty squares from move', async () => {
@@ -408,7 +408,7 @@ describe('Phase 3.3 / BoardRuntime — drag rendering invalidation', () => {
 			await waitForRender();
 
 			runtime.select(sq(12));
-			runtime.dragStart(sq(12));
+			runtime.dragStart(sq(12), { x: 450, y: 650 });
 
 			await waitForRender();
 			renderSpy.mockClear();
