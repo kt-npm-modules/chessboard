@@ -232,7 +232,7 @@
 
 ### 3.9 Move animation architecture + base implementation
 
-**Status: TODO**
+**Status: COMPLETE**
 
 - Add renderer-side move animation for committed move application
 - Cover click-move / release-complete flow, not only drag-drop

@@ -22,6 +22,8 @@ export interface BoardPoint {
 export interface TransientVisualState {
 	/** Board-local pointer coordinates for drag visual positioning. Null when no drag is active. */
 	dragPointer: BoardPoint | null;
+	/** One-shot flag: skip committed move animation for the next render cycle. Runtime-owned. */
+	skipNextCommittedAnimation?: boolean;
 }
 
 /**

@@ -216,6 +216,11 @@ export function createBoardRuntime(opts: BoardRuntimeInitOptions): BoardRuntime 
 					interaction: interactionSnapshot,
 					transientVisuals
 				});
+
+				// Reset one-shot skip flag after renderer consumed it
+				if (transientVisuals.skipNextCommittedAnimation) {
+					transientVisuals.skipNextCommittedAnimation = false;
+				}
 			}
 		},
 		getBoardSnapshot: () => getBoardStateSnapshot(boardState),
@@ -385,10 +390,19 @@ export function createBoardRuntime(opts: BoardRuntimeInitOptions): BoardRuntime 
 			}
 
 			if (to !== null && isMoveAttemptAllowedHelper(boardState, viewState, source, to)) {
+				// Capture whether this was a drag-drop completion before clearing state
+				const wasDragCompletion = interactionState.dragSession !== null;
+
 				// Legal completion: apply move, clear all interaction.
 				const appliedMove = moveReducer(boardState, invalidationWriter, { from: source, to });
 				clearInteractionReducer(interactionState);
 				transientVisuals.dragPointer = null; // clear transient visuals
+
+				// Skip committed move animation ONLY for drag-drop completion (one-shot)
+				if (wasDragCompletion) {
+					transientVisuals.skipNextCommittedAnimation = true;
+				}
+
 				// moveReducer already marked DirtyLayer.Pieces (with squares) via invalidationWriter.
 				// OR in DirtyLayer.Drag directly to avoid clearing those squares.
 				invalidationState.layers |= DirtyLayer.Drag;

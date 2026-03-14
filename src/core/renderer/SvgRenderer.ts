@@ -193,7 +193,8 @@ export class SvgRenderer implements Renderer {
 		if (layers & DirtyLayer.Pieces) {
 			// Committed move animation detection runs when committed piece state is being redrawn.
 			// In the current architecture, this is the DirtyLayer.Pieces path.
-			this.handleCommittedAnimationCycle(board, geometry);
+			const skipAnimation = transientVisuals.skipNextCommittedAnimation ?? false;
+			this.handleCommittedAnimationCycle(board, geometry, skipAnimation);
 
 			// Build combined suppression set for this render cycle
 			const suppressedIds = new Set(this.suppressedPieceIds); // start with animation IDs
@@ -213,8 +214,12 @@ export class SvgRenderer implements Renderer {
 		}
 	}
 
-	private handleCommittedAnimationCycle(board: BoardStateSnapshot, g: RenderGeometry) {
-		// 1) Cancel/clear any in-flight animation actors
+	private handleCommittedAnimationCycle(
+		board: BoardStateSnapshot,
+		g: RenderGeometry,
+		skipAnimation: boolean
+	) {
+		// 0) Always clean up any in-flight animation state first
 		if (this.rafHandle !== null) {
 			cancelAnimationFrame(this.rafHandle);
 			this.rafHandle = null;
@@ -222,6 +227,13 @@ export class SvgRenderer implements Renderer {
 		this.clear(this.animationRoot);
 		this.activeAnimations.clear();
 		this.suppressedPieceIds.clear();
+
+		// 1) One-shot skip: update snapshot and exit early if signaled
+		if (skipAnimation) {
+			this.previousCommittedIds = board.ids.slice() as Int16Array;
+			this.previousPositionEpoch = board.positionEpoch;
+			return;
+		}
 
 		// 2) First-time render: seed snapshot, do not animate
 		const nextIds = board.ids;
