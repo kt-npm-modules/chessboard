@@ -295,13 +295,23 @@
 - Extension only owns its assigned subtree root(s)
 - Do not allow arbitrary top-level DOM ownership by extensions
 
-### 4.2 First first-party extension: `lastMove`
+### 4.2a First lifecycle-validation extension: `Selected Square (with figure)`
 
-- Use `lastMove` as the first passive extension
+- Implement a minimal passive extension that highlights the currently selected square when it contains a piece
+- Render into the appropriate extension slot
+- Use this as the first end-to-end validation of:
+  - runtime extension mounting
+  - extension update flow
+  - extension-owned subtree rendering
+  - extension cleanup
+
+### 4.2b First move-derived extension: `lastMove`
+
+- Implement `lastMove` after the first extension lifecycle path is validated by `Selected Square`
 - Keep `lastMove` state inside the extension
-- Feed extension with board transition/update context
-- Render into appropriate extension slot
-- Use this to validate extension lifecycle and mounting model
+- Feed the extension with the required board transition/update context
+- Render into the appropriate extension slot
+- Use this as the first validation of an extension that depends on move-derived state rather than only current interaction state
 
 ### 4.3 Interaction overlay extension
 
