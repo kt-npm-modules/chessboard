@@ -1,5 +1,6 @@
 import { PartialDeep } from 'type-fest';
 import { DirtyLayer } from '../..';
+import type { ExtensionSlotName } from '../extensions/types';
 import type { BoardStateSnapshot, Color, Square } from '../state/boardTypes';
 import { squareOf, toAlgebraic } from '../state/coords';
 import { decodePiece } from '../state/encode';
@@ -393,5 +394,84 @@ export class SvgRenderer implements Renderer {
 			if (!b.has(item)) return false;
 		}
 		return true;
+	}
+
+	/**
+	 * Map ExtensionSlotName to the corresponding existing slot root.
+	 */
+	private getSlotRoot(slot: ExtensionSlotName): SVGGElement {
+		switch (slot) {
+			case 'underPieces':
+				return this.extensionsUnderPiecesRoot;
+			case 'overPieces':
+				return this.extensionsOverPiecesRoot;
+			case 'dragUnder':
+				return this.extensionsDragUnderRoot;
+			case 'dragOver':
+				return this.extensionsDragOverRoot;
+			default:
+				throw new Error(`Invalid extension slot name: ${slot}`);
+		}
+	}
+
+	/**
+	 * Allocate per-extension child <g> elements inside requested slot roots.
+	 * Returns a map of slot name to the created child element handle.
+	 * Phase 4.1: Renderer-side allocation contract only, no runtime integration yet.
+	 */
+	allocateExtensionSlots<TSlots extends ExtensionSlotName>(
+		extensionId: string,
+		slots: readonly TSlots[]
+	): Partial<Record<TSlots, SVGGElement>> {
+		if (!this.svgRoot) {
+			throw new Error('SvgRenderer: Cannot allocate extension slots before mount()');
+		}
+
+		// Detect duplicate slot names
+		const seen = new Set<TSlots>();
+		for (const slot of slots) {
+			if (seen.has(slot)) {
+				throw new Error(`Duplicate slot name in allocation: ${slot}`);
+			}
+			seen.add(slot);
+		}
+
+		const result = {} as Partial<Record<TSlots, SVGGElement>>;
+
+		for (const slot of slots) {
+			const slotRoot = this.getSlotRoot(slot);
+			const child = document.createElementNS(SVG_NS, 'g');
+			child.setAttribute('data-extension-id', extensionId);
+			slotRoot.appendChild(child);
+			result[slot] = child;
+		}
+
+		return result;
+	}
+
+	/**
+	 * Remove all child <g> elements with the given extension ID from all slot roots.
+	 * Phase 4.1: Renderer-side cleanup contract only, no runtime integration yet.
+	 */
+	removeExtensionSlots(extensionId: string): void {
+		if (!this.svgRoot) {
+			throw new Error('SvgRenderer: Cannot remove extension slots before mount()');
+		}
+
+		const slotRoots = [
+			this.extensionsUnderPiecesRoot,
+			this.extensionsOverPiecesRoot,
+			this.extensionsDragUnderRoot,
+			this.extensionsDragOverRoot
+		];
+
+		for (const root of slotRoots) {
+			const children = Array.from(root.children);
+			for (const child of children) {
+				if (child.getAttribute('data-extension-id') === extensionId) {
+					root.removeChild(child);
+				}
+			}
+		}
 	}
 }

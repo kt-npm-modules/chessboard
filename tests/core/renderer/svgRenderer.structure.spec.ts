@@ -201,6 +201,30 @@ describe('SvgRenderer structure (root/slot normalization)', () => {
 		expect('turn' in board).toBe(true);
 	});
 
+	it('extension slot roots are empty after mount', () => {
+		const renderer = new SvgRenderer();
+		const container = document.createElement('div');
+
+		renderer.mount(container);
+
+		const svg = container.querySelector('svg');
+		expect(svg).toBeTruthy();
+
+		// Get slot roots (indices 3, 5, 7, 9)
+		const extensionsUnderPiecesRoot = svg!.children[3] as SVGGElement;
+		const extensionsOverPiecesRoot = svg!.children[5] as SVGGElement;
+		const extensionsDragUnderRoot = svg!.children[7] as SVGGElement;
+		const extensionsDragOverRoot = svg!.children[9] as SVGGElement;
+
+		// Verify all slot roots are empty (no extension children yet)
+		expect(extensionsUnderPiecesRoot.children.length).toBe(0);
+		expect(extensionsOverPiecesRoot.children.length).toBe(0);
+		expect(extensionsDragUnderRoot.children.length).toBe(0);
+		expect(extensionsDragOverRoot.children.length).toBe(0);
+
+		renderer.unmount();
+	});
+
 	it('pieces layer refreshes when suppressedPieceIds changes even without invalidation', () => {
 		// Regression test: when suppression changes but normal invalidation doesn't request pieces redraw,
 		// the renderer should still refresh the pieces layer to restore/hide pieces correctly.

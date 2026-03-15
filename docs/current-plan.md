@@ -288,6 +288,8 @@
 
 ### 4.1 Minimal extension mounting model
 
+**Status: COMPLETE**
+
 - Define core-owned slot model for extensions
 - Core creates and owns top-level extension slot roots
 - Extension only owns its assigned subtree root(s)
