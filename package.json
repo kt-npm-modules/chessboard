@@ -49,7 +49,7 @@
 		"check:test": "tsc --project tsconfig-test.json --skipLibCheck",
 		"test": "npm run check:test && vitest run",
 		"coverage": "vitest run --coverage",
-		"changeset:version": "changeset version && git add --all",
+		"changeset:version": "changeset version && npm install && git add --all",
 		"changeset:publish": "changeset publish"
 	},
 	"files": [
