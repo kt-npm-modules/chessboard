@@ -1,21 +1,19 @@
 {
 	"name": "@mirasen/chessboard",
-	"description": "A chessboard UI library for JavaScript and TypeScript projects, providing an interactive and customizable chessboard component.",
+	"description": "Mirasen Chessboard — open-source chessboard UI library.",
 	"version": "0.0.4",
 	"license": "MIT",
 	"author": {
-		"name": "Konstantin Tarmyshov",
-		"email": "k.tarmyshov@googlemail.com"
+		"name": "Mirasen",
+		"email": "konstantin@mirasen.io"
 	},
 	"keywords": [
-		"chess",
+		"mirasen",
 		"chessboard",
 		"chess-ui",
-		"chess-component",
-		"chess-library",
-		"chessboard-ui",
-		"chessboard-component",
-		"chessboard-library"
+		"chess",
+		"svg",
+		"typescript"
 	],
 	"homepage": "https://mirasen.io",
 	"repository": {
