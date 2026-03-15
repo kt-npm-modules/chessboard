@@ -247,15 +247,39 @@
 - Add/update focused tests for animation-triggering behavior where appropriate
 - Verify manually in runtime playground
 
-### 3.10 Castling animation integration
+### 3.10 Animation architecture refactor + castling integration
 
 **Status: TODO**
 
-- Implement castling animation using the general multi-piece animation model from 3.9
-- Ensure both king and rook animate correctly for drag-drop and click-move completion paths
-- Keep castling-specific logic limited to producing the correct coordinated animation input
-- Avoid creating a separate castling-only animation system
-- Add/update focused tests for castling animation triggering and cleanup
+- Refactor committed-move animation from the current renderer-driven implementation toward a general animation pipeline
+- Introduce a minimal `AnimationPlan` model for committed transitions, designed around visual transition from previous placement to next placement
+- Keep the initial core effect vocabulary minimal and reusable:
+  - `move`
+  - `fade-in`
+  - `fade-out`
+  - `snap-out`
+- Preserve the rule that board state is committed **before** animation; animation is presentation over committed state, not delayed state application
+- Move animation orchestration / lifecycle ownership out of the renderer into a dedicated `Animator`
+- Keep SVG scene graph / layer ownership inside the main renderer
+- Split renderer responsibilities into:
+  - static render pass for committed board state
+  - animation render pass/helper for active animation sessions
+- Migrate ordinary committed move animation onto the new pipeline so it no longer remains a separate renderer-specific path
+- Implement castling on the same pipeline as the first required multi-track case:
+  - king and rook animate **simultaneously**
+  - no castling-only renderer choreography
+  - no sequential king-then-rook animation
+- Keep move-type special-casing out of renderer as much as possible; castling should become coordinated animation input, not a separate rendering system
+- Compute animation input from previous -> next renderable piece placements in runtime/core
+- Do not introduce persistent semantic piece IDs unless strictly necessary; prefer a practical transition-time matcher sufficient for ordinary move + castling
+- Represent each active animation session with its own `<g>` group inside the shared `animationRoot`
+- Design the session / effect boundaries so standard core animation effects can be reused later by extensions
+- Do **not** implement extension animation hooks/API yet
+- Add/update focused tests for:
+  - ordinary move on the new pipeline
+  - castling triggering two simultaneous move tracks
+  - animation cleanup / session cleanup
+  - drag-drop vs non-drag policy preservation where relevant
 - Verify manually in runtime playground
 
 ---
