@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { createSelectedSquareExtension } from '@mirasen/chessboard/unstable/core/extensions/selectedSquare.js';
 	import { SvgRenderer } from '@mirasen/chessboard/unstable/core/renderer/SvgRenderer.js';
 	import { createBoardRuntime } from '@mirasen/chessboard/unstable/core/runtime/boardRuntime.js';
 	import type { PositionMapShort } from '@mirasen/chessboard/unstable/core/state/boardTypes.js';
@@ -86,7 +87,8 @@
 					mode: 'free',
 					color: 'both'
 				}
-			}
+			},
+			extensions: [createSelectedSquareExtension()]
 		});
 
 		runtime.mount(boardEl);
