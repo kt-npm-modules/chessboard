@@ -319,18 +319,22 @@
 
 ### 4.3 Interaction overlay extension
 
+**Status: COMPLETE**
+
 - Add a first-party interaction overlay extension after the initial runtime and extension path are validated
 - Keep interaction facts in core and interaction visuals in the extension layer
 - Read finalized core interaction state as the source of truth
 - Use this phase to validate transient interaction-driven visuals during active drag/touch workflows, not just static selection state
 - Treat this as the interaction-visual counterpart to the already-validated `selectedSquare` and move-derived `lastMove` steps
 
-### 4.3a First active interaction visual: target square + halo
+### 4.3a First active interaction visual: `activeTarget`
 
 - Start the interaction overlay work with the first meaningful transient interaction visual:
-  - current target-square highlight during active drag/touch interaction
+  - implement the `activeTarget` extension
+  - active target-square highlight during active drag/touch interaction
   - halo / ring feedback for the active interaction target
 - Use this step to validate an extension that reacts to live interaction targeting changes during pointer/touch movement
+- Gate rendering by active interaction context, not by raw `currentTarget` alone
 - Keep the initial version deliberately narrow:
   - current target-square feedback only during active interaction
   - halo / ring included as part of the same extension
