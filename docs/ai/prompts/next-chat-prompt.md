@@ -13,82 +13,86 @@ Use as project-specific references:
 ## Handoff summary
 
 - Project: `mirasen-io/chessboard` / `@mirasen/chessboard`, branch `feat/v1`.
-- Phase 3.10 is complete.
-- Phase 4.1 is complete.
-- Phase 4.2a is complete and can be treated as done.
-- Completed in 4.2a:
-  - runtime extension lifecycle is wired end-to-end: init -> mount -> update -> renderBoard -> unmount
-  - extension invalidation is separate from core invalidation and is cleared through scheduler pass cleanup
-  - runtime no longer hardcodes `selectedSquare`; extensions come from `BoardRuntimeInitOptions.extensions`
-  - extension order is array order from `BoardRuntimeInitOptions.extensions`
-  - duplicate extension ids throw during runtime initialization
-  - no runtime default extensions are injected inside `boardRuntime`
-  - `selectedSquare` was converted from exported singleton definition to factory form:
-    - `createSelectedSquareExtension(): SelectedSquareExtensionDefinition`
-  - tests were updated so extension-aware behavior is covered only in extension-aware runtime tests
-- Confirmed constraints/invariants:
-  - core owns top-level SVG roots and extension slot roots
-  - renderer owns slot allocation/removal for extension child roots
-  - extensions own only their assigned child subtrees
-  - runtime drives extension lifecycle; defaults belong in higher-level wrapper/public layer, not runtime
-  - `BoardRuntimeInitOptions.extensions` already exists and should remain the runtime entry point
-  - extension order is array order; no separate runtime `order` field
-  - locked invalidation snapshot types should remain unchanged unless strictly required:
-    - `InvalidationStateRenderSnapshot`
-    - `InvalidationStateSnapshot`
-    - `InvalidationStateExtensionSnapshot`
+- Phase 4.2a is complete.
+- Phase 4.2b is complete.
+- Completed/confirmed in 4.2b:
+  - first move-derived extension `lastMove` was implemented on the generic runtime extension path
+  - `lastMove` styling is configurable via factory options with chess.com-like defaults:
+    - `color: 'rgb(255, 255, 51)'`
+    - `opacity: 0.5`
+  - runtime remains generic; no hardcoded first-party extension behavior beyond required update context
+  - `lastMove` renders into `underPieces`
+  - committed-move handling uses a narrow shared internal path only where justified
+  - `commitMove()` must remain narrow and must not perform extension update/scheduling
+  - `updateExtensions()` / `scheduleIfAnythingDirty()` must run only after the caller finishes all related state mutations
+  - extension update context gained top-level layout invalidation support:
+    - `layoutVersion: number`
+    - `layoutChanged: boolean`
+  - layout invalidation signaling stays separate from `view`
+  - both `lastMove` and `selectedSquare` participate in layout-driven re-rendering
+  - out-of-scope `src/index.ts` public export expansion was removed
+- The plan was clarified for the next phase:
+  - `4.3` remains the category-level step for interaction overlay extensions
+  - `4.3a` is now the first concrete interaction-overlay task:
+    - active target square + halo during drag/touch interaction
+  - destination dots are explicitly deferred from this first 4.3a step
 - Relevant files:
   - `src/core/runtime/boardRuntime.ts`
   - `src/core/extensions/types.ts`
   - `src/core/extensions/selectedSquare.ts`
-  - `src/core/renderer/SvgRenderer.ts`
+  - `src/core/extensions/lastMove.ts`
   - `tests/core/runtime/boardRuntime.extensions.spec.ts`
-  - `tests/core/runtime/boardRuntime.spec.ts`
-  - `tests/core/input/inputAdapter.spec.ts`
+  - extension-specific tests for `selectedSquare` / `lastMove`
   - `chessboard-current-plan.md`
 
 ## Task for this chat
 
-Focus only on: **Phase 4.2b planning — first move-derived extension `lastMove`**
+Focus only on: **Phase 4.3 planning — interaction overlay extension**
 
 ### Task frame
 
 What:
 
-- plan the narrow next step for a first-party `lastMove` extension using the now-complete 4.2a runtime extension path
+- plan the next category-level step for first-party interaction overlay extensions
+- define the architectural scope of `4.3` before committing to the first concrete implementation substep
+- confirm what should become `4.3a` inside this phase
 
 Not:
 
-- no runtime extension framework redesign
+- no implementation yet
 - no wrapper/default-extension API work
-- no extension customization/theme system work yet
+- no public API shaping beyond what is strictly required
+- no broad renderer/runtime redesign
+- do not jump straight into 4.3a implementation planning before 4.3 is framed clearly
 
 Constraints:
 
-- use the existing runtime extension path from 4.2a as the source of truth
-- keep runtime generic: no hardcoded `lastMove` inside `boardRuntime`
-- preserve locked invalidation snapshot types unless a strict need is proven
-- treat extension order as array order from `BoardRuntimeInitOptions.extensions`
-- keep the task architecture-first and narrow
+- keep interaction facts in core and interaction visuals in the extension layer
+- read finalized core interaction state as the source of truth
+- keep runtime generic; do not hardcode first-party overlay behavior into runtime
+- preserve the current extension/runtime architecture established through 4.2a and 4.2b
+- keep the step architecture-first and narrow
 
 Done when:
 
-- there is a concise implementation-oriented plan for 4.2b
-- the plan clearly states what extra update/render context `lastMove` needs beyond `selectedSquare`
-- the plan identifies touched files and focused test updates without broadening scope
+- the architectural scope of `4.3` is clear
+- it is clear how `4.3` differs from already-completed `selectedSquare` and `lastMove`
+- the first narrow concrete substep inside `4.3` is identified and justified
+- it is explicit what should remain deferred to later `4.3x` steps
 
 ### Questions to answer
 
-- What is the minimal move-derived context that `lastMove` needs from runtime?
-- Should `lastMove` derive its own state only from update context, or does runtime need to pass explicit previous/current move-transition data?
-- What slot should `lastMove` render into, and why?
-- What should remain deferred until after 4.2b?
+- What belongs in the `4.3` interaction overlay phase as a category, versus what belongs in a concrete substep such as `4.3a`?
+- How should `4.3` be distinguished from the already-existing `selectedSquare` extension?
+- What is the best first concrete step inside `4.3`?
+- Should `4.3a` be active target square + halo during drag/touch interaction, or should something else come first?
+- What should remain deferred until after the first `4.3` substep?
 
 ### Output expectations
 
 - files inspected first
-- concise architecture decision
-- minimal runtime/file/test plan for 4.2b
+- concise architecture decision for `4.3`
+- proposed narrow definition of `4.3a`
 - explicit non-goals/deferred items
 
 ## Working mode

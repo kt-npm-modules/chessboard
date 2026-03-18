@@ -126,6 +126,18 @@ Respect the existing architecture.
 - Duplicate extension ids must throw during runtime initialization.
 - Default first-party extension sets belong in a higher-level/public wrapper layer, not in runtime.
 
+### Runtime helper boundaries for extensions
+
+- Keep shared internal runtime helpers narrow.
+- Do not let a shared committed-move helper call extension updates or render scheduling if the caller still has related state mutations to finish.
+- `updateExtensions()` and `scheduleIfAnythingDirty()` should run only after the full user-visible operation reaches its final runtime state for that cycle.
+
+### Layout invalidation for square-based extensions
+
+- Keep layout invalidation signaling for extensions separate from semantic `view` state.
+- Prefer runtime-provided top-level extension update context fields such as `layoutVersion` / `layoutChanged` over forcing each extension to track previous layout version on its own.
+- Square-position-based extensions should re-render on both their semantic state changes and runtime-provided layout changes.
+
 ### Type and API rules
 
 - Keep types honest.
