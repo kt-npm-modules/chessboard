@@ -118,6 +118,14 @@ Respect the existing architecture.
 - Do not over-promise completeness in types when runtime coverage is partial or conditional.
 - Prefer extension APIs that leave room for future advanced visuals without breaking ownership boundaries.
 
+### Extension runtime boundaries
+
+- `boardRuntime` must not hardcode or import specific first-party extensions.
+- Runtime consumes extension definitions only from `BoardRuntimeInitOptions.extensions`.
+- Extension execution order is the array order from `BoardRuntimeInitOptions.extensions`.
+- Duplicate extension ids must throw during runtime initialization.
+- Default first-party extension sets belong in a higher-level/public wrapper layer, not in runtime.
+
 ### Type and API rules
 
 - Keep types honest.
