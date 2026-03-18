@@ -4,7 +4,7 @@
  */
 
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
-import { selectedSquareExtension } from '../../../src/core/extensions/selectedSquare';
+import { createSelectedSquareExtension } from '../../../src/core/extensions/selectedSquare';
 import { SvgRenderer } from '../../../src/core/renderer/SvgRenderer';
 import { createBoardRuntime, type BoardRuntime } from '../../../src/core/runtime/boardRuntime';
 import type { Square } from '../../../src/core/state/boardTypes';
@@ -73,7 +73,7 @@ describe('boardRuntime extension integration', () => {
 		const renderer = new SvgRenderer();
 		runtime = createBoardRuntime({
 			renderer,
-			extensions: [selectedSquareExtension]
+			extensions: [createSelectedSquareExtension()]
 		});
 		runtime.mount(container);
 	});
@@ -228,7 +228,7 @@ describe('boardRuntime extension integration', () => {
 		expect(() => {
 			createBoardRuntime({
 				renderer,
-				extensions: [selectedSquareExtension, selectedSquareExtension]
+				extensions: [createSelectedSquareExtension(), createSelectedSquareExtension()]
 			});
 		}).toThrow("BoardRuntime: duplicate extension id 'selectedSquare'");
 	});

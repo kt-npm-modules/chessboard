@@ -4,7 +4,7 @@
  */
 
 import { beforeEach, describe, expect, it } from 'vitest';
-import { selectedSquareExtension } from '../../../src/core/extensions/selectedSquare';
+import { createSelectedSquareExtension } from '../../../src/core/extensions/selectedSquare';
 import type {
 	BoardExtensionRenderContext,
 	BoardExtensionUpdateContext
@@ -119,6 +119,8 @@ describe('selectedSquare extension', () => {
 
 	it('mounts without errors', () => {
 		const env = { slotRoots: { underPieces: slotRoot } };
+		const selectedSquareExtension = createSelectedSquareExtension();
+
 		const mounted = selectedSquareExtension.mount(env);
 		expect(mounted).toBeDefined();
 		expect(mounted.getPublic()).toBeUndefined();
@@ -126,6 +128,8 @@ describe('selectedSquare extension', () => {
 
 	it('marks invalidation when selectedSquare changes from null to set with piece', () => {
 		const env = { slotRoots: { underPieces: slotRoot } };
+		const selectedSquareExtension = createSelectedSquareExtension();
+
 		const mounted = selectedSquareExtension.mount(env);
 
 		// Initial update: no selection
@@ -140,6 +144,8 @@ describe('selectedSquare extension', () => {
 
 	it('marks invalidation when selectedSquare changes from set to null', () => {
 		const env = { slotRoots: { underPieces: slotRoot } };
+		const selectedSquareExtension = createSelectedSquareExtension();
+
 		const mounted = selectedSquareExtension.mount(env);
 
 		// Initial update: square with piece selected
@@ -154,6 +160,8 @@ describe('selectedSquare extension', () => {
 
 	it('marks invalidation when piece presence changes on same square', () => {
 		const env = { slotRoots: { underPieces: slotRoot } };
+		const selectedSquareExtension = createSelectedSquareExtension();
+
 		const mounted = selectedSquareExtension.mount(env);
 
 		// Initial update: square with piece selected
@@ -168,6 +176,8 @@ describe('selectedSquare extension', () => {
 
 	it('does not mark invalidation when state is unchanged', () => {
 		const env = { slotRoots: { underPieces: slotRoot } };
+		const selectedSquareExtension = createSelectedSquareExtension();
+
 		const mounted = selectedSquareExtension.mount(env);
 
 		// Initial update
@@ -181,6 +191,8 @@ describe('selectedSquare extension', () => {
 
 	it('renders highlight rect when square is selected and has piece', () => {
 		const env = { slotRoots: { underPieces: slotRoot } };
+		const selectedSquareExtension = createSelectedSquareExtension();
+
 		const mounted = selectedSquareExtension.mount(env);
 
 		mounted.update(createUpdateContext(0 as Square, true));
@@ -194,6 +206,8 @@ describe('selectedSquare extension', () => {
 
 	it('removes highlight when square is selected but has no piece', () => {
 		const env = { slotRoots: { underPieces: slotRoot } };
+		const selectedSquareExtension = createSelectedSquareExtension();
+
 		const mounted = selectedSquareExtension.mount(env);
 
 		// First render with piece
@@ -209,6 +223,8 @@ describe('selectedSquare extension', () => {
 
 	it('removes highlight when selection is cleared', () => {
 		const env = { slotRoots: { underPieces: slotRoot } };
+		const selectedSquareExtension = createSelectedSquareExtension();
+
 		const mounted = selectedSquareExtension.mount(env);
 
 		// First render with selection
@@ -224,6 +240,8 @@ describe('selectedSquare extension', () => {
 
 	it('does not render when invalidation layers are 0', () => {
 		const env = { slotRoots: { underPieces: slotRoot } };
+		const selectedSquareExtension = createSelectedSquareExtension();
+
 		const mounted = selectedSquareExtension.mount(env);
 
 		mounted.update(createUpdateContext(0 as Square, true));
@@ -234,6 +252,8 @@ describe('selectedSquare extension', () => {
 
 	it('updates highlight position when selectedSquare changes', () => {
 		const env = { slotRoots: { underPieces: slotRoot } };
+		const selectedSquareExtension = createSelectedSquareExtension();
+
 		const mounted = selectedSquareExtension.mount(env);
 
 		// First render at square 0
@@ -253,6 +273,8 @@ describe('selectedSquare extension', () => {
 
 	it('cleans up highlight on unmount', () => {
 		const env = { slotRoots: { underPieces: slotRoot } };
+		const selectedSquareExtension = createSelectedSquareExtension();
+
 		const mounted = selectedSquareExtension.mount(env);
 
 		mounted.update(createUpdateContext(0 as Square, true));
