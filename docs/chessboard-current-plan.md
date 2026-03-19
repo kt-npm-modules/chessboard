@@ -331,9 +331,22 @@
 
 - Start the interaction overlay work with the first meaningful transient interaction visual:
   - implement the `activeTarget` extension
-  - active target-square highlight during active drag/touch interaction
+  - active target-square highlight during active interaction
   - halo / ring feedback for the active interaction target
-- Use this step to validate an extension that reacts to live interaction targeting changes during pointer/touch movement
+- Before or alongside implementation, finalize and document the normalized standard-play interaction model that `activeTarget` depends on:
+  - pointerdown source/target interpretation
+  - pointermove target-maintenance semantics
+  - pointerup completion and cleanup semantics
+  - explicit interaction-cancellation semantics relevant to active interaction cleanup
+- Use the documented interaction model as the source of truth for `activeTarget` gating and lifecycle:
+  - active interaction context, not raw `currentTarget` alone
+  - `dragSession` and `releaseTargetingActive` as the authoritative interaction-mode facts
+  - cleanup behavior aligned with the documented interaction model
+- As part of this normalization, remove `MovableColor` / `movability.color` and related color-gating logic:
+  - do not keep side-color gating as a separate movability axis
+  - keep interaction authority on concrete movability / source-target eligibility behavior instead
+  - simplify free movability accordingly if color-scoped free movement is not a real product requirement
+- Use this step as the first real validation of an extension that reacts to live interaction targeting changes during pointer/touch movement
 - Gate rendering by active interaction context, not by raw `currentTarget` alone
 - Keep the initial version deliberately narrow:
   - current target-square feedback only during active interaction
@@ -341,7 +354,11 @@
   - no destination dots yet
   - no broader move-hint system yet
   - no animation required unless implementation proves it is already naturally supported
-- Use this as the first real validation of transient interaction overlay behavior beyond static selected-square state
+- Treat this step as the semantic and visual foundation for later transient interaction overlays
+- As part of this step, remove `MovableColor` / `movability.color` and all related color-gating logic from movability:
+  - eliminate color-based source gating
+  - simplify `free` movability accordingly
+  - keep interaction authority on concrete source/target eligibility behavior instead
 
 ### 4.3b UX alignment pass for repeated same-piece drag after drop-to-source
 
