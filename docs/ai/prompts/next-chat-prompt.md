@@ -128,7 +128,7 @@ Use `chessboard-current-plan.md` as the roadmap reference for:
 
 If the current plan appears out of sync with the handoff or recently completed work, call that out briefly before relying on it.
 
-## Codebase / source materials
+## Codebase / project materials
 
 Primary repository / branch:
 
@@ -143,7 +143,14 @@ Optional attached materials:
 
 If repository access may be stale, incomplete, or cached, prefer attached source artifacts for file-level review.
 
-If this prompt refers to attached files that are not actually present in the chat, do not assume their contents.
-Instead, briefly say that the files may have been forgotten and ask for them only if they are materially needed.
+If this prompt refers to specific files, first look for them in the current chat attachments.
 
-If you need specific files that are not attached, ask for them explicitly rather than inventing contents.
+If they are not attached, then look for them in the available project sources / referenced artifacts.
+
+When the same artifact exists in both places, prefer the attached version for the active task, because it may be the newer task-local version.
+
+Do not assume the contents of referenced files that are not actually available.
+
+If a materially required referenced file cannot be found in either attachments or available project sources, do not continue with substantive best-effort analysis.
+
+Instead, briefly state which file is missing, say that it was not found in either attachments or sources, and ask the user to attach it or point to it.

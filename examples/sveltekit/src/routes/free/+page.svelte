@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { createActiveTargetExtension } from '@mirasen/chessboard/unstable/core/extensions/activeTarget.js';
 	import { createLastMoveExtension } from '@mirasen/chessboard/unstable/core/extensions/lastMove.js';
 	import { createSelectedSquareExtension } from '@mirasen/chessboard/unstable/core/extensions/selectedSquare.js';
 	import { SvgRenderer } from '@mirasen/chessboard/unstable/core/renderer/SvgRenderer.js';
@@ -89,7 +90,11 @@
 					color: 'both'
 				}
 			},
-			extensions: [createSelectedSquareExtension(), createLastMoveExtension()]
+			extensions: [
+				createSelectedSquareExtension(),
+				createLastMoveExtension(),
+				createActiveTargetExtension()
+			]
 		});
 
 		runtime.mount(boardEl);
