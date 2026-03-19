@@ -2,7 +2,7 @@
  * Phase 3.2 — Drag lifecycle tests for BoardRuntime.
  *
  * Tests the new interaction lifecycle methods:
- *   select(), dragStart(), setCurrentTarget(), dropTo(), cancelInteraction()
+ *   select(), beginSourceInteraction(), notifyDragMove(), commitTo(), cancelInteraction()
  *
  * These tests do NOT test rendering (Phase 3.3) or hit-testing (Phase 3.4).
  * They verify state transitions only.
@@ -129,15 +129,15 @@ describe('Phase 3.2 / BoardRuntime — interaction lifecycle', () => {
 
 			// Set up: select + drag + target
 			runtime.select(12);
-			runtime.dragStart(12, { x: 450, y: 650 });
-			runtime.setCurrentTarget(28);
+			runtime.beginSourceInteraction(12, { x: 450, y: 650 });
+			runtime.notifyDragMove(28, null);
 
 			// Cancel drag, then re-select — currentTarget must be cleared
 			runtime.cancelInteraction();
 			runtime.select(20); // e3
-			// setCurrentTarget after re-select should start from null
-			const changed = runtime.setCurrentTarget(null);
-			expect(changed).toBe(false); // already null after select
+			// After re-select currentTarget should be null
+			const snap = runtime.getInteractionSnapshot();
+			expect(snap.interaction.currentTarget).toBeNull();
 		});
 
 		it('select() throws if drag session is active', () => {
@@ -149,7 +149,7 @@ describe('Phase 3.2 / BoardRuntime — interaction lifecycle', () => {
 			runtime.mount(createMockContainer());
 
 			runtime.select(12);
-			runtime.dragStart(12, { x: 450, y: 650 });
+			runtime.beginSourceInteraction(12, { x: 450, y: 650 });
 
 			expect(() => runtime.select(20)).toThrow('cannot select while a drag session is active');
 		});
@@ -167,10 +167,10 @@ describe('Phase 3.2 / BoardRuntime — interaction lifecycle', () => {
 		});
 	});
 
-	// ── dragStart() ────────────────────────────────────────────────────────────
+	// ── beginSourceInteraction() ───────────────────────────────────────────────
 
-	describe('dragStart()', () => {
-		it('creates drag session after select(from)', () => {
+	describe('beginSourceInteraction()', () => {
+		it('creates drag session when canStartMoveFrom is true', () => {
 			const runtime = createBoardRuntime({
 				renderer: createTestRenderer(),
 				board: { position: 'start' },
@@ -178,12 +178,11 @@ describe('Phase 3.2 / BoardRuntime — interaction lifecycle', () => {
 			});
 			runtime.mount(createMockContainer());
 
-			runtime.select(12);
-			const result = runtime.dragStart(12, { x: 450, y: 650 });
+			const result = runtime.beginSourceInteraction(12, { x: 450, y: 650 });
 			expect(result).toBe(true);
 		});
 
-		it('throws if selectedSquare !== from', () => {
+		it('throws if interaction targeting already active', () => {
 			const runtime = createBoardRuntime({
 				renderer: createTestRenderer(),
 				board: { position: 'start' },
@@ -191,41 +190,17 @@ describe('Phase 3.2 / BoardRuntime — interaction lifecycle', () => {
 			});
 			runtime.mount(createMockContainer());
 
-			runtime.select(12); // e2
+			runtime.beginSourceInteraction(12, { x: 450, y: 650 });
 
-			expect(() => runtime.dragStart(11, { x: 450, y: 650 })).toThrow('selectedSquare');
-		});
-
-		it('throws if drag already active', () => {
-			const runtime = createBoardRuntime({
-				renderer: createTestRenderer(),
-				board: { position: 'start' },
-				view: { movability: { mode: 'free' } }
-			});
-			runtime.mount(createMockContainer());
-
-			runtime.select(12);
-			runtime.dragStart(12, { x: 450, y: 650 });
-
-			expect(() => runtime.dragStart(12, { x: 450, y: 650 })).toThrow('drag already active');
-		});
-
-		it('throws if no square selected (selectedSquare is null)', () => {
-			const runtime = createBoardRuntime({
-				renderer: createTestRenderer(),
-				board: { position: 'start' },
-				view: { movability: { mode: 'free' } }
-			});
-			runtime.mount(createMockContainer());
-
-			// No select() called — selectedSquare is null
-			expect(() => runtime.dragStart(12, { x: 450, y: 650 })).toThrow();
+			expect(() => runtime.beginSourceInteraction(12, { x: 450, y: 650 })).toThrow(
+				'interaction targeting already active'
+			);
 		});
 	});
 
-	// ── setCurrentTarget() ─────────────────────────────────────────────────────
+	// ── notifyDragMove() ───────────────────────────────────────────────────────
 
-	describe('setCurrentTarget()', () => {
+	describe('notifyDragMove()', () => {
 		it('updates current target during drag', () => {
 			const runtime = createBoardRuntime({
 				renderer: createTestRenderer(),
@@ -234,14 +209,14 @@ describe('Phase 3.2 / BoardRuntime — interaction lifecycle', () => {
 			});
 			runtime.mount(createMockContainer());
 
-			runtime.select(12);
-			runtime.dragStart(12, { x: 450, y: 650 });
+			runtime.beginSourceInteraction(12, { x: 450, y: 650 });
 
-			const changed = runtime.setCurrentTarget(28); // e4
-			expect(changed).toBe(true);
+			runtime.notifyDragMove(28, null); // e4
+			const snap = runtime.getInteractionSnapshot();
+			expect(snap.interaction.currentTarget).toBe(28);
 		});
 
-		it('no-op when target unchanged', () => {
+		it('can update target multiple times', () => {
 			const runtime = createBoardRuntime({
 				renderer: createTestRenderer(),
 				board: { position: 'start' },
@@ -249,11 +224,12 @@ describe('Phase 3.2 / BoardRuntime — interaction lifecycle', () => {
 			});
 			runtime.mount(createMockContainer());
 
-			runtime.select(12);
-			runtime.dragStart(12, { x: 450, y: 650 });
-			runtime.setCurrentTarget(28);
+			runtime.beginSourceInteraction(12, { x: 450, y: 650 });
+			runtime.notifyDragMove(28, null);
+			runtime.notifyDragMove(20, null);
 
-			expect(runtime.setCurrentTarget(28)).toBe(false);
+			const snap = runtime.getInteractionSnapshot();
+			expect(snap.interaction.currentTarget).toBe(20);
 		});
 
 		it('can clear target to null', () => {
@@ -264,17 +240,18 @@ describe('Phase 3.2 / BoardRuntime — interaction lifecycle', () => {
 			});
 			runtime.mount(createMockContainer());
 
-			runtime.select(12);
-			runtime.dragStart(12, { x: 450, y: 650 });
-			runtime.setCurrentTarget(28);
+			runtime.beginSourceInteraction(12, { x: 450, y: 650 });
+			runtime.notifyDragMove(28, null);
+			runtime.notifyDragMove(null, null);
 
-			expect(runtime.setCurrentTarget(null)).toBe(true);
+			const snap = runtime.getInteractionSnapshot();
+			expect(snap.interaction.currentTarget).toBeNull();
 		});
 	});
 
-	// ── dropTo() — legal drop ──────────────────────────────────────────────────
+	// ── commitTo() — legal drop ────────────────────────────────────────────────
 
-	describe('dropTo() — legal drop', () => {
+	describe('commitTo() — legal drop', () => {
 		it('free movability: legal drop applies move and clears all interaction', () => {
 			const runtime = createBoardRuntime({
 				renderer: createTestRenderer(),
@@ -283,11 +260,10 @@ describe('Phase 3.2 / BoardRuntime — interaction lifecycle', () => {
 			});
 			runtime.mount(createMockContainer());
 
-			runtime.select(12); // e2
-			runtime.dragStart(12, { x: 450, y: 650 });
-			runtime.setCurrentTarget(28); // e4
+			runtime.beginSourceInteraction(12, { x: 450, y: 650 }); // e2
+			runtime.notifyDragMove(28, null); // e4
 
-			const move = runtime.dropTo(28);
+			const move = runtime.commitTo(28);
 			expect(move).not.toBeNull();
 			expect(move!.from).toBe(12); // e2
 			expect(move!.to).toBe(28); // e4
@@ -307,10 +283,9 @@ describe('Phase 3.2 / BoardRuntime — interaction lifecycle', () => {
 			});
 			runtime.mount(createMockContainer());
 
-			runtime.select(12);
-			runtime.dragStart(12, { x: 450, y: 650 });
+			runtime.beginSourceInteraction(12, { x: 450, y: 650 });
 
-			const move = runtime.dropTo(28);
+			const move = runtime.commitTo(28);
 			expect(move).not.toBeNull();
 			expect(move!.from).toBe(12);
 			expect(move!.to).toBe(28);
@@ -324,18 +299,17 @@ describe('Phase 3.2 / BoardRuntime — interaction lifecycle', () => {
 			});
 			runtime.mount(createMockContainer());
 
-			runtime.select(12);
-			runtime.dragStart(12, { x: 450, y: 650 });
-			runtime.setCurrentTarget(28);
-			runtime.dropTo(28);
+			runtime.beginSourceInteraction(12, { x: 450, y: 650 });
+			runtime.notifyDragMove(28, null);
+			runtime.commitTo(28);
 
 			// After legal drop: all interaction cleared.
 			// Observable: select(null) is a no-op (already null).
 			expect(runtime.select(null)).toBe(false);
 		});
 
-		it('dropTo without drag (tap-to-move): uses selectedSquare as source', () => {
-			// Tap-to-move flow: select(from) then dropTo(to) without dragStart.
+		it('commitTo without drag (tap-to-move): uses selectedSquare as source', () => {
+			// Tap-to-move flow: select(from) then commitTo(to) without drag.
 			const runtime = createBoardRuntime({
 				renderer: createTestRenderer(),
 				board: { position: { e2: { color: 'w', role: 'p' } } },
@@ -343,17 +317,17 @@ describe('Phase 3.2 / BoardRuntime — interaction lifecycle', () => {
 			});
 			runtime.mount(createMockContainer());
 
-			runtime.select(12); // e2 — no dragStart
-			const move = runtime.dropTo(28); // e4
+			runtime.select(12); // e2 — no drag
+			const move = runtime.commitTo(28); // e4
 			expect(move).not.toBeNull();
 			expect(move!.from).toBe(12);
 			expect(move!.to).toBe(28);
 		});
 	});
 
-	// ── dropTo() — illegal drop ────────────────────────────────────────────────
+	// ── commitTo() — illegal drop ──────────────────────────────────────────────
 
-	describe('dropTo() — illegal drop', () => {
+	describe('commitTo() — illegal drop', () => {
 		it('strict movability: drop on unlisted target returns null', () => {
 			const runtime = createBoardRuntime({
 				renderer: createTestRenderer(),
@@ -368,10 +342,9 @@ describe('Phase 3.2 / BoardRuntime — interaction lifecycle', () => {
 			});
 			runtime.mount(createMockContainer());
 
-			runtime.select(12);
-			runtime.dragStart(12, { x: 450, y: 650 });
+			runtime.beginSourceInteraction(12, { x: 450, y: 650 });
 
-			const move = runtime.dropTo(36); // e5 — not in destinations
+			const move = runtime.commitTo(36); // e5 — not in destinations
 			expect(move).toBeNull();
 		});
 
@@ -391,11 +364,10 @@ describe('Phase 3.2 / BoardRuntime — interaction lifecycle', () => {
 			});
 			runtime.mount(createMockContainer());
 
-			runtime.select(12);
-			runtime.dragStart(12, { x: 450, y: 650 });
-			runtime.setCurrentTarget(36);
+			runtime.beginSourceInteraction(12, { x: 450, y: 650 });
+			runtime.notifyDragMove(36, null);
 
-			runtime.dropTo(36); // illegal — lifted-piece mode
+			runtime.commitTo(36); // illegal — lifted-piece mode
 
 			// selectedSquare is still 12 — observable: select(12) is a no-op
 			expect(runtime.select(12)).toBe(false);
@@ -415,18 +387,18 @@ describe('Phase 3.2 / BoardRuntime — interaction lifecycle', () => {
 			});
 			runtime.mount(createMockContainer());
 
-			runtime.select(12);
-			runtime.dragStart(12, { x: 450, y: 650 });
-			runtime.dropTo(36); // illegal — lifted-piece mode
+			runtime.beginSourceInteraction(12, { x: 450, y: 650 });
+			runtime.commitTo(36); // illegal — lifted-piece mode
 
-			// dragSession cleared: can call dragStart again (after select)
+			// dragSession cleared: can call beginSourceInteraction again (after select)
 			runtime.select(null); // deselect
 			runtime.select(12); // re-select
-			expect(() => runtime.dragStart(12, { x: 450, y: 650 })).not.toThrow();
+			expect(() => runtime.beginSourceInteraction(12, { x: 450, y: 650 })).not.toThrow();
 		});
 
-		it('release-targeting mode: illegal drop clears all interaction', () => {
-			// Release-targeting illegal-completion rule: clear all interaction.
+		it('release-targeting mode: illegal drop on different square clears all interaction', () => {
+			// Release-targeting illegal-completion rule when currentTarget !== selectedSquare:
+			// clear all interaction.
 			const runtime = createBoardRuntime({
 				renderer: createTestRenderer(),
 				board: { position: { e2: { color: 'w', role: 'p' } } },
@@ -440,13 +412,48 @@ describe('Phase 3.2 / BoardRuntime — interaction lifecycle', () => {
 			});
 			runtime.mount(createMockContainer());
 
-			// Enter release-targeting mode: select without dragStart
+			// Enter release-targeting mode with currentTarget !== selectedSquare
 			runtime.select(12);
-			// No dragStart — release-targeting mode
-			runtime.dropTo(36); // illegal — release-targeting mode
+			runtime.startReleaseTargeting(36, null);
+			// commitTo on illegal target different from source
+			runtime.commitTo(36); // illegal — release-targeting mode, currentTarget !== selectedSquare
 
-			// All interaction cleared: select(null) is a no-op
-			expect(runtime.select(null)).toBe(false);
+			// All interaction cleared
+			const snap = runtime.getInteractionSnapshot();
+			expect(snap.interaction.selectedSquare).toBeNull();
+			expect(snap.interaction.dragSession).toBeNull();
+			expect(snap.interaction.releaseTargetingActive).toBe(false);
+			expect(snap.interaction.currentTarget).toBeNull();
+		});
+
+		it('release-targeting mode: illegal drop on source square preserves selection', () => {
+			// Release-targeting illegal-completion rule when currentTarget === selectedSquare:
+			// preserve selection.
+			const runtime = createBoardRuntime({
+				renderer: createTestRenderer(),
+				board: { position: { e2: { color: 'w', role: 'p' } } },
+				view: {
+					movability: {
+						mode: 'strict',
+						color: 'white',
+						destinations: { 12: [28, 20] }
+					}
+				}
+			});
+			runtime.mount(createMockContainer());
+
+			// Enter release-targeting mode with currentTarget === selectedSquare
+			runtime.select(12);
+			runtime.startReleaseTargeting(12, null);
+			// commitTo on source square (illegal because you can't move to same square)
+			runtime.commitTo(12); // illegal — release-targeting mode, currentTarget === selectedSquare
+
+			// Selection preserved, targeting cleared
+			const snap = runtime.getInteractionSnapshot();
+			expect(snap.interaction.selectedSquare).toBe(12);
+			expect(snap.interaction.dragSession).toBeNull();
+			expect(snap.interaction.releaseTargetingActive).toBe(false);
+			expect(snap.interaction.currentTarget).toBeNull();
 		});
 
 		it('drop on null target is treated as illegal (no move)', () => {
@@ -457,14 +464,13 @@ describe('Phase 3.2 / BoardRuntime — interaction lifecycle', () => {
 			});
 			runtime.mount(createMockContainer());
 
-			runtime.select(12);
-			runtime.dragStart(12, { x: 450, y: 650 });
+			runtime.beginSourceInteraction(12, { x: 450, y: 650 });
 
-			const move = runtime.dropTo(null);
+			const move = runtime.commitTo(null);
 			expect(move).toBeNull();
 		});
 
-		it('dropTo with no active interaction returns null (no-op)', () => {
+		it('commitTo with no active interaction returns null (no-op)', () => {
 			const runtime = createBoardRuntime({
 				renderer: createTestRenderer(),
 				board: { position: { e2: { color: 'w', role: 'p' } } },
@@ -473,7 +479,7 @@ describe('Phase 3.2 / BoardRuntime — interaction lifecycle', () => {
 			runtime.mount(createMockContainer());
 
 			// No select() called
-			const move = runtime.dropTo(28);
+			const move = runtime.commitTo(28);
 			expect(move).toBeNull();
 		});
 
@@ -487,9 +493,8 @@ describe('Phase 3.2 / BoardRuntime — interaction lifecycle', () => {
 
 			// Can still call select() (select is not gated by movability)
 			runtime.select(12);
-			// Cannot dragStart because selectedSquare is 12 but no drag yet
-			// dropTo uses selectedSquare as source
-			const move = runtime.dropTo(28);
+			// commitTo uses selectedSquare as source
+			const move = runtime.commitTo(28);
 			expect(move).toBeNull();
 		});
 	});
@@ -505,9 +510,8 @@ describe('Phase 3.2 / BoardRuntime — interaction lifecycle', () => {
 			});
 			runtime.mount(createMockContainer());
 
-			runtime.select(12);
-			runtime.dragStart(12, { x: 450, y: 650 });
-			runtime.setCurrentTarget(28);
+			runtime.beginSourceInteraction(12, { x: 450, y: 650 });
+			runtime.notifyDragMove(28, null);
 
 			const changed = runtime.cancelInteraction();
 			expect(changed).toBe(true);
@@ -516,7 +520,7 @@ describe('Phase 3.2 / BoardRuntime — interaction lifecycle', () => {
 			expect(runtime.select(12)).toBe(false);
 		});
 
-		it('after cancel, dragStart can be called again', () => {
+		it('after cancel, beginSourceInteraction can be called again', () => {
 			const runtime = createBoardRuntime({
 				renderer: createTestRenderer(),
 				board: { position: 'start' },
@@ -524,12 +528,11 @@ describe('Phase 3.2 / BoardRuntime — interaction lifecycle', () => {
 			});
 			runtime.mount(createMockContainer());
 
-			runtime.select(12);
-			runtime.dragStart(12, { x: 450, y: 650 });
+			runtime.beginSourceInteraction(12, { x: 450, y: 650 });
 			runtime.cancelInteraction();
 
 			// dragSession cleared — can start drag again
-			expect(() => runtime.dragStart(12, { x: 450, y: 650 })).not.toThrow();
+			expect(() => runtime.beginSourceInteraction(12, { x: 450, y: 650 })).not.toThrow();
 		});
 
 		it('cancel with no drag active is a no-op (returns false)', () => {
@@ -568,9 +571,8 @@ describe('Phase 3.2 / BoardRuntime — interaction lifecycle', () => {
 			});
 			runtime.mount(createMockContainer());
 
-			runtime.select(12);
-			runtime.dragStart(12, { x: 450, y: 650 });
-			runtime.setCurrentTarget(28);
+			runtime.beginSourceInteraction(12, { x: 450, y: 650 });
+			runtime.notifyDragMove(28, null);
 
 			runtime.setBoardPosition({ d2: { color: 'w', role: 'p' } });
 
@@ -607,7 +609,7 @@ describe('Phase 3.2 / BoardRuntime — interaction lifecycle', () => {
 			expect(snap.interaction.dragSession).toBeNull();
 		});
 
-		it('reflects dragStart() change', () => {
+		it('reflects beginSourceInteraction() change', () => {
 			const runtime = createBoardRuntime({
 				renderer: createTestRenderer(),
 				board: { position: 'start' },
@@ -615,8 +617,7 @@ describe('Phase 3.2 / BoardRuntime — interaction lifecycle', () => {
 			});
 			runtime.mount(createMockContainer());
 
-			runtime.select(sq(12));
-			runtime.dragStart(sq(12), { x: 450, y: 650 });
+			runtime.beginSourceInteraction(sq(12), { x: 450, y: 650 });
 			const snap = runtime.getInteractionSnapshot();
 			expect(snap.interaction.selectedSquare).toBe(sq(12));
 			expect(snap.interaction.dragSession).toEqual({ fromSquare: sq(12) });
@@ -630,8 +631,7 @@ describe('Phase 3.2 / BoardRuntime — interaction lifecycle', () => {
 			});
 			runtime.mount(createMockContainer());
 
-			runtime.select(sq(12));
-			runtime.dragStart(sq(12), { x: 450, y: 650 });
+			runtime.beginSourceInteraction(sq(12), { x: 450, y: 650 });
 			runtime.cancelInteraction();
 			const snap = runtime.getInteractionSnapshot();
 			// cancelInteraction clears drag but keeps selection
@@ -652,7 +652,7 @@ describe('Phase 3.2 / BoardRuntime — interaction lifecycle', () => {
 	// ── selected-piece → destination-targeting flow ────────────────────────────
 
 	describe('selected-piece → destination-targeting flow', () => {
-		it('full tap-to-move flow: select → dropTo → move applied', () => {
+		it('full tap-to-move flow: select → commitTo → move applied', () => {
 			const runtime = createBoardRuntime({
 				renderer: createTestRenderer(),
 				board: { position: { e2: { color: 'w', role: 'p' } } },
@@ -667,14 +667,14 @@ describe('Phase 3.2 / BoardRuntime — interaction lifecycle', () => {
 			runtime.mount(createMockContainer());
 
 			runtime.select(12); // select e2
-			const move = runtime.dropTo(28); // tap e4
+			const move = runtime.commitTo(28); // tap e4
 
 			expect(move).not.toBeNull();
 			expect(move!.from).toBe(12);
 			expect(move!.to).toBe(28);
 		});
 
-		it('full drag flow: select → dragStart → setCurrentTarget → dropTo → move applied', () => {
+		it('full drag flow: beginSourceInteraction → notifyDragMove → commitTo → move applied', () => {
 			const runtime = createBoardRuntime({
 				renderer: createTestRenderer(),
 				board: { position: { e2: { color: 'w', role: 'p' } } },
@@ -682,18 +682,17 @@ describe('Phase 3.2 / BoardRuntime — interaction lifecycle', () => {
 			});
 			runtime.mount(createMockContainer());
 
-			runtime.select(12);
-			runtime.dragStart(12, { x: 450, y: 650 });
-			runtime.setCurrentTarget(20); // e3
-			runtime.setCurrentTarget(28); // e4 — moved over e3 then e4
+			runtime.beginSourceInteraction(12, { x: 450, y: 650 });
+			runtime.notifyDragMove(20, null); // e3
+			runtime.notifyDragMove(28, null); // e4 — moved over e3 then e4
 
-			const move = runtime.dropTo(28);
+			const move = runtime.commitTo(28);
 			expect(move).not.toBeNull();
 			expect(move!.from).toBe(12);
 			expect(move!.to).toBe(28);
 		});
 
-		it('drag cancel → retry via tap: select → dragStart → cancel → dropTo', () => {
+		it('drag cancel → retry via tap: beginSourceInteraction → cancel → commitTo', () => {
 			const runtime = createBoardRuntime({
 				renderer: createTestRenderer(),
 				board: { position: { e2: { color: 'w', role: 'p' } } },
@@ -701,18 +700,17 @@ describe('Phase 3.2 / BoardRuntime — interaction lifecycle', () => {
 			});
 			runtime.mount(createMockContainer());
 
-			runtime.select(12);
-			runtime.dragStart(12, { x: 450, y: 650 });
+			runtime.beginSourceInteraction(12, { x: 450, y: 650 });
 			runtime.cancelInteraction(); // user cancelled drag
 
 			// Selection is kept — user can now tap a destination
-			const move = runtime.dropTo(28);
+			const move = runtime.commitTo(28);
 			expect(move).not.toBeNull();
 		});
 
-		it('lifted-piece illegal drop → retry in release-targeting: select → dragStart → illegal drop → dropTo legal', () => {
+		it('lifted-piece illegal drop → retry in release-targeting: beginSourceInteraction → illegal drop → commitTo legal', () => {
 			// After illegal lifted-piece drop, selection is kept (release-targeting mode).
-			// dropTo on a legal target from release-targeting mode completes the move.
+			// commitTo on a legal target from release-targeting mode completes the move.
 			const runtime = createBoardRuntime({
 				renderer: createTestRenderer(),
 				board: { position: { e2: { color: 'w', role: 'p' } } },
@@ -726,12 +724,11 @@ describe('Phase 3.2 / BoardRuntime — interaction lifecycle', () => {
 			});
 			runtime.mount(createMockContainer());
 
-			runtime.select(12);
-			runtime.dragStart(12, { x: 450, y: 650 });
-			runtime.dropTo(36); // illegal lifted-piece drop — keeps selection, clears drag
+			runtime.beginSourceInteraction(12, { x: 450, y: 650 });
+			runtime.commitTo(36); // illegal lifted-piece drop — keeps selection, clears drag
 
-			// Now in release-targeting mode: dropTo on a legal target
-			const move = runtime.dropTo(28);
+			// Now in release-targeting mode: commitTo on a legal target
+			const move = runtime.commitTo(28);
 			expect(move).not.toBeNull();
 			expect(move!.from).toBe(12);
 			expect(move!.to).toBe(28);
