@@ -1,4 +1,22 @@
 /**
+ * VERY IMPORTANT CONTROLLER/RUNTIME BOUNDARY:
+ *
+ * The controller may interpret branches, inspect snapshots, use board helpers,
+ * and call read-only runtime policy methods.
+ *
+ * But when a branch requires a state-changing interaction transition,
+ * the controller should invoke exactly one atomic runtime mutator.
+ *
+ * Do not reintroduce split mutating controller choreography, for example:
+ * - setCurrentTarget(...)
+ * - then dragStart(...)
+ * - then other state synchronization calls
+ *
+ * The controller chooses the branch.
+ * The runtime owns the atomic transition.
+ */
+
+/**
  * Interaction controller — Phase 3.2 pointer lifecycle orchestrator.
  *
  * Translates raw pointer events (already resolved to board squares by the input adapter)
