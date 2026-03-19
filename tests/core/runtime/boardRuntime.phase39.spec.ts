@@ -63,16 +63,15 @@ describe('BoardRuntime Phase 3.9: committed animation skip policy', () => {
 		const runtime = createBoardRuntime({
 			renderer,
 			board: { position: { e2: { color: 'w', role: 'p' } } },
-			view: { movability: { mode: 'free', color: 'white' } }
+			view: { movability: { mode: 'free' } }
 		});
 		runtime.mount(createMockContainer());
 
 		await waitForRender();
 
-		// Drag-drop completion: select + dragStart + dropTo(legal)
-		runtime.select(sq(12)); // e2
-		runtime.dragStart(sq(12), { x: 450, y: 650 });
-		runtime.dropTo(sq(28)); // e4 (legal)
+		// Drag-drop completion: beginSourceInteraction (enters drag mode) + commitTo(legal)
+		runtime.beginSourceInteraction(sq(12), { x: 450, y: 650 }); // e2
+		runtime.commitTo(sq(28)); // e4 (legal)
 
 		await waitForRender();
 
@@ -89,15 +88,16 @@ describe('BoardRuntime Phase 3.9: committed animation skip policy', () => {
 		const runtime = createBoardRuntime({
 			renderer,
 			board: { position: { e2: { color: 'w', role: 'p' } } },
-			view: { movability: { mode: 'free', color: 'white' } }
+			view: { movability: { mode: 'free' } }
 		});
 		runtime.mount(createMockContainer());
 
 		await waitForRender();
 
-		// Non-drag completion: select + dropTo(legal) without drag
+		// Non-drag completion: select + startReleaseTargeting + commitTo(legal)
 		runtime.select(sq(12)); // e2
-		runtime.dropTo(sq(28)); // e4 (legal, no drag)
+		runtime.startReleaseTargeting(sq(28), null); // e4
+		runtime.commitTo(sq(28)); // e4 (legal, no drag)
 
 		await waitForRender();
 
