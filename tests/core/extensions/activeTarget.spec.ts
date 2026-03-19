@@ -53,14 +53,15 @@ describe('activeTarget extension', () => {
 			selectedSquare: dragActive ? (12 as Square) : null,
 			destinations: null,
 			currentTarget,
-			dragSession: dragActive ? { fromSquare: 12 as Square } : null
+			dragSession: dragActive ? { fromSquare: 12 as Square } : null,
+			releaseTargetingActive: false
 		};
 	}
 
 	function createMockViewState(): ViewStateSnapshot {
 		return {
 			orientation: 'white',
-			movability: { mode: 'free', color: 'both' }
+			movability: { mode: 'free' }
 		};
 	}
 
@@ -135,9 +136,9 @@ describe('activeTarget extension', () => {
 		const ext = createActiveTargetExtension();
 		const mounted = ext.mount(env);
 
-		// Initial update: no drag
+		// Initial update: no drag, matches initial extension state
 		mounted.update(createUpdateContext(false, null));
-		expect(markedLayers).toEqual([]);
+		expect(markedLayers).toEqual([]); // No state change from initial
 
 		// Second update: drag starts with target
 		mounted.update(createUpdateContext(true, 28 as Square));
@@ -227,7 +228,7 @@ describe('activeTarget extension', () => {
 		expect(underPiecesRoot.children.length).toBe(1);
 		const rect = underPiecesRoot.children[0] as SVGRectElement;
 		expect(rect.tagName).toBe('rect');
-		expect(rect.getAttribute('fill')).toBe('rgba(255, 255, 0, 0.4)');
+		expect(rect.getAttribute('fill')).toBe('rgba(255, 255, 0, 1)');
 		expect(rect.getAttribute('fill-opacity')).toBe('0.4');
 	});
 
@@ -242,9 +243,8 @@ describe('activeTarget extension', () => {
 		expect(overPiecesRoot.children.length).toBe(1);
 		const circle = overPiecesRoot.children[0] as SVGCircleElement;
 		expect(circle.tagName).toBe('circle');
-		expect(circle.getAttribute('fill')).toBe('none');
-		expect(circle.getAttribute('stroke')).toBe('rgba(0, 0, 0, 1)');
-		expect(circle.getAttribute('stroke-opacity')).toBe('0.2');
+		expect(circle.getAttribute('fill')).toBe('rgba(0, 0, 0, 1)');
+		expect(circle.getAttribute('fill-opacity')).toBe('0.2');
 	});
 
 	it('does not render when drag not active', () => {
@@ -314,8 +314,8 @@ describe('activeTarget extension', () => {
 		mounted.renderBoard(createRenderContext(true, 28 as Square, 1));
 
 		const circle = overPiecesRoot.children[0] as SVGCircleElement;
-		// squareSize = 100, ratio = 1.25 -> radius = 125
-		expect(circle.getAttribute('r')).toBe('125');
+		// squareSize = 100, ratio = 1.2 -> radius = 120
+		expect(circle.getAttribute('r')).toBe('120');
 		// Center should be at square center: x=400+50=450, y=300+50=350
 		expect(circle.getAttribute('cx')).toBe('450');
 		expect(circle.getAttribute('cy')).toBe('350');
@@ -340,8 +340,8 @@ describe('activeTarget extension', () => {
 		expect(rect.getAttribute('fill-opacity')).toBe('0.6');
 
 		const circle = overPiecesRoot.children[0] as SVGCircleElement;
-		expect(circle.getAttribute('stroke')).toBe('rgb(0, 0, 255)');
-		expect(circle.getAttribute('stroke-opacity')).toBe('0.8');
+		expect(circle.getAttribute('fill')).toBe('rgb(0, 0, 255)');
+		expect(circle.getAttribute('fill-opacity')).toBe('0.8');
 		expect(circle.getAttribute('r')).toBe('150'); // 100 * 1.5
 	});
 
