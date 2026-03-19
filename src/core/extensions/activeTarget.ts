@@ -1,6 +1,6 @@
 /**
  * First-party extension: activeTarget
- * Highlights the currently targeted square during active drag interaction.
+ * Highlights the currently targeted square during active targeting interaction.
  * Phase 4.3a: First transient interaction overlay extension.
  */
 
