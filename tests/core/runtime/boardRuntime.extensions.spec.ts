@@ -6,6 +6,7 @@
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { createActiveTargetExtension } from '../../../src/core/extensions/activeTarget';
 import { createLastMoveExtension } from '../../../src/core/extensions/lastMove';
+import { createLegalMovesExtension } from '../../../src/core/extensions/legalMoves';
 import { createSelectedSquareExtension } from '../../../src/core/extensions/selectedSquare';
 import { SvgRenderer } from '../../../src/core/renderer/SvgRenderer';
 import { createBoardRuntime, type BoardRuntime } from '../../../src/core/runtime/boardRuntime';
@@ -741,5 +742,72 @@ describe('boardRuntime activeTarget extension integration', () => {
 		) as SVGGElement | null;
 		expect(lastMoveGroup).not.toBeNull();
 		expect(lastMoveGroup?.children.length).toBe(2); // from and to rects
+	});
+
+	it('all four extensions coexist without interference', async () => {
+		runtime.destroy();
+		document.body.removeChild(container);
+
+		container = document.createElement('div');
+		Object.defineProperty(container, 'clientWidth', { value: 800, configurable: true });
+		Object.defineProperty(container, 'clientHeight', { value: 800, configurable: true });
+		document.body.appendChild(container);
+
+		const renderer = new SvgRenderer();
+		runtime = createBoardRuntime({
+			renderer,
+			extensions: [
+				createSelectedSquareExtension(),
+				createLastMoveExtension(),
+				createActiveTargetExtension(),
+				createLegalMovesExtension()
+			]
+		});
+		runtime.mount(container);
+
+		runtime.setBoardPosition('start');
+		runtime.setMovability({ mode: 'strict', destinations: { 12: [28, 20] } });
+
+		// Select square e2 with destinations
+		runtime.select(12 as Square);
+		await waitForRender();
+
+		// Verify all extension groups allocated
+		const underSlot = getUnderPiecesSlotRoot();
+		const overSlot = getOverPiecesSlotRoot();
+
+		const selectedGroup = Array.from(underSlot?.children ?? []).find(
+			(el) => el.getAttribute('data-extension-id') === 'selectedSquare'
+		);
+		const lastMoveGroup = Array.from(underSlot?.children ?? []).find(
+			(el) => el.getAttribute('data-extension-id') === 'lastMove'
+		);
+		const activeTargetUnderGroup = Array.from(underSlot?.children ?? []).find(
+			(el) => el.getAttribute('data-extension-id') === 'activeTarget'
+		);
+		const activeTargetOverGroup = Array.from(overSlot?.children ?? []).find(
+			(el) => el.getAttribute('data-extension-id') === 'activeTarget'
+		);
+		const legalMovesGroup = Array.from(overSlot?.children ?? []).find(
+			(el) => el.getAttribute('data-extension-id') === 'legalMoves'
+		);
+
+		expect(selectedGroup).not.toBeNull();
+		expect(lastMoveGroup).not.toBeNull();
+		expect(activeTargetUnderGroup).not.toBeNull();
+		expect(activeTargetOverGroup).not.toBeNull();
+		expect(legalMovesGroup).not.toBeNull();
+
+		// selectedSquare should render (has piece)
+		expect((selectedGroup as SVGGElement).children.length).toBe(1);
+
+		// legalMoves should render (has destinations)
+		expect((legalMovesGroup as SVGGElement).children.length).toBe(2); // two dots
+
+		// activeTarget should not render (no drag)
+		expect((activeTargetUnderGroup as SVGGElement).children.length).toBe(0);
+
+		// lastMove should not render (no move yet)
+		expect((lastMoveGroup as SVGGElement).children.length).toBe(0);
 	});
 });
