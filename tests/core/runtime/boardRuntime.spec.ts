@@ -1,4 +1,5 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { Square } from '../../../src';
 import { SvgRenderer } from '../../../src/core/renderer/SvgRenderer';
 import type { Renderer } from '../../../src/core/renderer/types';
 import { createBoardRuntime } from '../../../src/core/runtime/boardRuntime';
@@ -852,6 +853,74 @@ describe('core/runtime/boardRuntime', () => {
 		runtime.setMovability({ mode: 'strict', destinations: { 12: [28, 20] } });
 		expect(runtime.canStartMoveFrom(12)).toBe(true); // has destinations
 		expect(runtime.canStartMoveFrom(52)).toBe(false); // no destinations
+	});
+
+	it('strict resolver-based movability: canStartMoveFrom works correctly', () => {
+		const renderer = createTestRenderer();
+		const container = createMockContainer(400, 400);
+
+		const resolver = (sq: Square): readonly Square[] | undefined => {
+			if (sq === 12) return [28, 20] as const; // e2 -> e4, e3
+			if (sq === 52) return [44, 36] as const; // e7 -> e5, e6
+			return undefined;
+		};
+
+		const runtime = createBoardRuntime({
+			renderer,
+			board: { position: 'start' },
+			view: { movability: { mode: 'strict', destinations: resolver } }
+		});
+		runtime.mount(container);
+
+		expect(runtime.canStartMoveFrom(12)).toBe(true); // e2 has destinations
+		expect(runtime.canStartMoveFrom(52)).toBe(true); // e7 has destinations
+		expect(runtime.canStartMoveFrom(11)).toBe(false); // d2 has no destinations
+	});
+
+	it('strict resolver-based movability: isMoveAttemptAllowed works correctly', () => {
+		const renderer = createTestRenderer();
+		const container = createMockContainer(400, 400);
+
+		const resolver = (sq: Square): readonly Square[] | undefined => {
+			if (sq === 12) return [28, 20] as const; // e2 -> e4, e3
+			return undefined;
+		};
+
+		const runtime = createBoardRuntime({
+			renderer,
+			board: { position: 'start' },
+			view: { movability: { mode: 'strict', destinations: resolver } }
+		});
+		runtime.mount(container);
+
+		expect(runtime.isMoveAttemptAllowed(12, 28)).toBe(true); // e2->e4 listed
+		expect(runtime.isMoveAttemptAllowed(12, 20)).toBe(true); // e2->e3 listed
+		expect(runtime.isMoveAttemptAllowed(12, 36)).toBe(false); // e2->e5 not listed
+	});
+
+	it('strict resolver-based movability: active destinations derived correctly', async () => {
+		const renderer = createTestRenderer();
+		const container = createMockContainer(400, 400);
+
+		const resolver = (sq: Square): readonly Square[] | undefined => {
+			if (sq === 12) return [28, 20] as const; // e2 -> e4, e3
+			return undefined;
+		};
+
+		const runtime = createBoardRuntime({
+			renderer,
+			board: { position: 'start' },
+			view: { movability: { mode: 'strict', destinations: resolver } }
+		});
+		runtime.mount(container);
+
+		await waitForRender();
+
+		runtime.select(12);
+
+		const snap = runtime.getInteractionSnapshot();
+		expect(snap.interaction.selectedSquare).toBe(12);
+		expect(snap.interaction.destinations).toEqual([28, 20]);
 	});
 
 	// ── Core rendering path: geometry/orientation flow ─────────────────────────

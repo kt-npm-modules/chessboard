@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { Square } from '../../../src';
 import {
 	createInvalidationState,
 	createInvalidationWriter
@@ -91,6 +92,68 @@ describe('state/viewReducers', () => {
 			// setMovability signature: (state, m) — no writer parameter
 			const view = createViewState();
 			expect(() => setMovability(view, { mode: 'free' })).not.toThrow();
+		});
+
+		it('is a no-op for same resolver reference', () => {
+			const resolver = (sq: Square): readonly Square[] | undefined =>
+				sq === 12 ? ([28, 20] as const) : undefined;
+			const view = createViewState({
+				movability: { mode: 'strict', destinations: resolver }
+			});
+
+			const changed = setMovability(view, {
+				mode: 'strict',
+				destinations: resolver
+			});
+
+			expect(changed).toBe(false);
+		});
+
+		it('detects change when different resolver functions are provided', () => {
+			const resolver1 = (sq: Square): readonly Square[] | undefined =>
+				sq === 12 ? ([28, 20] as const) : undefined;
+			const resolver2 = (sq: Square): readonly Square[] | undefined =>
+				sq === 12 ? ([28, 20] as const) : undefined;
+			const view = createViewState({
+				movability: { mode: 'strict', destinations: resolver1 }
+			});
+
+			const changed = setMovability(view, {
+				mode: 'strict',
+				destinations: resolver2
+			});
+
+			expect(changed).toBe(true);
+		});
+
+		it('detects change when switching from record to resolver', () => {
+			const view = createViewState({
+				movability: { mode: 'strict', destinations: { 12: [28, 20] } }
+			});
+
+			const resolver = (sq: Square): readonly Square[] | undefined =>
+				sq === 12 ? ([28, 20] as const) : undefined;
+			const changed = setMovability(view, {
+				mode: 'strict',
+				destinations: resolver
+			});
+
+			expect(changed).toBe(true);
+		});
+
+		it('detects change when switching from resolver to record', () => {
+			const resolver = (sq: Square): readonly Square[] | undefined =>
+				sq === 12 ? ([28, 20] as const) : undefined;
+			const view = createViewState({
+				movability: { mode: 'strict', destinations: resolver }
+			});
+
+			const changed = setMovability(view, {
+				mode: 'strict',
+				destinations: { 12: [28, 20] }
+			});
+
+			expect(changed).toBe(true);
 		});
 	});
 });

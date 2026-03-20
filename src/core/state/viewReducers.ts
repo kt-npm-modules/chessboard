@@ -1,7 +1,7 @@
 import { DirtyLayer, InvalidationWriter } from '../scheduler/types';
 import type { ColorInput, Square } from './boardTypes';
 import { normalizeColor } from './normalize';
-import { Movability, ViewStateInternal } from './viewTypes';
+import { Movability, MovabilityDestinationsRecord, ViewStateInternal } from './viewTypes';
 
 /**
  * Set board orientation (view).
@@ -46,15 +46,34 @@ function movabilityEquals(a: Movability, b: Movability): boolean {
 	if (a.mode === 'strict' && b.mode === 'strict') {
 		const aDests = a.destinations;
 		const bDests = b.destinations;
-		const aKeys = Object.keys(aDests).map(Number) as Square[];
-		const bKeys = Object.keys(bDests).map(Number) as Square[];
+
+		const aIsResolver = typeof aDests === 'function';
+		const bIsResolver = typeof bDests === 'function';
+
+		// resolver vs resolver: compare by reference
+		if (aIsResolver && bIsResolver) {
+			return aDests === bDests;
+		}
+
+		// record vs resolver: not equal
+		if (aIsResolver !== bIsResolver) {
+			return false;
+		}
+
+		// Both are records (narrowed): structural comparison
+		// TypeScript now knows both are MovabilityDestinationsRecord
+		const aRecord = aDests as MovabilityDestinationsRecord;
+		const bRecord = bDests as MovabilityDestinationsRecord;
+
+		const aKeys = Object.keys(aRecord).map(Number) as Square[];
+		const bKeys = Object.keys(bRecord).map(Number) as Square[];
 
 		if (aKeys.length !== bKeys.length) return false;
 
 		// Check if all keys in a exist in b with same values
 		for (const sq of aKeys) {
-			const aArr = aDests[sq];
-			const bArr = bDests[sq];
+			const aArr = aRecord[sq];
+			const bArr = bRecord[sq];
 			if (!aArr || !bArr) return false;
 			if (aArr.length !== bArr.length) return false;
 			for (let i = 0; i < aArr.length; i++) {

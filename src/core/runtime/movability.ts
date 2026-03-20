@@ -11,7 +11,25 @@
 
 import type { BoardStateInternal, Square } from '../state/boardTypes';
 import { isEmpty } from '../state/encode';
-import type { ViewStateInternal } from '../state/viewTypes';
+import type { MovabilityDestinations, ViewStateInternal } from '../state/viewTypes';
+
+/**
+ * Internal helper: normalize destination lookup for a source square.
+ * Handles both record and resolver-based destinations.
+ *
+ * @param destinations - MovabilityDestinations (record or resolver)
+ * @param source - Source square to look up
+ * @returns Array of destination squares, or undefined if source is not movable
+ */
+function getDestinationsForSource(
+	destinations: MovabilityDestinations,
+	source: Square
+): readonly Square[] | undefined {
+	if (typeof destinations === 'function') {
+		return destinations(source);
+	}
+	return destinations[source];
+}
 
 /**
  * Determine if a move can be started from the given square.
@@ -48,7 +66,7 @@ export function canStartMoveFrom(
 
 	// For strict mode, check if destinations exist and have length > 0
 	if (movability.mode === 'strict') {
-		const dests = movability.destinations[from];
+		const dests = getDestinationsForSource(movability.destinations, from);
 		return dests !== undefined && dests.length > 0;
 	}
 
@@ -72,8 +90,8 @@ export function getActiveDestinations(
 	const movability = view.movability;
 	if (movability.mode === 'disabled') return null;
 	if (movability.mode === 'free') return null;
-	// strict mode: look up the destinations map for this square
-	const dests = movability.destinations[from];
+	// strict mode: look up the destinations for this square
+	const dests = getDestinationsForSource(movability.destinations, from);
 	return dests && dests.length > 0 ? dests : null;
 }
 
@@ -113,7 +131,7 @@ export function isMoveAttemptAllowed(
 
 	// For strict mode, check if target is in destinations list
 	if (movability.mode === 'strict') {
-		const dests = movability.destinations[from];
+		const dests = getDestinationsForSource(movability.destinations, from);
 		return dests !== undefined && dests.includes(to);
 	}
 
