@@ -228,6 +228,9 @@ export function move(
 	// Toggle turn
 	state.turn = state.turn === 'white' ? 'black' : 'white';
 
+	// Position epoch
+	state.positionEpoch++;
+
 	// Dirty tracking
 	invalidation.markSquares(DirtyLayer.Pieces, [from, to]);
 
