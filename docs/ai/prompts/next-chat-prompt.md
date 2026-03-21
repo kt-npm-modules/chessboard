@@ -10,6 +10,21 @@ Use as project-specific references:
 - `chessboard-current-plan.md`
 - `chessboard-AGENTS.md` (if relevant to this task)
 
+## First-step rule
+
+Start with analysis and discussion readiness.
+
+Do not generate an implementation prompt immediately after the first analysis pass.
+
+Instead:
+
+- understand the task
+- identify any architectural or structural questions if they exist
+- summarize the proposed direction briefly
+- stop in a discussion-ready state
+
+Only generate the prompt if the user explicitly asks for it or clearly signals to proceed.
+
 ## Handoff summary
 
 - Project: `mirasen-io/chessboard` / `@mirasen/chessboard`, branch `feat/v1`.
@@ -115,10 +130,19 @@ Required output for this chat:
 
 ## Working mode
 
-Work architecture-first when architectural risk is present.
+Work architecture-first when the task has architectural risk.
 Keep the step narrow.
 Avoid overengineering.
 Assume previously confirmed decisions remain in force unless explicitly revised.
+
+When useful, structure the work as:
+
+1. brief analysis
+2. proposed direction, or the most relevant options if a real architectural choice exists
+3. stop in a discussion-ready state
+4. generate the implementation prompt only after the user explicitly asks for it or clearly signals to proceed
+5. focused test updates
+6. later patch review
 
 If you notice related future issues, mention them briefly only if they materially affect this step.
 Do not redesign unrelated parts.
