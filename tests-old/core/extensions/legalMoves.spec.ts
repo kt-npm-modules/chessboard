@@ -4,19 +4,19 @@
  */
 
 import { beforeEach, describe, expect, it } from 'vitest';
-import { createLegalMovesExtension } from '../../../src/core/extensions/legalMoves';
+import { createLegalMovesExtension } from '../../../src-old/core/extensions/legalMoves';
 import type {
 	BoardExtensionRenderContext,
 	BoardExtensionUpdateContext
-} from '../../../src/core/extensions/types';
-import type { RenderGeometry } from '../../../src/core/renderer/types';
+} from '../../../src-old/core/extensions/types';
+import type { RenderGeometry } from '../../../src-old/core/renderer/types';
 import type {
 	InvalidationStateExtensionSnapshot,
 	InvalidationWriter
-} from '../../../src/core/scheduler/types';
-import type { BoardStateSnapshot, Square } from '../../../src/core/state/boardTypes';
-import type { InteractionStateSnapshot } from '../../../src/core/state/interactionTypes';
-import type { ViewStateSnapshot } from '../../../src/core/state/viewTypes';
+} from '../../../src-old/core/scheduler/types';
+import type { BoardStateSnapshot, Square } from '../../../src-old/core/state/boardTypes';
+import type { InteractionStateSnapshot } from '../../../src-old/core/state/interactionTypes';
+import type { ViewStateSnapshot } from '../../../src-old/core/state/viewTypes';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
