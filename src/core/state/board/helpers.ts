@@ -1,5 +1,5 @@
-import type { BoardStateSnapshot, Piece, Square } from '../state/boardTypes';
-import { decodePiece } from '../state/encode';
+import { decodePiece } from './encode';
+import type { BoardStateSnapshot, Piece, Square } from './types';
 
 export function getPieceAt(board: BoardStateSnapshot, sq: Square): Piece | null {
 	const encoded = board.pieces[sq];

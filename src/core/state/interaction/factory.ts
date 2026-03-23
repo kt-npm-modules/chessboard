@@ -1,0 +1,105 @@
+import {
+	interactionClear,
+	interactionClearActive,
+	interactionSetCurrentTarget,
+	interactionSetDestinations,
+	interactionSetDragSession,
+	interactionSetReleaseTargetingActive,
+	interactionSetSelectedSquare
+} from './reducers';
+import type { InteractionState, InteractionStateInternal, InteractionStateSnapshot } from './types';
+
+/**
+ * Create a fresh interaction state with all fields set to null or false.
+ */
+function createInteractionStateInternal(): InteractionStateInternal {
+	return {
+		selectedSquare: null,
+		destinations: null,
+		dragSession: null,
+		currentTarget: null,
+		releaseTargetingActive: false
+	};
+}
+
+/**
+ * Build a read-only snapshot of the current interaction state.
+ */
+export function getInteractionStateSnapshot(
+	state: InteractionStateInternal
+): InteractionStateSnapshot {
+	return {
+		selectedSquare: state.selectedSquare,
+		destinations: state.destinations ? [...state.destinations] : null,
+		dragSession: state.dragSession ? { ...state.dragSession } : null,
+		currentTarget: state.currentTarget,
+		releaseTargetingActive: state.releaseTargetingActive
+	};
+}
+
+export function createInteractionState(): InteractionState {
+	const internalState = createInteractionStateInternal();
+	return {
+		getSelectedSquare() {
+			return internalState.selectedSquare;
+		},
+		setSelectedSquare(sq, mutationSession) {
+			return mutationSession.addMutation(
+				'interaction.state.setSelectedSquare',
+				interactionSetSelectedSquare(internalState, sq)
+			);
+		},
+		getDestinations() {
+			return [...(internalState.destinations ?? [])];
+		},
+		setDestinations(dests, mutationSession) {
+			return mutationSession.addMutation(
+				'interaction.state.setDestinations',
+				interactionSetDestinations(internalState, dests)
+			);
+		},
+		getDragSession() {
+			return internalState.dragSession ? { ...internalState.dragSession } : null;
+		},
+		setDragSession(session, mutationSession) {
+			return mutationSession.addMutation(
+				'interaction.state.setDragSession',
+				interactionSetDragSession(internalState, session)
+			);
+		},
+
+		getCurrentTarget() {
+			return internalState.currentTarget;
+		},
+		setCurrentTarget(sq, mutationSession) {
+			return mutationSession.addMutation(
+				'interaction.state.setCurrentTarget',
+				interactionSetCurrentTarget(internalState, sq)
+			);
+		},
+		getReleaseTargetingActive() {
+			return internalState.releaseTargetingActive;
+		},
+		setReleaseTargetingActive(active, mutationSession) {
+			return mutationSession.addMutation(
+				'interaction.state.setReleaseTargetingActive',
+				interactionSetReleaseTargetingActive(internalState, active)
+			);
+		},
+		clear(mutationSession) {
+			return mutationSession.addMutation(
+				'interaction.state.clear',
+				interactionClear(internalState)
+			);
+		},
+		clearActive(mutationSession) {
+			return mutationSession.addMutation(
+				'interaction.state.clearActive',
+				interactionClearActive(internalState)
+			);
+		},
+		getSnapshot() {
+			return getInteractionStateSnapshot(internalState);
+		}
+	};
+}
