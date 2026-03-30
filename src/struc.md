@@ -29,7 +29,6 @@ BoardRuntime
   - boardSize
   - geometry
   - layoutVersion
-  - lastUpdatedLayoutVersion
   - layout operations
     - measureBoardSize
     - refreshGeometry

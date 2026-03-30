@@ -5,9 +5,6 @@ import { DirtyLayer } from '../scheduler/types';
 import type { BoardStateSnapshot, Color, Square } from '../state/boardTypes';
 import { squareOf, toAlgebraic } from '../state/coords';
 import { decodePiece } from '../state/encode';
-import { cburnettPieceUrl } from './assets';
-import { isLightSquare } from './geometry';
-import { renderAnimationFrame } from './SvgAnimationFrameRenderer';
 import type {
 	AnimationRenderContext,
 	BoardRenderContext,
@@ -15,8 +12,11 @@ import type {
 	RenderConfig,
 	Renderer,
 	RenderGeometry
-} from './types';
-import { DEFAULT_RENDER_CONFIG } from './types';
+} from '../types';
+import { DEFAULT_RENDER_CONFIG } from '../types';
+import { cburnettPieceUrl } from './assets';
+import { isLightSquare } from './geometry';
+import { renderAnimationFrame } from './SvgAnimationFrameRenderer';
 
 type SvgRendererOptions = {
 	/** Optional renderer visual configuration. */
