@@ -9,9 +9,10 @@ function layoutRefreshGeometryInternal(
 	orientation: Color
 ): boolean {
 	if (boardSize < 0) boardSize = 0;
-	const changed = [boardSize !== state.boardSize, orientation !== state.geometry?.orientation].some(
-		Boolean
-	);
+	const changed = [
+		boardSize !== state.boardSize,
+		boardSize > 0 && orientation !== state.geometry?.orientation
+	].some(Boolean);
 	if (changed) {
 		if (boardSize === 0) {
 			// Remove geometry if boardSize is invalid, but still update version to trigger re-render.
