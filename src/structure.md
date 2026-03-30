@@ -25,7 +25,7 @@ BoardRuntime
   - change
     - lastMove
 
-- layout = IN PROGRESS
+- layout = DONE
   - boardSize
   - geometry
   - layoutVersion
