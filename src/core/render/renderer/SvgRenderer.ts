@@ -1,6 +1,4 @@
 import { PartialDeep } from 'type-fest';
-import { createSvgGroup, SVG_NS } from '../helpers/svg';
-import { setsEqual } from '../helpers/util';
 import { DirtyLayer } from '../scheduler/types';
 import type { BoardStateSnapshot, Color, Square } from '../state/boardTypes';
 import { squareOf, toAlgebraic } from '../state/coords';

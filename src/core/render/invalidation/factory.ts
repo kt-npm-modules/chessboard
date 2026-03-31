@@ -1,10 +1,11 @@
+import { cloneDeep } from 'lodash-es';
 import type {
 	InvalidationState,
 	InvalidationStateBase,
 	InvalidationStateBaseInternal,
+	InvalidationStateExtensionSnapshot,
 	InvalidationStateInternal,
 	InvalidationStateSnapshot,
-	InvalidationStateSnapshotExtension,
 	InvalidationWriter
 } from './types';
 
@@ -26,14 +27,6 @@ function createInvalidationStateBaseInternal(): InvalidationStateBaseInternal {
 	};
 }
 
-export function getInvalidationStateBaseSnapshot(
-	state: InvalidationStateBaseInternal
-): InvalidationStateSnapshotExtension {
-	return {
-		layers: state.layers
-	};
-}
-
 function createInvalidationStateBase(
 	internalState?: InvalidationStateBaseInternal
 ): InvalidationStateBase {
@@ -44,7 +37,7 @@ function createInvalidationStateBase(
 			return internalState.layers;
 		},
 		getSnapshot() {
-			return getInvalidationStateBaseSnapshot(internalState);
+			return cloneDeep(internalState);
 		},
 		markLayer(layerMask: number): boolean {
 			return writer.markLayer(layerMask);
@@ -60,6 +53,8 @@ function createInvalidationStateBase(
 	};
 }
 
+const createInvalidationStateExtension = createInvalidationStateBase;
+
 function createInvalidationStateInternal(): InvalidationStateInternal {
 	const baseInternal = createInvalidationStateBaseInternal();
 	return {
@@ -68,48 +63,38 @@ function createInvalidationStateInternal(): InvalidationStateInternal {
 	};
 }
 
-export function getInvalidationStateSnapshot(
-	state: InvalidationStateInternal
-): InvalidationStateSnapshot {
-	return {
-		layers: state.layers,
-		extensions: Object.fromEntries(
-			Object.entries(state.extensions).map(([key, ext]) => [key, ext.getSnapshot()])
-		)
-	};
-}
-
 export function createInvalidationState(): InvalidationState {
 	const internalState = createInvalidationStateInternal();
 	const internalBase = createInvalidationStateBase(internalState);
 	return {
 		...internalBase,
-		getSnapshot() {
-			return {
-				layers: internalState.layers,
-				extensions: Object.fromEntries(
-					Object.entries(internalState.extensions).map(([key, ext]) => [key, ext.getSnapshot()])
-				)
-			};
-		},
 		getExtensions() {
-			return Object.fromEntries(
-				Object.entries(internalState.extensions).map(([key, ext]) => [key, ext])
-			);
+			return { ...internalState.extensions };
 		},
-		getExtension(extensionId: string): InvalidationStateBase {
-			if (!internalState.extensions[extensionId]) {
-				throw new Error(`Extension with id "${extensionId}" does not exist in invalidation state.`);
-			}
+		getExtension(extensionId: string) {
 			return internalState.extensions[extensionId];
 		},
-		addExtension(extensionId: string): InvalidationStateBase {
+		createExtension(extensionId: string): InvalidationStateBase {
 			if (internalState.extensions[extensionId]) {
 				throw new Error(`Extension with id "${extensionId}" already exists in invalidation state.`);
 			}
-			const extension = createInvalidationStateBase();
+			const extension = createInvalidationStateExtension();
 			internalState.extensions[extensionId] = extension;
 			return extension;
+		},
+		getSnapshot() {
+			let prep = Object.fromEntries(
+				Object.entries(internalState).filter(([key]) => key !== 'extensions')
+			) as Omit<InvalidationStateInternal, 'extensions'>;
+			prep = cloneDeep(prep);
+			const extensionsSnapshot = Object.fromEntries(
+				Object.entries(internalState.extensions).map(([id, ext]) => [id, ext.getSnapshot()])
+			) as Record<string, InvalidationStateExtensionSnapshot>;
+			const result: InvalidationStateSnapshot = {
+				...prep,
+				extensions: extensionsSnapshot
+			};
+			return result;
 		}
 	};
 }

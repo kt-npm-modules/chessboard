@@ -3,7 +3,9 @@ export interface ReadonlyMutationSession<PayloadByCause extends Record<string, u
 
 	hasMutation<Cause extends keyof PayloadByCause>(cause: Cause): boolean;
 
-	getPayload<Cause extends keyof PayloadByCause>(cause: Cause): PayloadByCause[Cause] | undefined;
+	getPayloads<Cause extends keyof PayloadByCause>(
+		cause: Cause
+	): PayloadByCause[Cause][] | undefined;
 }
 
 export interface MutationSession<

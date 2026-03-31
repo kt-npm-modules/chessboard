@@ -5,7 +5,7 @@ export function createMutationSession<
 >(): MutationSession<PayloadByCause> {
 	type MutationCause = keyof PayloadByCause;
 	type MutationPayloads = PayloadByCause[MutationCause];
-	const payloads = new Map<MutationCause, MutationPayloads | undefined>();
+	const payloads = new Map<MutationCause, MutationPayloads[] | undefined>();
 
 	return {
 		addMutation<Cause extends keyof PayloadByCause>(
@@ -17,14 +17,22 @@ export function createMutationSession<
 				return false;
 			}
 
-			// For now we throw an error for the same cause, this could be indicator that something is wrong in the caller's logic
+			const hasPayload = payload.length > 0;
 			if (payloads.has(cause)) {
-				throw new Error(`Mutation for cause "${String(cause)}" already exists in the session.`);
+				// We already have this cause recorded, just append payload if provided
+				if (!hasPayload) return true;
+				// We already have some payloads for this cause
+				const existingPayloads = payloads.get(cause);
+				if (existingPayloads) {
+					existingPayloads.push(payload[0] as MutationPayloads);
+					return true;
+				}
+				payloads.set(cause, [payload[0] as MutationPayloads]);
+				return true;
 			}
 
-			const inPayload = payload.length > 0 ? payload[0] : undefined;
-			payloads.set(cause, inPayload);
-
+			// No existing entry for this cause, add new one
+			payloads.set(cause, hasPayload ? [payload[0] as MutationPayloads] : undefined);
 			return true;
 		},
 
@@ -36,10 +44,10 @@ export function createMutationSession<
 			return payloads.has(cause);
 		},
 
-		getPayload<Cause extends keyof PayloadByCause>(
+		getPayloads<Cause extends keyof PayloadByCause>(
 			cause: Cause
-		): PayloadByCause[Cause] | undefined {
-			return payloads.get(cause) as PayloadByCause[Cause] | undefined;
+		): PayloadByCause[Cause][] | undefined {
+			return payloads.get(cause) as PayloadByCause[Cause][] | undefined;
 		},
 
 		clear(): void {

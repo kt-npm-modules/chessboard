@@ -1,44 +1,49 @@
+import type { ReadonlyDeep } from 'type-fest';
+
+/**
+ * Base invalidation types
+ */
 export interface InvalidationStateBaseInternal {
 	layers: number;
 }
+export type InvalidationStateBaseSnapshot = ReadonlyDeep<InvalidationStateBaseInternal>;
 
-/**
- * Write-only handle passed to reducers that need to mark invalidation.
- * Reducers that receive this can signal which layers need re-rendering.
- * Reducers that do not receive this do not directly mark invalidation.
- */
 export interface InvalidationWriter {
 	markLayer(layerMask: number): boolean;
 }
 
-/**
- * Invalidation internal payload.
- * - layers: DirtyLayer bitmask
- */
-export interface InvalidationStateInternal {
-	layers: number;
-	extensions: Record<string, InvalidationStateBase>;
-}
-
-export interface InvalidationStateSnapshotExtension {
-	readonly layers: number;
-}
-
-export interface InvalidationStateSnapshot {
-	readonly layers: number;
-	readonly extensions: Record<string, InvalidationStateSnapshotExtension>;
-}
-
 export interface InvalidationStateBase extends InvalidationWriter {
 	getLayers(): number;
-	getSnapshot(): InvalidationStateSnapshotExtension;
 	clear(): boolean;
 	getWriter(): InvalidationWriter;
+	getSnapshot(): InvalidationStateBaseSnapshot;
 }
 
+/**
+ * Extension invalidation types
+ */
+export type InvalidationStateExtensionInternal = InvalidationStateBaseInternal;
+export type InvalidationStateExtensionSnapshot = ReadonlyDeep<InvalidationStateExtensionInternal>;
+export type InvalidationStateExtension = InvalidationStateBase;
+
+/**
+ * Full invalidation subsystem types
+ */
+export interface InvalidationStateInternal extends InvalidationStateBaseInternal {
+	extensions: Record<string, InvalidationStateExtension>;
+}
+
+export type InvalidationStateSnapshot = ReadonlyDeep<
+	Omit<InvalidationStateInternal, 'extensions'>
+> & {
+	extensions: Record<string, InvalidationStateExtensionSnapshot>;
+};
+
+export type InvalidationStateBaseExtension = InvalidationStateBase;
+
 export interface InvalidationState extends InvalidationStateBase {
+	getExtensions(): Readonly<Record<string, InvalidationStateExtension>>;
+	getExtension(extensionId: string): InvalidationStateExtension | undefined;
+	createExtension(extensionId: string): InvalidationStateExtension;
 	getSnapshot(): InvalidationStateSnapshot;
-	getExtensions(): Record<string, InvalidationStateBase>;
-	getExtension(extensionId: string): InvalidationStateBase;
-	addExtension(extensionId: string): InvalidationStateBase;
 }
