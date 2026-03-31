@@ -34,6 +34,22 @@ BoardRuntime
     - refreshGeometry
     - orientation-triggered geometry rebuild
 
+- render = IN PROGRESS
+  - renderer
+  - scheduler
+  - invalidation
+    - invalidationState
+    - invalidationWriter
+  - render operations
+    - scheduleIfAnythingDirty
+    - scheduler.render callback
+    - renderBoard
+    - renderAnimations
+    - renderDrag
+    - clearDirty
+    - getBoardSnapshot
+    - getInvalidationSnapshot
+
 - visuals
   - transientVisuals
     - dragPointer
@@ -50,22 +66,6 @@ BoardRuntime
     - mount(container)
     - destroy()
     - resize observation attach/detach
-
-- render
-  - renderer
-  - scheduler
-  - invalidation
-    - invalidationState
-    - invalidationWriter
-  - render operations
-    - scheduleIfAnythingDirty
-    - scheduler.render callback
-    - renderBoard
-    - renderAnimations
-    - renderDrag
-    - clearDirty
-    - getBoardSnapshot
-    - getInvalidationSnapshot
 
 - animation
   - animator
