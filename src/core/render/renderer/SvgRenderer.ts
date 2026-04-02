@@ -1,26 +1,20 @@
-import { PartialDeep } from 'type-fest';
 import { setsEqual } from '../../../helpers/util';
 import { squareOf, toAlgebraic } from '../../state/board/coords';
 import { decodePiece } from '../../state/board/encode';
 import type { BoardStateSnapshot, Color, Square } from '../../state/board/types';
 import { DirtyLayer } from '../invalidation/types';
+import { cburnettPieceUrl } from './assets';
+import { createSvgGroup, isLightSquare, SVG_NS } from './helpers';
+import { renderAnimationFrame } from './SvgAnimationFrameRenderer';
 import type {
 	AnimationRenderContext,
 	BoardRenderContext,
 	DragRenderContext,
 	RenderConfig,
-	Renderer
-} from '../types';
-import { DEFAULT_RENDER_CONFIG } from '../types';
-import { cburnettPieceUrl } from './assets';
-import { isLightSquare } from './geometry';
-import { SVG_NS } from './helpers';
-import { renderAnimationFrame } from './SvgAnimationFrameRenderer';
-
-type SvgRendererOptions = {
-	/** Optional renderer visual configuration. */
-	config?: PartialDeep<RenderConfig>;
-};
+	Renderer,
+	SvgRendererOptions
+} from './types';
+import { DEFAULT_RENDER_CONFIG } from './types';
 
 type PieceNodeRecord = {
 	root: SVGImageElement; // per-piece <image> — locally bounded piece node
@@ -72,7 +66,7 @@ export class SvgRenderer implements Renderer {
 	private activeSessionGroup: SVGGElement | null = null;
 
 	// Track last suppression state to detect changes
-	private lastSuppressedPieceIds: ReadonlySet<number> = new Set();
+	private lastSuppressedSquares: ReadonlySet<Square> = new Set();
 
 	constructor(opts: SvgRendererOptions = {}) {
 		this.config = {
@@ -168,13 +162,13 @@ export class SvgRenderer implements Renderer {
 		this.svgRoot = null!;
 		this.pieceNodes.clear();
 		this.activeSessionGroup = null;
-		this.lastSuppressedPieceIds = new Set();
+		this.lastSuppressedSquares = new Set();
 	}
 
 	renderBoard(ctx: BoardRenderContext): void {
 		if (!this.svgRoot) throw new Error('SvgRenderer: Cannot render before mount()');
 
-		const { board, geometry, invalidation, suppressedPieceIds } = ctx;
+		const { board, geometry, invalidation, suppressedSquares } = ctx;
 
 		// Ensure size/viewBox matches geometry
 		const size = String(geometry.boardSize);
@@ -183,7 +177,7 @@ export class SvgRenderer implements Renderer {
 		this.svgRoot.setAttribute('viewBox', `0 0 ${size} ${size}`);
 
 		// Detect if suppression changed since last render
-		const suppressionChanged = !setsEqual(suppressedPieceIds, this.lastSuppressedPieceIds);
+		const suppressionChanged = !setsEqual(suppressedSquares, this.lastSuppressedSquares);
 
 		// Decide what to update on layers bitmask
 		const layers = invalidation.layers;
@@ -195,9 +189,9 @@ export class SvgRenderer implements Renderer {
 		// - normal invalidation requests it
 		// - OR suppression changed
 		if (layers & DirtyLayer.Pieces || suppressionChanged) {
-			this.drawPieces(board, geometry, suppressedPieceIds);
+			this.drawPieces(board, geometry, suppressedSquares);
 			// Snapshot current suppression for next comparison
-			this.lastSuppressedPieceIds = new Set(suppressedPieceIds);
+			this.lastSuppressedSquares = new Set(suppressedSquares);
 		}
 	}
 

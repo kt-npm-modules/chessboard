@@ -1,16 +1,38 @@
 import { createBoardState } from './board/factory';
 import { createChangeState } from './change/factory';
 import { createInteractionState } from './interaction/factory';
-import type { BoardRuntimeStateInitOptions, BoardRuntimeStateStateInternal } from './types';
+import type {
+	BoardRuntimeState,
+	BoardRuntimeStateInitOptions,
+	BoardRuntimeStateInternal
+} from './types';
 import { createViewState } from './view/factory';
+import { createVisualsState } from './visuals/factory';
 
-export function createBoardRuntimeStateStateInternal(
+function createBoardRuntimeStateInternal(
 	options: BoardRuntimeStateInitOptions = {}
-): BoardRuntimeStateStateInternal {
+): BoardRuntimeStateInternal {
 	return {
 		board: createBoardState(options.board),
 		view: createViewState(options.view),
 		interaction: createInteractionState(),
-		change: createChangeState()
+		change: createChangeState(),
+		visuals: createVisualsState()
+	};
+}
+
+export function createBoardRuntimeState(
+	options: BoardRuntimeStateInitOptions = {}
+): BoardRuntimeState {
+	const internalState = createBoardRuntimeStateInternal(options);
+	return {
+		...internalState,
+		getSnapshot: () => ({
+			board: internalState.board.getSnapshot(),
+			view: internalState.view.getSnapshot(),
+			interaction: internalState.interaction.getSnapshot(),
+			change: internalState.change.getSnapshot(),
+			visuals: internalState.visuals.getSnapshot()
+		})
 	};
 }
