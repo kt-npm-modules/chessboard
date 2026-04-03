@@ -44,7 +44,7 @@ BoardRuntime
   - invalidation = DONE
     - invalidationState
       - invalidatioStateExtension
-  - renderer
+  - renderer = DONE
   - scheduler
   - render operations
     - scheduleIfAnythingDirty

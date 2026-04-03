@@ -2,7 +2,7 @@ import { createSvgRendererAnimation } from './animation/factory';
 import { createSvgRendererBoard } from './board/factory';
 import { createSvgRendererDrag } from './drag/factory';
 import { rendererAllocateExtensionSlots, rendererRemoveExtensionSlots } from './extensions';
-import { createSvgElement, createSvgGroup } from './helpers';
+import { createSvgElement, createSvgGroup, updateElementAttributes } from './helpers';
 import { rendererMount, rendererUnmount } from './lifecycle';
 import {
 	SvgRenderer,
@@ -73,6 +73,12 @@ export function createSvgRenderer(doc: Document, options: SvgRendererOptions = {
 			rendererUnmount(internalState);
 		},
 		renderBoard(context) {
+			const size = String(context.geometry.boardSize);
+			updateElementAttributes(internalState.svgRoot, {
+				width: size,
+				height: size,
+				viewBox: `0 0 ${size} ${size}`
+			});
 			internalState.board.render({
 				previous: internalState.lastBoardFrame,
 				current: context,

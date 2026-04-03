@@ -15,14 +15,17 @@ import {
 } from '../helpers';
 import { collectChangedPieceSquares } from './helpers';
 import {
-	_BoardRenderContext,
 	RendererBoardFrameSnapshot,
+	RendererBoardRenderContext,
 	RendererConfigColorPair,
 	SvgRendererBoardInternals,
 	SvgRendererBoardPieceNode
 } from './types';
 
-export function renderBoard(state: SvgRendererBoardInternals, context: _BoardRenderContext): void {
+export function renderBoard(
+	state: SvgRendererBoardInternals,
+	context: RendererBoardRenderContext
+): void {
 	const { previous, current, invalidation } = context;
 	const prevSuppressedSquares = previous?.suppressedSquares ?? new Set<Square>();
 	const currSuppressedSquares = current.suppressedSquares;

@@ -52,7 +52,7 @@ export interface RendererBoardFrameSnapshot {
 	readonly geometry: RenderGeometry;
 }
 
-export interface _BoardRenderContext {
+export interface RendererBoardRenderContext {
 	readonly previous: RendererBoardFrameSnapshot | null;
 	readonly current: RendererBoardFrameSnapshot;
 	readonly invalidation: InvalidationStateSnapshot;
@@ -65,5 +65,5 @@ export interface SvgRendererBoard {
 	readonly pieces: SVGGElement;
 	readonly defsRoot: SVGGElement;
 	readonly pieceNodes: ReadonlyMap<Square, SvgRendererBoardPieceNode>;
-	render(context: _BoardRenderContext): void;
+	render(context: RendererBoardRenderContext): void;
 }
