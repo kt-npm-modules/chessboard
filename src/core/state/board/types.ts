@@ -85,6 +85,7 @@ export type Square =
 	| 61
 	| 62
 	| 63;
+export const SQUARE_COUNT = 64;
 // Algebraic squares like 'e4'. Use template literal types to avoid listing all 64.
 export type FileChar = 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h';
 export type RankChar = '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8';

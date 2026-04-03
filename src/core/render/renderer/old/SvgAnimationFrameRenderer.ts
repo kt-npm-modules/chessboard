@@ -1,13 +1,13 @@
-import type { AnimationSession } from '../../animation/types';
-import type { RenderGeometry } from '../../layout/geometry/types';
-import { decodePiece } from '../../state/board/encode';
-import type { BoardStateSnapshot } from '../../state/board/types';
-import { cburnettPieceUrl } from './assets';
-import { createSvgGroup, SVG_NS } from './helpers';
+import type { AnimationSessionSnapshot } from '../../../animation/types';
+import type { RenderGeometry } from '../../../layout/geometry/types';
+import { decodePiece } from '../../../state/board/encode';
+import type { BoardStateSnapshot } from '../../../state/board/types';
+import { cburnettPieceUrl } from '../assets';
+import { createSvgGroup, SVG_NS } from '../helpers';
 
 export function renderAnimationFrame(
 	sessionGroup: SVGGElement,
-	session: AnimationSession,
+	session: AnimationSessionSnapshot,
 	board: BoardStateSnapshot,
 	geometry: RenderGeometry,
 	now: number

@@ -1,11 +1,12 @@
-import { setsEqual } from '../../../helpers/util';
-import { squareOf, toAlgebraic } from '../../state/board/coords';
-import { decodePiece } from '../../state/board/encode';
-import type { BoardStateSnapshot, Color, Square } from '../../state/board/types';
-import { DirtyLayer } from '../invalidation/types';
-import { cburnettPieceUrl } from './assets';
-import { createSvgGroup, isLightSquare, SVG_NS } from './helpers';
-import { renderAnimationFrame } from './SvgAnimationFrameRenderer';
+import { merge } from 'lodash-es';
+import { setsEqual } from '../../../../helpers/util';
+import { RenderGeometry } from '../../../layout/geometry/types';
+import { squareOf, toAlgebraic } from '../../../state/board/coords';
+import { decodePiece } from '../../../state/board/encode';
+import type { BoardStateSnapshot, Color, Square } from '../../../state/board/types';
+import { DirtyLayer } from '../../invalidation/types';
+import { cburnettPieceUrl } from '../assets';
+import { createSvgGroup, isLightSquare, SVG_NS } from '../helpers';
 import type {
 	AnimationRenderContext,
 	BoardRenderContext,
@@ -13,8 +14,9 @@ import type {
 	RenderConfig,
 	Renderer,
 	SvgRendererOptions
-} from './types';
-import { DEFAULT_RENDER_CONFIG } from './types';
+} from '../types';
+import { DEFAULT_RENDER_CONFIG } from '../types';
+import { renderAnimationFrame } from './SvgAnimationFrameRenderer';
 
 type PieceNodeRecord = {
 	root: SVGImageElement; // per-piece <image> — locally bounded piece node
@@ -65,18 +67,8 @@ export class SvgRenderer implements Renderer {
 	// Session group for active animation (owned by renderer, passed to frame renderer)
 	private activeSessionGroup: SVGGElement | null = null;
 
-	// Track last suppression state to detect changes
-	private lastSuppressedSquares: ReadonlySet<Square> = new Set();
-
 	constructor(opts: SvgRendererOptions = {}) {
-		this.config = {
-			...DEFAULT_RENDER_CONFIG,
-			...(opts.config ?? {}),
-			coords: {
-				...DEFAULT_RENDER_CONFIG.coords!,
-				...(opts.config?.coords ?? {})
-			}
-		};
+		this.config = merge({}, DEFAULT_RENDER_CONFIG, opts.config);
 	}
 
 	mount(container: HTMLElement): void {
@@ -168,16 +160,19 @@ export class SvgRenderer implements Renderer {
 	renderBoard(ctx: BoardRenderContext): void {
 		if (!this.svgRoot) throw new Error('SvgRenderer: Cannot render before mount()');
 
-		const { board, geometry, invalidation, suppressedSquares } = ctx;
+		const { previous, current, invalidation, geometry } = ctx;
+		const board = current.board;
+
+		// Detect if suppression changed since last render
+		const suppressedSquares = current.suppressedSquares;
+		const lastSuppressedSquares = previous?.suppressedSquares ?? new Set();
+		const suppressionChanged = !setsEqual(suppressedSquares, lastSuppressedSquares);
 
 		// Ensure size/viewBox matches geometry
 		const size = String(geometry.boardSize);
 		this.svgRoot.setAttribute('width', size);
 		this.svgRoot.setAttribute('height', size);
 		this.svgRoot.setAttribute('viewBox', `0 0 ${size} ${size}`);
-
-		// Detect if suppression changed since last render
-		const suppressionChanged = !setsEqual(suppressedSquares, this.lastSuppressedSquares);
 
 		// Decide what to update on layers bitmask
 		const layers = invalidation.layers;
@@ -190,8 +185,6 @@ export class SvgRenderer implements Renderer {
 		// - OR suppression changed
 		if (layers & DirtyLayer.Pieces || suppressionChanged) {
 			this.drawPieces(board, geometry, suppressedSquares);
-			// Snapshot current suppression for next comparison
-			this.lastSuppressedSquares = new Set(suppressedSquares);
 		}
 	}
 
@@ -227,12 +220,12 @@ export class SvgRenderer implements Renderer {
 	renderDrag(ctx: DragRenderContext): void {
 		if (!this.svgRoot) throw new Error('SvgRenderer: Cannot render before mount()');
 
-		const { interaction, transientVisuals, board, geometry } = ctx;
+		const { interaction, visuals, board, geometry } = ctx;
 
 		this.clear(this.dragRoot);
 
 		// Only render if both drag session and drag pointer are available
-		if (interaction.dragSession === null || transientVisuals.dragPointer === null) return;
+		if (interaction.dragSession === null || visuals.dragPointer === null) return;
 
 		const sq = interaction.dragSession.fromSquare;
 		const piece = decodePiece(board.pieces[sq]);
@@ -240,8 +233,8 @@ export class SvgRenderer implements Renderer {
 
 		const pieceUrl = cburnettPieceUrl(piece.color, piece.role);
 		const squareSize = geometry.squareSize;
-		const x = transientVisuals.dragPointer.x - squareSize / 2;
-		const y = transientVisuals.dragPointer.y - squareSize / 2;
+		const x = visuals.dragPointer.x - squareSize / 2;
+		const y = visuals.dragPointer.y - squareSize / 2;
 
 		const img = document.createElementNS(SVG_NS, 'image');
 		img.setAttribute('x', x.toString());
@@ -343,22 +336,19 @@ export class SvgRenderer implements Renderer {
 	private drawPieces(
 		board: BoardStateSnapshot,
 		g: RenderGeometry,
-		suppressedPieceIds: ReadonlySet<number>
+		suppressedSquares: ReadonlySet<Square>
 	) {
 		const layer = this.piecesRoot;
 		this.clear(layer);
 
-		const seenIds = new Set<number>();
+		const seenSquares = new Set<Square>();
 
 		for (let sq = 0 as Square; sq < 64; sq++) {
 			const code = board.pieces[sq];
 			const piece = decodePiece(code);
 			if (!piece) continue;
 
-			const id = board.ids[sq] ?? -1;
-			if (id <= 0) continue;
-
-			seenIds.add(id);
+			seenSquares.add(sq);
 
 			const r = g.squareRect(sq);
 			const pieceUrl = cburnettPieceUrl(piece.color, piece.role);

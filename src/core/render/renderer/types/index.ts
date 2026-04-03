@@ -1,13 +1,13 @@
 import { PartialDeep } from 'type-fest';
-import type { AnimationSessionSnapshot } from '../../animation/types';
-import { ExtensionSlotName } from '../../extensions/types';
-import type { RenderGeometry } from '../../layout/geometry/types';
-import type { InvalidationStateSnapshot } from '../../render/invalidation/types';
-import type { BoardStateSnapshot, Square } from '../../state/board/types';
-import type { InteractionStateSnapshot } from '../../state/interaction/types';
-import type { VisualsStateSnapshot } from '../../state/visuals/types';
+import type { AnimationSessionSnapshot } from '../../../animation/types';
+import { ExtensionSlotName } from '../../../extensions/types';
+import type { RenderGeometry } from '../../../layout/geometry/types';
+import type { BoardStateSnapshot, Square } from '../../../state/board/types';
+import type { InteractionStateSnapshot } from '../../../state/interaction/types';
+import type { VisualsStateSnapshot } from '../../../state/visuals/types';
+import type { InvalidationStateSnapshot } from '../../invalidation/types';
 
-export interface RenderConfig {
+export interface RendererBoardConfig {
 	light: string; // board light square color
 	dark: string; // board dark square color
 	coords?: {
@@ -19,7 +19,7 @@ export interface RenderConfig {
 /**
  * Default renderer configuration.
  */
-export const DEFAULT_RENDER_CONFIG: RenderConfig = {
+export const DEFAULT_RENDERER_BOARD_CONFIG: RendererBoardConfig = {
 	light: '#d7dde5',
 	dark: '#707a8a',
 	coords: {
@@ -29,7 +29,7 @@ export const DEFAULT_RENDER_CONFIG: RenderConfig = {
 };
 
 export interface SvgRendererOptions {
-	config?: PartialDeep<RenderConfig>;
+	config?: PartialDeep<RendererBoardConfig>;
 }
 
 //
@@ -44,8 +44,8 @@ export interface RenderingStateSnapshot {
 export interface BoardRenderContext {
 	readonly previous: RenderingStateSnapshot | null;
 	readonly current: RenderingStateSnapshot;
-	readonly geometry: RenderGeometry;
 	readonly invalidation: InvalidationStateSnapshot;
+	readonly geometry: RenderGeometry;
 }
 
 export interface AnimationRenderContext {
