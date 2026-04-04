@@ -20,7 +20,7 @@ export type InvalidationStateBaseSnapshot = ReadonlyDeep<InvalidationStateBaseIn
 export interface InvalidationStateBase {
 	markLayer(layerMask: DirtyLayerMask, mutationSession: InvalidationMutationSession): boolean;
 	getLayers(): DirtyLayerMask;
-	clear(mutationSession: InvalidationMutationSession): boolean;
+	clearAfterRender(): boolean;
 	getSnapshot(): InvalidationStateBaseSnapshot;
 }
 

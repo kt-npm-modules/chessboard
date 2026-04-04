@@ -10,7 +10,7 @@ import {
 
 function createSvgRendererBoardInternals(
 	doc: Document,
-	options: SvgRendererBoardInitOptions = {}
+	options: SvgRendererBoardInitOptions
 ): SvgRendererBoardInternals {
 	return {
 		config: merge({}, DEFAULT_RENDERER_BOARD_CONFIG, options),
@@ -24,7 +24,7 @@ function createSvgRendererBoardInternals(
 
 export function createSvgRendererBoard(
 	doc: Document,
-	options: SvgRendererBoardInitOptions = {}
+	options: SvgRendererBoardInitOptions
 ): SvgRendererBoard {
 	const internalState = createSvgRendererBoardInternals(doc, options);
 

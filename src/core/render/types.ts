@@ -1,20 +1,25 @@
+import { LayoutSnapshot } from '../layout/types';
 import { BoardRuntimeStateSnapshot } from '../state/types';
-import { InvalidationState, InvalidationStateSnapshot } from './invalidation/types';
-import { RenderingStateSnapshot } from './renderer/types';
+import { InvalidationState } from './invalidation/types';
+import { SvgRenderer, SvgRendererInitOptions } from './renderer/types';
+import { Scheduler } from './scheduler/types';
 
 export interface RenderInternal {
-	lastRendered: RenderingStateSnapshot | null;
 	readonly invalidation: InvalidationState;
+	readonly svgRenderer: SvgRenderer;
+	readonly scheduler: Scheduler;
 }
 
-export interface RenderSnapshot {
-	readonly lastRendered: RenderingStateSnapshot | null;
-	readonly invalidation: InvalidationStateSnapshot;
+export interface RenderInitOptions {
+	svgRenderer: SvgRendererInitOptions;
+}
+
+export interface RenderRequest {
+	state: BoardRuntimeStateSnapshot;
+	layout: LayoutSnapshot;
 }
 
 export interface Render {
 	readonly invalidation: InvalidationState;
-	readonly lastRendered: RenderingStateSnapshot | null;
-	requestRender(runtimeState: BoardRuntimeStateSnapshot): void;
-	getSnapshot(): RenderSnapshot;
+	requestRender(request: RenderRequest): void;
 }

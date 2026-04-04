@@ -32,11 +32,8 @@ function createInvalidationStateBase(
 				invalidationMarkLayer(internalState, layerMask)
 			);
 		},
-		clear(mutationSession) {
-			return mutationSession.addMutation(
-				'invalidation.state.cleared',
-				invalidationClear(internalState)
-			);
+		clearAfterRender() {
+			return invalidationClear(internalState);
 		}
 	};
 }

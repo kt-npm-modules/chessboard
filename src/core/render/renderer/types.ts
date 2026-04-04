@@ -1,12 +1,15 @@
-import { PartialDeep } from 'type-fest';
 import { ExtensionSlotName, ExtensionSlotSvgRoots } from '../../extensions/types';
 import { InvalidationStateSnapshot } from '../invalidation/types';
 import { AnimationRenderContext, SvgRendererAnimation } from './animation/types';
-import { RendererBoardConfig, RendererBoardFrameSnapshot, SvgRendererBoard } from './board/types';
+import {
+	RendererBoardFrameSnapshot,
+	SvgRendererBoard,
+	SvgRendererBoardInitOptions
+} from './board/types';
 import { DragRenderContext, SvgRendererDrag } from './drag/types';
 
-export interface SvgRendererOptions {
-	board?: PartialDeep<RendererBoardConfig>;
+export interface SvgRendererInitOptions {
+	board?: SvgRendererBoardInitOptions;
 }
 
 export type ExtensionAllocatedSlots = Partial<Record<ExtensionSlotName, SVGGElement>>;
@@ -31,6 +34,7 @@ export interface BoardRenderContext extends RendererBoardFrameSnapshot {
 }
 
 export interface SvgRenderer {
+	readonly container: HTMLElement | null;
 	mount(container: HTMLElement): void;
 	unmount(): void;
 	renderBoard(context: BoardRenderContext): void;

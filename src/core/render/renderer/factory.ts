@@ -6,14 +6,14 @@ import { createSvgElement, createSvgGroup, updateElementAttributes } from './hel
 import { rendererMount, rendererUnmount } from './lifecycle';
 import {
 	SvgRenderer,
+	SvgRendererInitOptions,
 	SvgRendererInternals,
-	SvgRendererInternalsExtensions,
-	SvgRendererOptions
+	SvgRendererInternalsExtensions
 } from './types';
 
 function createSvgRendererInternals(
 	doc: Document,
-	options: SvgRendererOptions
+	options: SvgRendererInitOptions
 ): SvgRendererInternals {
 	const svgRoot = createSvgElement(doc, 'svg', {
 		'data-chessboard-id': 'renderer-root'
@@ -29,7 +29,7 @@ function createSvgRendererInternals(
 		defs: createSvgGroup(doc, { 'data-chessboard-id': 'extension-defs' }),
 		allocatedSlots: new Map()
 	};
-	const board = createSvgRendererBoard(doc, options.board);
+	const board = createSvgRendererBoard(doc, options.board ?? {});
 	const drag = createSvgRendererDrag(doc);
 	const animation = createSvgRendererAnimation(doc);
 
@@ -62,9 +62,12 @@ function createSvgRendererInternals(
 	};
 }
 
-export function createSvgRenderer(doc: Document, options: SvgRendererOptions = {}): SvgRenderer {
+export function createSvgRenderer(doc: Document, options: SvgRendererInitOptions): SvgRenderer {
 	const internalState = createSvgRendererInternals(doc, options);
 	return {
+		get container() {
+			return internalState.container;
+		},
 		mount(container) {
 			// Mount ourselves into the container
 			rendererMount(internalState, container);
