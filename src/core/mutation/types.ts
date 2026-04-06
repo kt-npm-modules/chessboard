@@ -1,7 +1,7 @@
 export interface ReadonlyMutationSession<PayloadByCause extends Record<string, unknown>> {
 	hasChanges(): boolean;
 
-	hasMutation<Cause extends keyof PayloadByCause>(cause: Cause): boolean;
+	hasMutation<Cause extends keyof PayloadByCause>(cause: Cause | Iterable<Cause> | string): boolean;
 
 	getPayloads<Cause extends keyof PayloadByCause>(
 		cause: Cause

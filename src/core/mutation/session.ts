@@ -8,7 +8,28 @@ export function createReadonlyMutationSession<PayloadByCause extends Record<stri
 			return payloads.size > 0;
 		},
 		hasMutation(cause) {
-			return payloads.has(cause);
+			// check if it's an iterable of causes
+			if (Symbol.iterator in Object(cause)) {
+				for (const c of cause as Iterable<keyof PayloadByCause>) {
+					if (payloads.has(c)) {
+						return true;
+					}
+				}
+				return false;
+			}
+
+			if (payloads.has(cause as keyof PayloadByCause)) {
+				return true;
+			}
+
+			// So now check if it is a string prefix
+			for (const key of payloads.keys()) {
+				if (key.toString().startsWith(cause as string)) {
+					return true;
+				}
+			}
+
+			return false;
 		},
 		getPayloads(cause) {
 			return payloads.get(cause) as PayloadByCause[typeof cause][] | undefined;
@@ -46,8 +67,10 @@ export function createMutationSession<
 	type MutationPayloads = PayloadByCause[MutationCause];
 
 	const payloads = new Map<MutationCause, MutationPayloads[] | undefined>();
+	const readonlySnapshot = createReadonlyMutationSession(payloads);
 
 	return {
+		...readonlySnapshot,
 		addMutation(cause, changed, ...payload): boolean {
 			if (!changed) {
 				return false;
@@ -70,18 +93,6 @@ export function createMutationSession<
 			// No existing entry for this cause, add new one
 			payloads.set(cause, hasPayload ? [payload[0] as MutationPayloads] : undefined);
 			return true;
-		},
-
-		hasChanges() {
-			return payloads.size > 0;
-		},
-
-		hasMutation(cause) {
-			return payloads.has(cause);
-		},
-
-		getPayloads(cause) {
-			return payloads.get(cause) as PayloadByCause[typeof cause][] | undefined;
 		},
 
 		clear() {
