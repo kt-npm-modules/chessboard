@@ -1,6 +1,7 @@
 import { ReadonlyDeep } from 'type-fest';
 import { RenderGeometry } from '../layout/geometry/types';
 import { LayoutSnapshot } from '../layout/types';
+import { BoardRuntimeReadonlyMutationSession } from '../runtime/mutation/types';
 import { BoardRuntimeStateSnapshot } from '../state/types';
 
 export type ExtensionSlotName =
@@ -92,18 +93,22 @@ export interface ExtensionAnimationController {
 	): readonly ExtensionAnimationSession[];
 }
 
+export interface ExtensionOnUpdateStateContextCommonBase {
+	readonly previous: RenderStateFrameSnapshot | null;
+	readonly mutation: BoardRuntimeReadonlyMutationSession;
+	readonly current: RenderStateFrameSnapshot;
+}
+
+export interface ExtensionOnUpdateStateContextBase extends ExtensionOnUpdateStateContextCommonBase {
+	readonly invalidation: ExtensionInvalidationState;
+	readonly animation: ExtensionAnimationController;
+}
+
 type ExtensionRenderPreviousDataField<TExtensionData> = [TExtensionData] extends [void]
 	? unknown
 	: {
 			readonly previousData: ReadonlyDeep<TExtensionData>;
 		};
-
-export interface ExtensionOnUpdateStateContextBase {
-	readonly previous: RenderStateFrameSnapshot | null;
-	readonly current: RenderStateFrameSnapshot;
-	readonly invalidation: ExtensionInvalidationState;
-	readonly animation: ExtensionAnimationController;
-}
 
 export type ExtensionOnUpdateStateContext<TExtensionData> = ExtensionOnUpdateStateContextBase &
 	ExtensionRenderPreviousDataField<TExtensionData>;
@@ -116,9 +121,13 @@ type ExtensionRenderCurrentDataField<TExtensionData> = [TExtensionData] extends 
 			readonly currentData: ReadonlyDeep<TExtensionData>;
 		};
 
-export interface ExtensionRenderStateContextBase {
+export interface ExtensionRenderStateContextCommonBase {
 	readonly previous: RenderStateFrameSnapshot | null;
+	readonly mutation: BoardRuntimeReadonlyMutationSession;
 	readonly current: RenderStateFrameSnapshot;
+}
+
+export interface ExtensionRenderStateContextBase extends ExtensionRenderStateContextCommonBase {
 	readonly invalidation: ExtensionReadonlyInvalidationState;
 	readonly animation: ExtensionAnimationController;
 }
@@ -225,7 +234,7 @@ export type ExtensionsPublicMap<TExtensions extends readonly AnyExtensionDefinit
 
 export interface ExtensionStoredData {
 	previous: unknown | null;
-	current: unknown;
+	current: unknown | null;
 }
 
 export interface ExtensionRecordInternalRender {
@@ -252,11 +261,19 @@ export interface ExtensionSystemInitOptions {
 export interface ExtensionSystemInternal {
 	draftExtensions: Map<string, ExtensionRecordInternalDraft> | null;
 	readonly extensions: Map<string, ExtensionRecordInternal>;
+	extensionsFinalized: boolean;
+	previouslyRendered: RenderStateFrameSnapshot | null;
+}
+
+export interface ExtensionSystemUpdateRequest {
+	readonly state: RenderStateFrameSnapshot;
+	readonly mutation: BoardRuntimeReadonlyMutationSession;
 }
 
 export interface ExtensionSystem {
 	readonly draftExtensions: ReadonlyMap<string, ExtensionRecordInternalDraft> | null;
 	readonly extensions: ReadonlyMap<string, ExtensionRecordInternal>;
-	updateState(state: RenderStateFrameSnapshot): void;
+	updateState(request: ExtensionSystemUpdateRequest): void;
 	setFinalExtensions(extensions: ReadonlyMap<string, ExtensionRecordInternal>): void;
+	setPreviouslyRendered(snapshot: RenderStateFrameSnapshot): void;
 }

@@ -1,43 +1,18 @@
-import type { ReadonlyDeep } from 'type-fest';
-import type { BoardStateSnapshot, Move } from '../../state/board/types';
-import type { InteractionStateSnapshot } from '../../state/interaction/types';
-import type { MutationPipe, MutationPipeline, MutationSession } from '../../state/mutation/types';
-import type { ViewStateSnapshot } from '../../state/view/types';
-import { BoardRuntimeStateInternal } from '../types';
-import type { BoardRuntimeMutationCause } from './mutation';
+import { MutationSession, ReadonlyMutationSession } from '../../mutation/types';
+import { BoardStateMutationPayloadByCause } from '../../state/board/mutation';
+import { ChangeStateMutationPayloadByCause } from '../../state/change/mutation';
+import { InteractionStateMutationPayloadByCause } from '../../state/interaction/mutation';
+import { ViewStateMutationPayloadByCause } from '../../state/view/mutation';
+import { VisualsStateMutationPayloadByCause } from '../../state/visuals/mutation';
 
-export interface BoardRuntimeStateChangeContextPreviousStateChange {
-	readonly lastMove: ReadonlyDeep<Move> | null;
-}
+export type BoardRuntimeStateMutationPayloadByCause = BoardStateMutationPayloadByCause &
+	ChangeStateMutationPayloadByCause &
+	InteractionStateMutationPayloadByCause &
+	ViewStateMutationPayloadByCause &
+	VisualsStateMutationPayloadByCause;
 
-export interface BoardRuntimeStateChangeContextPreviousState {
-	readonly board: BoardStateSnapshot;
-	readonly view: ViewStateSnapshot;
-	readonly interaction: InteractionStateSnapshot;
-	readonly change: BoardRuntimeStateChangeContextPreviousStateChange;
-}
+export type BoardRuntimeStateMutationCause = keyof BoardRuntimeStateMutationPayloadByCause;
 
-export interface BoardRuntimeStateChangeContextPreviousLayout {
-	readonly layoutVersion: number;
-}
-
-export interface BoardRuntimeStateChangeContextPrevious {
-	readonly state: BoardRuntimeStateChangeContextPreviousState;
-	// readonly layout: BoardRuntimeStateChangeContextPreviousLayout;
-}
-
-export interface BoardRuntimeStateChangeContext {
-	readonly previousContext: BoardRuntimeStateChangeContextPrevious | null;
-	readonly currentContext: BoardRuntimeStateInternal;
-}
-
-export type BoardRuntimeMuitationPipe = MutationPipe<
-	BoardRuntimeStateChangeContext,
-	BoardRuntimeMutationCause
->;
-export type BoardRuntimeMutationPipeline = MutationPipeline<
-	BoardRuntimeStateInternal,
-	BoardRuntimeMutationCause
->;
-
-export type BoardRuntimeMutationSession = MutationSession<BoardRuntimeMutationCause>;
+export type BoardRuntimeMutationSession = MutationSession<BoardRuntimeStateMutationPayloadByCause>;
+export type BoardRuntimeReadonlyMutationSession =
+	ReadonlyMutationSession<BoardRuntimeStateMutationPayloadByCause>;
