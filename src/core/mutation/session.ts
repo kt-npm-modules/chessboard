@@ -1,10 +1,50 @@
-import type { MutationSession } from './types';
+import type { MutationSession, ReadonlyMutationSession } from './types';
+
+export function createReadonlyMutationSession<PayloadByCause extends Record<string, unknown>>(
+	payloads: ReadonlyMap<keyof PayloadByCause, PayloadByCause[keyof PayloadByCause][] | undefined>
+): ReadonlyMutationSession<PayloadByCause> {
+	return {
+		hasChanges() {
+			return payloads.size > 0;
+		},
+		hasMutation(cause) {
+			return payloads.has(cause);
+		},
+		getPayloads(cause) {
+			return payloads.get(cause) as PayloadByCause[typeof cause][] | undefined;
+		}
+	};
+}
+
+export function mergeReadonlySessions<PayloadByCause extends Record<string, unknown>>(
+	...sessions: ReadonlyMutationSession<PayloadByCause>[]
+): ReadonlyMutationSession<PayloadByCause> {
+	type MutationCause = keyof PayloadByCause;
+	type MutationPayloads = PayloadByCause[MutationCause];
+
+	const mergedPayloads = new Map<MutationCause, MutationPayloads[] | undefined>();
+
+	for (const session of sessions) {
+		for (const cause of Object.keys(session) as MutationCause[]) {
+			const payloads = session.getPayloads(cause);
+			if (payloads) {
+				if (!mergedPayloads.has(cause)) {
+					mergedPayloads.set(cause, []);
+				}
+				mergedPayloads.get(cause)!.push(...payloads);
+			}
+		}
+	}
+
+	return createReadonlyMutationSession(mergedPayloads);
+}
 
 export function createMutationSession<
 	PayloadByCause extends Record<string, unknown>
 >(): MutationSession<PayloadByCause> {
 	type MutationCause = keyof PayloadByCause;
 	type MutationPayloads = PayloadByCause[MutationCause];
+
 	const payloads = new Map<MutationCause, MutationPayloads[] | undefined>();
 
 	return {
@@ -49,11 +89,7 @@ export function createMutationSession<
 		},
 
 		getSnapshot() {
-			return {
-				hasChanges: this.hasChanges,
-				hasMutation: this.hasMutation,
-				getPayloads: this.getPayloads
-			};
+			return createReadonlyMutationSession(payloads);
 		}
 	};
 }
