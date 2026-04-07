@@ -11,7 +11,7 @@ export function extensionSystemUpdateState(
 ): ExtensionOnUpdateStateContextCommonBase {
 	// Prepare base context
 	const contextCommonBase: ExtensionOnUpdateStateContextCommonBase = {
-		previous: state.previouslyRendered,
+		previous: state.lastRenderedState?.current ?? null,
 		mutation: request.mutation,
 		current: request.state
 	};
@@ -27,5 +27,6 @@ export function extensionSystemUpdateState(
 		extension.data.previous = extension.data.current;
 		extension.data.current = newData;
 	}
+	state.lastRenderedState = contextCommonBase;
 	return contextCommonBase;
 }

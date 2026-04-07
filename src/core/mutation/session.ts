@@ -7,25 +7,18 @@ export function createReadonlyMutationSession<PayloadByCause extends Record<stri
 		hasChanges() {
 			return payloads.size > 0;
 		},
-		hasMutation(cause) {
-			// check if it's an iterable of causes
-			if (Symbol.iterator in Object(cause)) {
-				for (const c of cause as Iterable<keyof PayloadByCause>) {
-					if (payloads.has(c)) {
+		hasMutation(causesOrPrefix) {
+			if (typeof causesOrPrefix !== 'string') {
+				for (const cause of causesOrPrefix) {
+					if (payloads.has(cause)) {
 						return true;
 					}
 				}
-				return false;
-			}
-
-			if (payloads.has(cause as keyof PayloadByCause)) {
-				return true;
-			}
-
-			// So now check if it is a string prefix
-			for (const key of payloads.keys()) {
-				if (key.toString().startsWith(cause as string)) {
-					return true;
+			} else {
+				for (const key of payloads.keys()) {
+					if (key.toString().startsWith(causesOrPrefix)) {
+						return true;
+					}
 				}
 			}
 
@@ -33,26 +26,47 @@ export function createReadonlyMutationSession<PayloadByCause extends Record<stri
 		},
 		getPayloads(cause) {
 			return payloads.get(cause) as PayloadByCause[typeof cause][] | undefined;
+		},
+		getAll() {
+			return new Map(payloads);
 		}
 	};
 }
 
 export function mergeReadonlySessions<PayloadByCause extends Record<string, unknown>>(
+	causesOrPrefix?: Iterable<keyof PayloadByCause> | string,
 	...sessions: ReadonlyMutationSession<PayloadByCause>[]
 ): ReadonlyMutationSession<PayloadByCause> {
 	type MutationCause = keyof PayloadByCause;
 	type MutationPayloads = PayloadByCause[MutationCause];
 
 	const mergedPayloads = new Map<MutationCause, MutationPayloads[] | undefined>();
+	const causeSet =
+		Symbol.iterator in Object(causesOrPrefix)
+			? new Set(causesOrPrefix as Iterable<keyof PayloadByCause>)
+			: null;
+	const causePrefix = typeof causesOrPrefix === 'string' ? causesOrPrefix : null;
 
 	for (const session of sessions) {
-		for (const cause of Object.keys(session) as MutationCause[]) {
-			const payloads = session.getPayloads(cause);
+		for (const [cause, payloads] of session.getAll()) {
+			if (
+				(causeSet && !causeSet.has(cause)) ||
+				(causePrefix && !cause.toString().startsWith(causePrefix))
+			) {
+				continue; // skip this cause as it's not in the filter set or doesn't match the prefix
+			}
 			if (payloads) {
-				if (!mergedPayloads.has(cause)) {
-					mergedPayloads.set(cause, []);
+				const existingPayloads = mergedPayloads.get(cause);
+				if (existingPayloads) {
+					existingPayloads.push(...payloads);
+				} else {
+					mergedPayloads.set(cause, [...payloads]);
 				}
-				mergedPayloads.get(cause)!.push(...payloads);
+			} else {
+				// If any session has a cause with undefined payloads, we treat it as a change with no payload
+				if (!mergedPayloads.has(cause)) {
+					mergedPayloads.set(cause, undefined);
+				}
 			}
 		}
 	}

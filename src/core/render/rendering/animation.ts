@@ -1,10 +1,12 @@
 import { AnyExtensionRenderAnimationContext } from '../../extensions/types';
 import { RenderAnimationRequest, RenderInternal } from '../types';
+import { validateIsMounted } from './helpers';
 
 export function performAnimationPass(
 	state: RenderInternal,
 	request: RenderAnimationRequest | null
 ): RenderAnimationRequest | null {
+	validateIsMounted(state);
 	if (!request) {
 		throw new Error('RenderAnimation called without a valid render request');
 	}

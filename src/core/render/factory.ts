@@ -2,6 +2,7 @@ import { ExtensionRecordInternal } from '../extensions/types';
 import { mergeReadonlySessions } from '../mutation/session';
 import { createExtensionAnimationController } from './animation/factory';
 import { createExtensionInvalidationState } from './invalidation/factory';
+import { renderMount, renderUnmount } from './mount';
 import { performAnimationPass } from './rendering/animation';
 import { performRenderStatePass } from './rendering/state';
 import { performRenderVisualsPass } from './rendering/visuals';
@@ -38,6 +39,7 @@ function createRenderInternal(options: RenderInitOptionsInternal): RenderInterna
 	}
 
 	return {
+		container: null,
 		lastRenderedState: null,
 		svgRoots,
 		scheduler,
@@ -71,8 +73,11 @@ function performRender(state: RenderInternal, options: PerformRenderOptions) {
 
 	// Finally we run renderVisuals.
 	if (options.visualsRequest) {
-		const newCommonBaseContext = performRenderVisualsPass(state, options.visualsRequest);
-		state.callbacks.renderVisualsPassed(options.visualsRequest, newCommonBaseContext);
+		performRenderVisualsPass(state, options.visualsRequest);
+		if (!state.lastRenderedState) {
+			throw new Error('After renderVisuals, lastRenderedState context should be set');
+		}
+		state.callbacks.renderVisualsPassed(options.visualsRequest, state.lastRenderedState);
 	}
 }
 
@@ -112,7 +117,7 @@ export function createRender(options: RenderInitOptions): Render {
 			pendingStateRequest = {
 				...request,
 				mutation: pendingStateRequest?.mutation
-					? mergeReadonlySessions(pendingStateRequest.mutation, request.mutation)
+					? mergeReadonlySessions(undefined, pendingStateRequest.mutation, request.mutation)
 					: request.mutation
 			};
 			internalState.scheduler.schedule();
@@ -125,10 +130,19 @@ export function createRender(options: RenderInitOptions): Render {
 			pendingVisualsRequest = {
 				...request,
 				mutation: pendingVisualsRequest?.mutation
-					? mergeReadonlySessions(pendingVisualsRequest.mutation, request.mutation)
+					? mergeReadonlySessions(undefined, pendingVisualsRequest.mutation, request.mutation)
 					: request.mutation
 			};
 			internalState.scheduler.schedule();
+		},
+		mount(element) {
+			renderMount(internalState, element);
+		},
+		unmount() {
+			renderUnmount(internalState);
+		},
+		get isMounted() {
+			return internalState.container !== null;
 		}
 	};
 }

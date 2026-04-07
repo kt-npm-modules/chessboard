@@ -5,11 +5,13 @@ import {
 import { mergeReadonlySessions } from '../../mutation/session';
 import { BoardRuntimeStateSnapshot } from '../../state/types';
 import { RenderInternal, RenderVisualsRequest } from '../types';
+import { validateIsMounted } from './helpers';
 
 export function performRenderVisualsPass(
 	state: RenderInternal,
 	request: RenderVisualsRequest
-): ExtensionRenderStateContextCommonBase {
+): void {
+	validateIsMounted(state);
 	const contextCommonBase = state.lastRenderedState;
 	if (!contextCommonBase) {
 		throw new Error(
@@ -17,8 +19,10 @@ export function performRenderVisualsPass(
 		);
 	}
 	const mutation = state.lastRenderedState?.mutation
-		? mergeReadonlySessions(state.lastRenderedState.mutation, request.mutation)
+		? mergeReadonlySessions('visuals.state.', state.lastRenderedState.mutation, request.mutation)
 		: request.mutation;
+
+	// Just update state.lastRendered.current.state.visuals and the rest is the same
 	const newCurrentState: BoardRuntimeStateSnapshot = {
 		...contextCommonBase.current.state,
 		visuals: request.current
@@ -42,5 +46,5 @@ export function performRenderVisualsPass(
 		extensionRec.instance.renderVisuals?.(context);
 	}
 
-	return newContextCommonBase;
+	state.lastRenderedState = newContextCommonBase;
 }

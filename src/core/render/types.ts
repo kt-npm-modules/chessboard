@@ -34,6 +34,7 @@ export interface ExtensionAnimationControllerInternal {
 }
 
 export interface RenderInternal {
+	container: HTMLElement | null;
 	lastRenderedState: ExtensionRenderStateContextCommonBase | null;
 	readonly scheduler: Scheduler;
 	readonly svgRoots: SvgRoots;
@@ -80,4 +81,9 @@ export interface Render {
 	requestRenderState(request: RenderStateRequest): void;
 	requestRenderAnimation(request: RenderAnimationRequest): void;
 	requestRenderVisuals(request: RenderVisualsRequest): void;
+
+	// Lifecycle methods
+	mount(element: HTMLElement): void;
+	unmount(): void;
+	readonly isMounted: boolean;
 }

@@ -49,6 +49,9 @@ export function createExtensionSystem(options: ExtensionSystemInitOptions): Exte
 			return internalState.extensions;
 		},
 		updateState(request) {
+			if (!internalState.extensionsFinalized) {
+				throw new Error('Cannot update state before extensions have been finalized.');
+			}
 			extensionSystemUpdateState(internalState, request);
 		},
 		setFinalExtensions(extensions) {

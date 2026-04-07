@@ -261,6 +261,7 @@ export interface ExtensionAnimationControllerInternalSurface extends ExtensionAn
 		status?: ExtensionAnimationStatus | Iterable<ExtensionAnimationStatus>
 	): readonly ExtensionAnimationSessionInternalSurface[];
 	remove(sessionId: string | Iterable<string>): void;
+	clear(): void;
 }
 
 export interface ExtensionRecordInternalRender {

@@ -1,11 +1,15 @@
 export interface ReadonlyMutationSession<PayloadByCause extends Record<string, unknown>> {
 	hasChanges(): boolean;
 
-	hasMutation<Cause extends keyof PayloadByCause>(cause: Cause | Iterable<Cause> | string): boolean;
+	hasMutation<Cause extends keyof PayloadByCause>(
+		causesOrPrefix: Iterable<Cause> | string
+	): boolean;
 
 	getPayloads<Cause extends keyof PayloadByCause>(
 		cause: Cause
 	): PayloadByCause[Cause][] | undefined;
+
+	getAll(): ReadonlyMap<keyof PayloadByCause, PayloadByCause[keyof PayloadByCause][] | undefined>;
 }
 
 export interface MutationSession<

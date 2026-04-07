@@ -89,6 +89,9 @@ export function createExtensionAnimationController(): ExtensionAnimationControll
 					internalState.sessions.delete(id);
 				}
 			}
+		},
+		clear() {
+			internalState.sessions.clear();
 		}
 	};
 }
