@@ -19,27 +19,29 @@ const enum Base {
 
 const BLACK_SHIFT = 8;
 
-export function encodePiece(piece: Piece): number {
+export type PieceCode = number;
+
+export function encodePiece(piece: Piece): PieceCode {
 	const base = roleToBase(piece.role);
 	return piece.color === 'white' ? base : base + BLACK_SHIFT;
 }
 
-export function decodePiece(code: number): Piece | null {
+export function decodePiece(code: PieceCode): Piece | null {
 	if (code <= 0) return null;
 	const color: Color = code >= BLACK_SHIFT ? 'black' : 'white';
 	const base = color === 'black' ? code - BLACK_SHIFT : code;
 	return { color, role: baseToRole(base) };
 }
 
-export function isEmpty(code: number): boolean {
+export function isEmpty(code: PieceCode): boolean {
 	return code === Base.Empty;
 }
 
-export function isWhiteCode(code: number): boolean {
+export function isWhiteCode(code: PieceCode): boolean {
 	return code > 0 && code < BLACK_SHIFT;
 }
 
-export function isBlackCode(code: number): boolean {
+export function isBlackCode(code: PieceCode): boolean {
 	return code >= BLACK_SHIFT;
 }
 
@@ -63,7 +65,7 @@ function roleToBase(role: Role): Base {
 	}
 }
 
-function baseToRole(base: number): Role {
+function baseToRole(base: Base): Role {
 	switch (base) {
 		case Base.Pawn:
 			return 'pawn';

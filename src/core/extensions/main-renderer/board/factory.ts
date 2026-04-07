@@ -1,5 +1,4 @@
 import { merge } from 'es-toolkit/object';
-import { createSvgGroup } from '../helpers';
 import { renderBoard } from './render';
 import {
 	DEFAULT_RENDERER_BOARD_CONFIG,
@@ -13,7 +12,7 @@ function createSvgRendererBoardInternals(
 	options: SvgRendererBoardInitOptions
 ): SvgRendererBoardInternals {
 	return {
-		config: merge({}, DEFAULT_RENDERER_BOARD_CONFIG, options),
+		config: merge(DEFAULT_RENDERER_BOARD_CONFIG, options),
 		root: createSvgGroup(doc, { 'data-chessboard-id': 'renderer-board-root' }),
 		coords: createSvgGroup(doc, { 'data-chessboard-id': 'renderer-board-coords' }),
 		pieces: createSvgGroup(doc, { 'data-chessboard-id': 'renderer-board-pieces' }),

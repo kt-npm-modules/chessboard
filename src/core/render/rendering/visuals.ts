@@ -19,7 +19,7 @@ export function performRenderVisualsPass(
 		);
 	}
 	const mutation = state.lastRenderedState?.mutation
-		? mergeReadonlySessions('visuals.state.', state.lastRenderedState.mutation, request.mutation)
+		? mergeReadonlySessions([state.lastRenderedState.mutation, request.mutation], 'visuals.state.')
 		: request.mutation;
 
 	// Just update state.lastRendered.current.state.visuals and the rest is the same

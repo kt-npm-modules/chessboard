@@ -34,25 +34,22 @@ export function createReadonlyMutationSession<PayloadByCause extends Record<stri
 }
 
 export function mergeReadonlySessions<PayloadByCause extends Record<string, unknown>>(
-	causesOrPrefix?: Iterable<keyof PayloadByCause> | string,
-	...sessions: ReadonlyMutationSession<PayloadByCause>[]
+	sessions: ReadonlyMutationSession<PayloadByCause>[],
+	causesOrPrefix?: Iterable<keyof PayloadByCause> | string
 ): ReadonlyMutationSession<PayloadByCause> {
 	type MutationCause = keyof PayloadByCause;
 	type MutationPayloads = PayloadByCause[MutationCause];
 
 	const mergedPayloads = new Map<MutationCause, MutationPayloads[] | undefined>();
-	const causeSet =
-		Symbol.iterator in Object(causesOrPrefix)
-			? new Set(causesOrPrefix as Iterable<keyof PayloadByCause>)
-			: null;
+	const causeSet = typeof causesOrPrefix === 'string' ? null : new Set(causesOrPrefix);
 	const causePrefix = typeof causesOrPrefix === 'string' ? causesOrPrefix : null;
 
 	for (const session of sessions) {
 		for (const [cause, payloads] of session.getAll()) {
-			if (
-				(causeSet && !causeSet.has(cause)) ||
-				(causePrefix && !cause.toString().startsWith(causePrefix))
-			) {
+			const shouldInclude =
+				(!causeSet || causeSet.has(cause)) &&
+				(!causePrefix || cause.toString().startsWith(causePrefix));
+			if (!shouldInclude) {
 				continue; // skip this cause as it's not in the filter set or doesn't match the prefix
 			}
 			if (payloads) {

@@ -4,6 +4,7 @@ import { createExtensionAnimationController } from './animation/factory';
 import { createExtensionInvalidationState } from './invalidation/factory';
 import { renderMount, renderUnmount } from './mount';
 import { performAnimationPass } from './rendering/animation';
+import { validateIsMounted } from './rendering/helpers';
 import { performRenderStatePass } from './rendering/state';
 import { performRenderVisualsPass } from './rendering/visuals';
 import { createScheduler } from './scheduler/scheduler';
@@ -114,23 +115,26 @@ export function createRender(options: RenderInitOptions): Render {
 	return {
 		extensions: internalState.extensions,
 		requestRenderState(request) {
+			validateIsMounted(internalState);
 			pendingStateRequest = {
 				...request,
 				mutation: pendingStateRequest?.mutation
-					? mergeReadonlySessions(undefined, pendingStateRequest.mutation, request.mutation)
+					? mergeReadonlySessions([pendingStateRequest.mutation, request.mutation])
 					: request.mutation
 			};
 			internalState.scheduler.schedule();
 		},
 		requestRenderAnimation(request) {
+			validateIsMounted(internalState);
 			pendingAnimationRequest = request;
 			internalState.scheduler.schedule();
 		},
 		requestRenderVisuals(request) {
+			validateIsMounted(internalState);
 			pendingVisualsRequest = {
 				...request,
 				mutation: pendingVisualsRequest?.mutation
-					? mergeReadonlySessions(undefined, pendingVisualsRequest.mutation, request.mutation)
+					? mergeReadonlySessions([pendingVisualsRequest.mutation, request.mutation])
 					: request.mutation
 			};
 			internalState.scheduler.schedule();
@@ -140,6 +144,9 @@ export function createRender(options: RenderInitOptions): Render {
 		},
 		unmount() {
 			renderUnmount(internalState);
+			pendingStateRequest = null;
+			pendingAnimationRequest = null;
+			pendingVisualsRequest = null;
 		},
 		get isMounted() {
 			return internalState.container !== null;

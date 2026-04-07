@@ -46,7 +46,6 @@ export function performRenderStatePass(
 
 	// Check if we have any invalidation states
 	if (!checkNeedsRender(state)) {
-		console.debug('Render called but no invalidation detected, skipping render');
 		// Save the last rendered common base context
 		state.lastRenderedState = contextBase;
 		return; // no-op
