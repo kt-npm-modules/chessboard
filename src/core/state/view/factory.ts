@@ -21,7 +21,7 @@ export function createViewState(options: ViewStateInitOptions): ViewState {
 		setOrientation(orientation, mutationSession) {
 			const newOrient = normalizeColor(orientation);
 			return mutationSession.addMutation(
-				'view.state.setOrientation',
+				'state.view.setOrientation',
 				viewSetOrientation(internalState, newOrient)
 			);
 		},
@@ -30,7 +30,7 @@ export function createViewState(options: ViewStateInitOptions): ViewState {
 		},
 		setMovability(movability, mutationSession) {
 			return mutationSession.addMutation(
-				'view.state.setMovability',
+				'state.view.setMovability',
 				viewSetMovability(internalState, movability)
 			);
 		},

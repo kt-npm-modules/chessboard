@@ -3,7 +3,7 @@ import type { MutationSession } from '../../mutation/types';
 import { BoardPoint } from './types';
 
 export type VisualsStateMutationPayloadByCause = {
-	'visuals.state.setDragPointer': ReadonlyDeep<BoardPoint> | null;
+	'state.visuals.setDragPointer': ReadonlyDeep<BoardPoint> | null;
 };
 
 export type VisualsStateMutationCause = keyof VisualsStateMutationPayloadByCause;

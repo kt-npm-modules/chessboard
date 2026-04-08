@@ -1,7 +1,7 @@
 import type { MutationSession } from '../../mutation/types';
 
 export type ChangeStateMutationPayloadByCause = {
-	'change.state.setLastMove': undefined;
+	'state.change.setLastMove': undefined;
 };
 
 export type ChangeStateMutationCause = keyof ChangeStateMutationPayloadByCause;

@@ -70,16 +70,16 @@ export function createBoardState(options: BoardStateInitOptions): BoardState {
 	return {
 		setPosition(input, mutationSession) {
 			return mutationSession.addMutation(
-				'board.state.setPosition',
+				'state.board.setPosition',
 				boardSetPosition(internalState, input)
 			);
 		},
 		setTurn(turn, mutationSession) {
-			return mutationSession.addMutation('board.state.setTurn', boardSetTurn(internalState, turn));
+			return mutationSession.addMutation('state.board.setTurn', boardSetTurn(internalState, turn));
 		},
 		move(move, mutationSession) {
 			const result = boardMove(internalState, move);
-			mutationSession.addMutation('board.state.move', true, result);
+			mutationSession.addMutation('state.board.move', true, result);
 			return result;
 		},
 		getPieceCodeAt(square) {

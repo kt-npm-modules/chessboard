@@ -16,7 +16,7 @@ export function createChangeState(): ChangeState {
 		},
 		setLastMove(move, mutationSession) {
 			return mutationSession.addMutation(
-				'change.state.setLastMove',
+				'state.change.setLastMove',
 				changeStateSetLastMove(internalState, move)
 			);
 		},

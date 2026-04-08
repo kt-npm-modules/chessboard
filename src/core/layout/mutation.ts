@@ -1,7 +1,7 @@
 import type { MutationSession } from '../mutation/types';
 
 export type LayoutMutationPayloadByCause = {
-	'board.layout.refreshGeometry': undefined;
+	'layout.refreshGeometry': undefined;
 };
 
 export type LayoutMutationCause = keyof LayoutMutationPayloadByCause;

@@ -19,7 +19,7 @@ export function createVisualsState(): VisualsState {
 		setDragPointer(point, mutationSession) {
 			const newPointer = point ? cloneDeep(point) : null;
 			return mutationSession.addMutation(
-				'visuals.state.setDragPointer',
+				'state.visuals.setDragPointer',
 				visualsSetDragPointer(internalState, newPointer),
 				newPointer
 			);

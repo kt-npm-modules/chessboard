@@ -1,13 +1,13 @@
 import type { MutationSession } from '../../mutation/types';
 
 export type InteractionStateMutationPayloadByCause = {
-	'interaction.state.setSelectedSquare': undefined;
-	'interaction.state.setDestinations': undefined;
-	'interaction.state.setDragSession': undefined;
-	'interaction.state.setCurrentTarget': undefined;
-	'interaction.state.setReleaseTargetingActive': undefined;
-	'interaction.state.clear': undefined;
-	'interaction.state.clearActive': undefined;
+	'state.interaction.setSelectedSquare': undefined;
+	'state.interaction.setDestinations': undefined;
+	'state.interaction.setDragSession': undefined;
+	'state.interaction.setCurrentTarget': undefined;
+	'state.interaction.setReleaseTargetingActive': undefined;
+	'state.interaction.clear': undefined;
+	'state.interaction.clearActive': undefined;
 };
 
 export type InteractionStateMutationCause = keyof InteractionStateMutationPayloadByCause;

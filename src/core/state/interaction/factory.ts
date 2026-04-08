@@ -31,7 +31,7 @@ export function createInteractionState(): InteractionState {
 		},
 		setSelectedSquare(sq, mutationSession) {
 			return mutationSession.addMutation(
-				'interaction.state.setSelectedSquare',
+				'state.interaction.setSelectedSquare',
 				interactionSetSelectedSquare(internalState, sq)
 			);
 		},
@@ -40,7 +40,7 @@ export function createInteractionState(): InteractionState {
 		},
 		setDestinations(dests, mutationSession) {
 			return mutationSession.addMutation(
-				'interaction.state.setDestinations',
+				'state.interaction.setDestinations',
 				interactionSetDestinations(internalState, dests)
 			);
 		},
@@ -49,7 +49,7 @@ export function createInteractionState(): InteractionState {
 		},
 		setDragSession(session, mutationSession) {
 			return mutationSession.addMutation(
-				'interaction.state.setDragSession',
+				'state.interaction.setDragSession',
 				interactionSetDragSession(internalState, session)
 			);
 		},
@@ -59,7 +59,7 @@ export function createInteractionState(): InteractionState {
 		},
 		setCurrentTarget(sq, mutationSession) {
 			return mutationSession.addMutation(
-				'interaction.state.setCurrentTarget',
+				'state.interaction.setCurrentTarget',
 				interactionSetCurrentTarget(internalState, sq)
 			);
 		},
@@ -68,19 +68,19 @@ export function createInteractionState(): InteractionState {
 		},
 		setReleaseTargetingActive(active, mutationSession) {
 			return mutationSession.addMutation(
-				'interaction.state.setReleaseTargetingActive',
+				'state.interaction.setReleaseTargetingActive',
 				interactionSetReleaseTargetingActive(internalState, active)
 			);
 		},
 		clear(mutationSession) {
 			return mutationSession.addMutation(
-				'interaction.state.clear',
+				'state.interaction.clear',
 				interactionClear(internalState)
 			);
 		},
 		clearActive(mutationSession) {
 			return mutationSession.addMutation(
-				'interaction.state.clearActive',
+				'state.interaction.clearActive',
 				interactionClearActive(internalState)
 			);
 		},

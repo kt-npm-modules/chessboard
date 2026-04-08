@@ -8,7 +8,7 @@ export function rendererBoardOnUpdate(
 ): void {
 	// Check if geometry changed
 	const mutationSession = context.mutation;
-	if (!mutationSession.hasMutation(['board.layout.refreshGeometry'])) {
+	if (!mutationSession.hasMutation(['layout.refreshGeometry'])) {
 		return; // no-op
 	}
 	if (!isCurrentUpdateContextBaseMounted(context) || !context.current.layout.geometry) {

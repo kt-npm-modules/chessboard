@@ -48,7 +48,7 @@ export function createBoardRuntime(options: BoardRuntimeInitOptions): BoardRunti
 	};
 	const internalState = createBoardRuntimeInternal(optionsInternal);
 	// Initial creation, so we mark board position as mutated to trigger mutation pipeline
-	internalState.mutation.addMutation('board.state.setPosition', true);
+	internalState.mutation.addMutation('state.board.setPosition', true);
 
 	// We will have two different interfaces here
 	// One is returned, one is for controller - with different methods

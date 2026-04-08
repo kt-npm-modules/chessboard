@@ -25,13 +25,13 @@ export function createLayout(): Layout {
 		},
 		refreshGeometry(container, orientation, mutationSession) {
 			return mutationSession.addMutation(
-				'board.layout.refreshGeometry',
+				'layout.refreshGeometry',
 				layoutRefreshGeometry(internalState, container, orientation)
 			);
 		},
 		refreshGeometryForOrientation(orientation, mutationSession) {
 			return mutationSession.addMutation(
-				'board.layout.refreshGeometry',
+				'layout.refreshGeometry',
 				layoutRefreshGeometryForOrientation(internalState, orientation)
 			);
 		},

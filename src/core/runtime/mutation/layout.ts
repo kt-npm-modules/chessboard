@@ -3,7 +3,7 @@ import { BoardRuntimeMutationPipe } from './pipeline';
 
 export const layoutRefreshGeometryPipe: BoardRuntimeMutationPipe = (context, mutationSession) => {
 	const { current } = context;
-	if (mutationSession.hasMutation(['view.state.setOrientation'])) {
+	if (mutationSession.hasMutation(['state.view.setOrientation'])) {
 		current.layout.refreshGeometryForOrientation(
 			current.state.view.getOrientation(),
 			mutationSession as LayoutMutationSession
