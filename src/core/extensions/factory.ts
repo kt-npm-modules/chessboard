@@ -35,7 +35,7 @@ function createExtensionSystemInternal(
 		extensions.set(extensionDef.id, record);
 	}
 	return {
-		extensions: new Map(), // Will be populated after initialization of the render system is complete
+		extensions,
 		lastUpdated: null
 	};
 }
