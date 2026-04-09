@@ -42,8 +42,10 @@ function createSvgRendererInstance(options: SvgRendererInitOptions): SvgRenderer
 			internalState.slotRoots = env.slotRoots;
 		},
 		onStateUpdate(context) {
+			let result: unknown = null;
 			const boardResult = internalState.board.onUpdate(context);
-			return boardResult;
+			result = boardResult;
+			return result;
 		},
 		renderState(context) {
 			validateIsMounted(internalState);
