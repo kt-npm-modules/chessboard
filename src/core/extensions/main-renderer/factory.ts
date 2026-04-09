@@ -45,6 +45,8 @@ function createSvgRendererInstance(options: SvgRendererInitOptions): SvgRenderer
 			let result: unknown = null;
 			const boardResult = internalState.board.onUpdate(context);
 			result = boardResult;
+			// const coordinatesResult = internalState.coordinates.onUpdate(context);
+			// result = toMerged(result, coordinatesResult);
 			return result;
 		},
 		renderState(context) {
