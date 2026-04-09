@@ -1,6 +1,7 @@
 import { toMerged } from 'es-toolkit';
 import { createMainRendererBoard } from './board/factory';
 import { createMainRendererCoordinates } from './coordinates/factory';
+import { createMainRendererPieces } from './pieces/factory';
 import { DEFAULT_MAIN_RENDERER_CONFIG, MainRendererConfig } from './types/config';
 import {
 	EXTENSION_ID,
@@ -25,7 +26,8 @@ export function createMainRenderer(options: MainRendererInitOptions = {}): MainR
 function createMainRendererInternalState(config: MainRendererConfig): MainRendererInstanceInternal {
 	const board = createMainRendererBoard(config.colors.board);
 	const coordinates = createMainRendererCoordinates(config.colors.coordinates);
-	return { board, coordinates, slotRoots: null };
+	const pieces = createMainRendererPieces(config.pieceUrls);
+	return { board, coordinates, pieces, slotRoots: null };
 }
 
 function validateIsMounted(
@@ -46,18 +48,18 @@ function createMainRendererInstance(config: MainRendererConfig): MainRendererIns
 		},
 		onStateUpdate(context) {
 			internalState.board.onUpdate(context);
-			// result = boardResult;
-			// internalState.coordinates.onUpdate(context); // For now the coordinates are updated together with the board
-			// result = toMerged(result, coordinatesResult);
-			// return result;
+			internalState.pieces.onUpdate(context);
 		},
 		renderState(context) {
 			validateIsMounted(internalState);
 			internalState.board.render(context, internalState.slotRoots.board);
 			internalState.coordinates.render(context, internalState.slotRoots.coordinates);
+			internalState.pieces.render(context, internalState.slotRoots.pieces);
 		},
 		unmount() {
-			// For now nothing to do, everything will be just deleted by the chessboard runtime
+			// internalState.board.unmount();
+			// internalState.coordinates.unmount();
+			internalState.pieces.unmount();
 		}
 	};
 }
