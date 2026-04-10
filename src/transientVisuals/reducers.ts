@@ -1,8 +1,8 @@
 import { cloneDeep } from 'es-toolkit/object';
-import { BoardPointSnapshot, VisualsStateInternal } from './types';
+import { BoardPointSnapshot, TransientVisualsInternal } from './types';
 
-export function visualsSetDragPointer(
-	state: VisualsStateInternal,
+export function transientVisualsSetDragPointer(
+	state: TransientVisualsInternal,
 	point: BoardPointSnapshot | null
 ): boolean {
 	const changed = [state.dragPointer?.x !== point?.x, state.dragPointer?.y !== point?.y].some(

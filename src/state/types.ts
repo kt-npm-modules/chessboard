@@ -2,7 +2,6 @@ import type { BoardState, BoardStateInitOptions, BoardStateSnapshot } from '../s
 import type { InteractionState, InteractionStateSnapshot } from '../state/interaction/types';
 import type { ViewState, ViewStateInitOptions, ViewStateSnapshot } from '../state/view/types';
 import type { ChangeState, ChangeStateSnapshot } from './change/types';
-import type { VisualsState, VisualsStateSnapshot } from './visuals/types';
 
 export interface BoardRuntimeStateInternal {
 	// TODO: rename to BoardRuntime to Runtime
@@ -10,7 +9,6 @@ export interface BoardRuntimeStateInternal {
 	readonly view: ViewState;
 	readonly interaction: InteractionState;
 	readonly change: ChangeState;
-	readonly visuals: VisualsState;
 }
 
 export interface BoardRuntimeStateSnapshot {
@@ -18,7 +16,6 @@ export interface BoardRuntimeStateSnapshot {
 	readonly view: ViewStateSnapshot;
 	readonly interaction: InteractionStateSnapshot;
 	readonly change: ChangeStateSnapshot;
-	readonly visuals: VisualsStateSnapshot;
 }
 
 export interface BoardRuntimeStateInitOptions {
@@ -31,6 +28,5 @@ export interface BoardRuntimeState {
 	readonly view: ViewState;
 	readonly interaction: InteractionState;
 	readonly change: ChangeState;
-	readonly visuals: VisualsState;
 	getSnapshot(): BoardRuntimeStateSnapshot;
 }

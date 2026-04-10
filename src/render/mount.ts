@@ -1,8 +1,8 @@
 import { ExtensionSlotName, ExtensionSlotSvgRoots } from '../extensions/types';
 import { validateIsMounted, validateIsNotMounted } from './rendering/helpers';
-import { RenderInternal } from './types';
+import { RenderSystemInternal } from './types';
 
-export function renderMount(state: RenderInternal, element: HTMLElement): void {
+export function renderMount(state: RenderSystemInternal, element: HTMLElement): void {
 	validateIsNotMounted(state);
 	state.container = element;
 	// mount our svg root to the container
@@ -16,7 +16,7 @@ export function renderMount(state: RenderInternal, element: HTMLElement): void {
 	}
 }
 
-export function renderUnmount(state: RenderInternal): void {
+export function renderUnmount(state: RenderSystemInternal): void {
 	validateIsMounted(state);
 	for (const extensionRec of state.extensions.values()) {
 		extensionRec.extension.instance.unmount();

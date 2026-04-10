@@ -7,8 +7,8 @@ export const extensionSystemUpdatePipe: BoardRuntimeMutationPipe = (context, mut
 	});
 	if (hasMutation) {
 		const stateSnapshot = current.state.getSnapshot();
-		current.extensions.onUpdate({
-			state: current.render.isMounted
+		current.extensionSystem.onUpdate({
+			state: current.renderSystem.isMounted
 				? {
 						isMounted: true,
 						state: stateSnapshot,

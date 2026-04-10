@@ -2,22 +2,18 @@ import {
 	AnyExtensionDefinition,
 	BoardRuntimeExtensionSurface,
 	BoardRuntimeExtensionSurfaceSnapshot,
-	ExtensionCreateInstanceOptions,
-	ExtensionSystem
+	ExtensionCreateInstanceOptions
 } from '../extensions/types';
-import { Layout } from '../layout/types';
-import { Render } from '../render/types';
-import { BoardRuntimeState, BoardRuntimeStateInitOptions } from '../state/types';
-import { BoardRuntimeMutationPipeline } from './mutation/pipeline';
+import { BoardRuntimeStateInitOptions } from '../state/types';
+import {
+	BoardRuntimeMutationPipeline,
+	BoardRuntimeMutationPipelineContext
+} from './mutation/pipeline';
 
 export type BoardRuntimeStatus = 'constructing' | 'unmounted' | 'mounted' | 'destroyed';
 
-export interface BoardRuntimeInternal {
-	readonly state: BoardRuntimeState;
-	readonly layout: Layout;
+export interface BoardRuntimeInternal extends BoardRuntimeMutationPipelineContext {
 	readonly mutation: BoardRuntimeMutationPipeline;
-	readonly render: Render;
-	readonly extensions: ExtensionSystem;
 	resizeObserver: ResizeObserver | null;
 }
 

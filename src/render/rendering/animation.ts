@@ -1,14 +1,14 @@
 import { ExtensionRenderAnimationContext } from '../../extensions/types';
-import { RenderInternal } from '../types';
+import { RenderSystemInternal } from '../types';
 import { validateIsMounted } from './helpers';
 
-export function performAnimationPass(state: RenderInternal): boolean {
+export function performAnimationPass(state: RenderSystemInternal): boolean {
 	validateIsMounted(state);
 	let requestNextRenderAnimation = false;
 	const currentFrame = state.currentFrame;
 	if (!currentFrame) {
 		throw new Error(
-			'RenderAnimation called but no previous render state found. RenderState must be called before RenderAnimation.'
+			'renderAnimation() called but no previous render state found. render() must be called before renderAnimation().'
 		);
 	}
 	for (const extensionRec of state.extensions.values()) {

@@ -7,8 +7,8 @@ export const requestRenderPipe: BoardRuntimeMutationPipe = (context, mutationSes
 		prefixes: ['state.', 'layout.']
 	});
 	if (!hasMutation) return;
-	const currentFrame = current.extensions.currentFrame;
+	const currentFrame = current.extensionSystem.currentFrame;
 	if (!currentFrame) return;
 	if (!isFrameRenderable(currentFrame)) return;
-	current.render.requestRenderState(currentFrame);
+	current.renderSystem.requestRender(currentFrame);
 };

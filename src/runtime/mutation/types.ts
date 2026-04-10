@@ -4,13 +4,13 @@ import { BoardStateMutationPayloadByCause } from '../../state/board/mutation';
 import { ChangeStateMutationPayloadByCause } from '../../state/change/mutation';
 import { InteractionStateMutationPayloadByCause } from '../../state/interaction/mutation';
 import { ViewStateMutationPayloadByCause } from '../../state/view/mutation';
-import { VisualsStateMutationPayloadByCause } from '../../state/visuals/mutation';
+import { TransientVisualsMutationPayloadByCause } from '../../transientVisuals/mutation';
 
 export type BoardRuntimeMutationPayloadByCause = BoardStateMutationPayloadByCause &
 	ChangeStateMutationPayloadByCause &
 	InteractionStateMutationPayloadByCause &
 	ViewStateMutationPayloadByCause &
-	VisualsStateMutationPayloadByCause &
+	TransientVisualsMutationPayloadByCause &
 	LayoutMutationPayloadByCause & {
 		'runtime.interaction.dropTo': undefined;
 		'runtime.interaction.releaseTo': undefined;

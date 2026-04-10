@@ -5,7 +5,7 @@ import {
 	ExtensionSystemExtensionRecord,
 	RenderFrameSnapshot
 } from '../extensions/types';
-import { VisualsStateSnapshot } from '../state/visuals/types';
+import { TransientVisualsSnapshot } from '../transientVisuals/types';
 import { Scheduler } from './scheduler/types';
 
 export interface SvgRoots extends ExtensionSlotSvgRoots<typeof ALL_EXTENSION_SLOTS> {
@@ -23,30 +23,30 @@ export interface RenderExtensionRecord {
 	readonly render: RenderExtensionRecordRender;
 }
 
-export interface RenderInternal {
+export interface RenderSystemInternal {
 	container: HTMLElement | null;
 	currentFrame: RenderFrameSnapshot | null;
-	currentTransientVisuals: VisualsStateSnapshot | null;
+	currentTransientVisuals: TransientVisualsSnapshot | null;
 	readonly scheduler: Scheduler;
 	readonly svgRoots: SvgRoots;
 	// readonly animator: Animator;
 	readonly extensions: Map<string, RenderExtensionRecord>;
 }
 
-export interface RenderInitOptions {
+export interface RenderSystemInitOptions {
 	doc: Document;
 	extensions: ReadonlyMap<string, ExtensionSystemExtensionRecord>;
 }
 
-export interface RenderInitOptionsInternal extends RenderInitOptions {
+export interface RenderSystemInitOptionsInternal extends RenderSystemInitOptions {
 	performRender: () => void;
 }
 
-export interface Render {
+export interface RenderSystem {
 	readonly extensions: ReadonlyMap<string, RenderExtensionRecord>;
-	requestRenderState(request: RenderFrameSnapshot): void;
+	requestRender(request?: RenderFrameSnapshot): void;
 	requestRenderAnimation(): void;
-	requestRenderVisuals(request: VisualsStateSnapshot): void;
+	requestRenderVisuals(request?: TransientVisualsSnapshot): void;
 
 	// Lifecycle methods
 	mount(element: HTMLElement): void;

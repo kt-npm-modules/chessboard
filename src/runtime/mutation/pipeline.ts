@@ -1,15 +1,17 @@
 import { ExtensionSystem } from '../../extensions/types';
 import { Layout, LayoutSnapshot } from '../../layout/types';
 import { MutationPipe, MutationPipeline } from '../../mutation/types';
-import { Render } from '../../render/types';
+import { RenderSystem } from '../../render/types';
 import { BoardRuntimeState, BoardRuntimeStateSnapshot } from '../../state/types';
+import { TransientVisuals, TransientVisualsSnapshot } from '../../transientVisuals/types';
 import { BoardRuntimeMutationPayloadByCause } from './types';
 
 export interface BoardRuntimeMutationPipelineContext {
 	readonly state: BoardRuntimeState;
 	readonly layout: Layout;
-	readonly render: Render;
-	readonly extensions: ExtensionSystem;
+	readonly transientVisuals: TransientVisuals;
+	readonly renderSystem: RenderSystem;
+	readonly extensionSystem: ExtensionSystem;
 }
 
 export type BoardRuntimeMutationPipeline = MutationPipeline<
@@ -20,6 +22,7 @@ export type BoardRuntimeMutationPipeline = MutationPipeline<
 export interface BoardRuntimeMutationPipeContextPrevious {
 	readonly state: BoardRuntimeStateSnapshot;
 	readonly layout: LayoutSnapshot;
+	readonly transientVisuals: TransientVisualsSnapshot;
 }
 
 export interface BoardRuntimeMutationPipeContext {

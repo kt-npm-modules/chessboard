@@ -1,9 +1,9 @@
 import { ExtensionRenderContext, RenderFrameSnapshot } from '../../extensions/types';
 import { updateElementAttributes } from '../svg/helpers';
-import { RenderInternal } from '../types';
+import { RenderSystemInternal } from '../types';
 import { validateIsMounted } from './helpers';
 
-export function checkNeedsRender(state: RenderInternal): boolean {
+export function checkNeedsRender(state: RenderSystemInternal): boolean {
 	for (const extensionRec of state.extensions.values()) {
 		if (extensionRec.extension.invalidation.dirtyLayers !== 0) {
 			return true;
@@ -12,16 +12,16 @@ export function checkNeedsRender(state: RenderInternal): boolean {
 	return false;
 }
 
-export function performRenderStatePass(
-	state: RenderInternal,
+export function performRenderPass(
+	state: RenderSystemInternal,
 	request: RenderFrameSnapshot | null
 ): void {
 	validateIsMounted(state);
 	if (!request) {
-		throw new Error('Render called without a valid render request');
+		throw new Error('render() called without a valid render request');
 	}
 	if (!request.layout.geometry) {
-		throw new Error('Render called without a valid layout geometry');
+		throw new Error('render() called without a valid layout geometry');
 	}
 
 	const currentSize = request.layout.geometry.boardSize;

@@ -1,15 +1,15 @@
-import { Render } from '../render/types';
+import { RenderSystem } from '../render/types';
 import { boardRuntimeRefreshGeometry } from './layout';
 import { BoardRuntimeInternal } from './types';
 
 export function boardRuntimeIsMounted(state: BoardRuntimeInternal): boolean {
-	return state.render.isMounted;
+	return state.renderSystem.isMounted;
 }
 
 export function boardRuntimeValidateIsMounted(
 	state: BoardRuntimeInternal
 ): asserts state is BoardRuntimeInternal & {
-	render: { container: NonNullable<Render['container']> };
+	renderSystem: { container: NonNullable<RenderSystem['container']> };
 } {
 	if (!boardRuntimeIsMounted(state)) {
 		throw new Error(
@@ -28,7 +28,7 @@ export function boardRuntimeValidateIsNotMounted(state: BoardRuntimeInternal): v
 
 export function boardRuntimeMount(state: BoardRuntimeInternal, container: HTMLElement): void {
 	boardRuntimeValidateIsNotMounted(state);
-	state.render.mount(container);
+	state.renderSystem.mount(container);
 	state.resizeObserver = new ResizeObserver(() => {
 		boardRuntimeRefreshGeometry(state);
 	});
@@ -41,11 +41,11 @@ export function boardRuntimeUnmount(state: BoardRuntimeInternal): void {
 		state.resizeObserver.disconnect();
 		state.resizeObserver = null;
 	}
-	state.render.unmount();
-	state.extensions.onUnmount();
+	state.renderSystem.unmount();
+	state.extensionSystem.onUnmount();
 }
 
 export function boardRuntimeDestroy(state: BoardRuntimeInternal): void {
 	boardRuntimeUnmount(state);
-	state.extensions.onDestroy();
+	state.extensionSystem.onDestroy();
 }

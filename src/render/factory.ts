@@ -1,21 +1,21 @@
 import { RenderFrameSnapshot } from '../extensions/types';
-import { VisualsStateSnapshot } from '../state/visuals/types';
+import { TransientVisualsSnapshot } from '../transientVisuals/types';
 import { renderMount, renderUnmount } from './mount';
 import { performAnimationPass } from './rendering/animation';
 import { validateIsMounted } from './rendering/helpers';
-import { performRenderStatePass } from './rendering/state';
-import { performRenderVisualsPass } from './rendering/visuals';
+import { performRenderPass } from './rendering/state';
+import { performRenderTransientVisualsPass } from './rendering/visuals';
 import { createScheduler } from './scheduler/scheduler';
 import { allocateExtensionSlotRoots, createSvgRoots } from './svg/factory';
 import {
-	Render,
 	RenderExtensionRecord,
-	RenderInitOptions,
-	RenderInitOptionsInternal,
-	RenderInternal
+	RenderSystem,
+	RenderSystemInitOptions,
+	RenderSystemInitOptionsInternal,
+	RenderSystemInternal
 } from './types';
 
-function createRenderInternal(options: RenderInitOptionsInternal): RenderInternal {
+function createRenderInternal(options: RenderSystemInitOptionsInternal): RenderSystemInternal {
 	const svgRoots = createSvgRoots(options);
 
 	const scheduler = createScheduler({
@@ -52,13 +52,13 @@ interface PerformRenderOptions {
 	stateRequest: RenderFrameSnapshot | null;
 	animationRequest: true | null;
 	requestNextRenderAnimation: () => void;
-	visualsRequest: VisualsStateSnapshot | null;
+	visualsRequest: TransientVisualsSnapshot | null;
 }
 
-function performRender(state: RenderInternal, options: PerformRenderOptions) {
-	// First we check and run renderState,
+function performRender(state: RenderSystemInternal, options: PerformRenderOptions) {
+	// First we check and run renderPass,
 	if (options.stateRequest) {
-		performRenderStatePass(state, options.stateRequest);
+		performRenderPass(state, options.stateRequest);
 	}
 
 	// Then we check and run renderAnimation,
@@ -71,14 +71,14 @@ function performRender(state: RenderInternal, options: PerformRenderOptions) {
 
 	// Finally we run renderVisuals.
 	if (options.visualsRequest) {
-		performRenderVisualsPass(state, options.visualsRequest);
+		performRenderTransientVisualsPass(state, options.visualsRequest);
 	}
 }
 
-export function createRender(options: RenderInitOptions): Render {
+export function createRender(options: RenderSystemInitOptions): RenderSystem {
 	let pendingStateRequest: RenderFrameSnapshot | null = null;
 	let pendingAnimationRequest: true | null = null;
-	let pendingVisualsRequest: VisualsStateSnapshot | null = null;
+	let pendingVisualsRequest: TransientVisualsSnapshot | null = null;
 
 	function performRenderClosure() {
 		const stateRequest = pendingStateRequest;
@@ -107,11 +107,9 @@ export function createRender(options: RenderInitOptions): Render {
 
 	return {
 		extensions: internalState.extensions,
-		requestRenderState(request) {
+		requestRender(request) {
 			validateIsMounted(internalState);
-			pendingStateRequest = {
-				...request
-			};
+			pendingStateRequest = request ?? internalState.currentFrame;
 			internalState.scheduler.schedule();
 		},
 		requestRenderAnimation() {
@@ -121,9 +119,7 @@ export function createRender(options: RenderInitOptions): Render {
 		},
 		requestRenderVisuals(request) {
 			validateIsMounted(internalState);
-			pendingVisualsRequest = {
-				...request
-			};
+			pendingVisualsRequest = request ?? internalState.currentTransientVisuals;
 			internalState.scheduler.schedule();
 		},
 		mount(element) {

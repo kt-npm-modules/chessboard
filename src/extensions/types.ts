@@ -3,7 +3,7 @@ import { BoardRuntimeReadonlyMutationSession } from '../runtime/mutation/types';
 import { ColorInput, Move, MoveInput, PositionInput, SquareInput } from '../state/board/types';
 import { BoardRuntimeStateSnapshot } from '../state/types';
 import { Movability } from '../state/view/types';
-import { VisualsStateSnapshot } from '../state/visuals/types';
+import { TransientVisualsSnapshot } from '../transientVisuals/types';
 import {
 	ExtensionInvalidationState,
 	ExtensionReadonlyInvalidationState
@@ -134,8 +134,8 @@ export interface ExtensionRenderContext {
 export type ExtensionRenderAnimationContext = ExtensionRenderContext;
 
 export interface ExtensionRenderTransientVisualsContextVisuals {
-	previous: VisualsStateSnapshot | null;
-	current: VisualsStateSnapshot;
+	previous: TransientVisualsSnapshot | null;
+	current: TransientVisualsSnapshot;
 }
 export interface ExtensionRenderTransientVisualsContext extends ExtensionRenderContext {
 	readonly transientVisuals: ExtensionRenderTransientVisualsContextVisuals;
@@ -177,6 +177,7 @@ export type AnyExtensionInstance = ExtensionInstance<string, readonly ExtensionS
 export interface BoardRuntimeExtensionSurfaceSnapshot {
 	state: BoardRuntimeStateSnapshot;
 	layout: LayoutSnapshot;
+	transientVisuals: TransientVisualsSnapshot;
 }
 
 export interface BoardRuntimeExtensionSurfaceRenderRequest {

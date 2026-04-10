@@ -1,9 +1,9 @@
 import { Writable } from 'type-fest';
 import { ExtensionAllocatedSlotsInternal, ExtensionSlotName } from '../../extensions/types';
-import { RenderInitOptionsInternal, SvgRoots } from '../types';
+import { RenderSystemInitOptionsInternal, SvgRoots } from '../types';
 import { createSvgElement } from './helpers';
 
-export function createSvgRoots(options: RenderInitOptionsInternal): SvgRoots {
+export function createSvgRoots(options: RenderSystemInitOptionsInternal): SvgRoots {
 	const { doc } = options;
 	const svgRoot = createSvgElement(doc, 'svg', { 'data-chessboard-id': 'svg-root' });
 	const result: SvgRoots = {

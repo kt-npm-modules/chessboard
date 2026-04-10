@@ -8,7 +8,7 @@ export function boardRuntimeRefreshGeometry(state: BoardRuntimeInternal): void {
 	state.layout.refreshGeometry(
 		{
 			orientation: state.state.view.getOrientation(),
-			container: state.render.container
+			container: state.renderSystem.container
 		},
 		state.mutation.getSession() as LayoutMutationSession
 	);

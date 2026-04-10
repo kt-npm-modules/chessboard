@@ -7,7 +7,6 @@ import type {
 	BoardRuntimeStateInternal
 } from './types';
 import { createViewState } from './view/factory';
-import { createVisualsState } from './visuals/factory';
 
 function createBoardRuntimeStateInternal(
 	options: BoardRuntimeStateInitOptions
@@ -16,8 +15,7 @@ function createBoardRuntimeStateInternal(
 		board: createBoardState(options.board ?? {}),
 		view: createViewState(options.view ?? {}),
 		interaction: createInteractionState(),
-		change: createChangeState(),
-		visuals: createVisualsState()
+		change: createChangeState()
 	};
 }
 
@@ -29,8 +27,7 @@ export function createBoardRuntimeState(options: BoardRuntimeStateInitOptions): 
 			board: internalState.board.getSnapshot(),
 			view: internalState.view.getSnapshot(),
 			interaction: internalState.interaction.getSnapshot(),
-			change: internalState.change.getSnapshot(),
-			visuals: internalState.visuals.getSnapshot()
+			change: internalState.change.getSnapshot()
 		})
 	};
 }

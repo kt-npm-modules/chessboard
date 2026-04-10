@@ -6,6 +6,7 @@ import {
 import { createLayout } from '../layout/factory';
 import { createRender } from '../render/factory';
 import { createBoardRuntimeState } from '../state/factory';
+import { createTransientVisuals } from '../transientVisuals/factory';
 import { boardRuntimeDestroy, boardRuntimeMount, boardRuntimeUnmount } from './lifecycle';
 import { createBoardRuntimeMutationPipeline } from './mutation/factory';
 import type {
@@ -30,9 +31,10 @@ function createBoardRuntimeInternal(
 	return {
 		state: createBoardRuntimeState(options.state ?? {}),
 		layout: createLayout(),
+		transientVisuals: createTransientVisuals(),
 		mutation: createBoardRuntimeMutationPipeline(),
-		render: render,
-		extensions: extensionSystem,
+		renderSystem: render,
+		extensionSystem: extensionSystem,
 		resizeObserver: null
 	};
 }
@@ -46,7 +48,8 @@ function createBoardRuntimeExtensionSurface(
 			const state = getInternalState();
 			return {
 				state: state.state.getSnapshot(),
-				layout: state.layout.getSnapshot()
+				layout: state.layout.getSnapshot(),
+				transientVisuals: state.transientVisuals.getSnapshot()
 			};
 		}
 	};
