@@ -1,21 +1,21 @@
 import { createSvgElement, updateElementAttributes } from '../../../render/svg/helpers';
 import { decodePiece } from '../../../state/board/encode';
 import { Square } from '../../../state/board/types';
-import { ExtensionRenderStateContext } from '../../types';
+import { ExtensionRenderContext } from '../../types';
 import { getPieceShortKey, getPieceUrl } from '../helpers';
 import { DirtyLayer } from '../types/extension';
 import { MainRendererPiecesInternal } from './types';
 
 export function rendererPiecesRender(
 	state: MainRendererPiecesInternal,
-	context: ExtensionRenderStateContext,
+	context: ExtensionRenderContext,
 	layer: SVGElement
 ): void {
 	if ((context.invalidation.dirtyLayers & DirtyLayer.Pieces) === 0) {
 		return;
 	}
-	const geometry = context.current.layout.geometry;
-	const pieces = context.current.state.board.pieces;
+	const geometry = context.currentFrame.layout.geometry;
+	const pieces = context.currentFrame.state.board.pieces;
 
 	for (let sq = 0 as Square; sq < 64; sq++) {
 		const piece = decodePiece(pieces[sq]);

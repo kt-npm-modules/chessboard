@@ -1,4 +1,4 @@
-import { ExtensionOnUpdateStateContext, ExtensionRenderStateContext } from '../../types';
+import { ExtensionRenderContext, ExtensionUpdateContext } from '../../types';
 import { PieceUrls } from '../types/config';
 import { rendererPiecesRender } from './render';
 import { MainRendererPieces, MainRendererPiecesInternal } from './types';
@@ -10,10 +10,10 @@ export function createMainRendererPieces(config: PieceUrls): MainRendererPieces 
 		pieceNodes: new Map()
 	};
 	return {
-		onUpdate(context: ExtensionOnUpdateStateContext): void {
+		onUpdate(context: ExtensionUpdateContext): void {
 			rendererPiecesOnUpdate(state, context);
 		},
-		render(context: ExtensionRenderStateContext, layer: SVGElement): void {
+		render(context: ExtensionRenderContext, layer: SVGElement): void {
 			rendererPiecesRender(state, context, layer);
 		},
 		unmount(): void {

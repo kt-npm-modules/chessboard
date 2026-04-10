@@ -1,4 +1,5 @@
 import { createMutationPipeline } from '../../mutation/pipeline';
+import { extensionSystemUpdatePipe } from './extensionUpdate';
 import { layoutRefreshGeometryPipe } from './layout';
 import {
 	BoardRuntimeMutationPipe,
@@ -7,9 +8,8 @@ import {
 	BoardRuntimeMutationPipeline,
 	BoardRuntimeMutationPipelineContext
 } from './pipeline';
-import { requestRenderStatePipe } from './render';
+import { requestRenderPipe } from './requestRender';
 import { BoardRuntimeMutationPayloadByCause } from './types';
-import { extensionSystemUpdateStatePipe } from './updateState';
 
 function buildPreviousContext(
 	current: BoardRuntimeMutationPipelineContext
@@ -25,8 +25,8 @@ export function createBoardRuntimeMutationPipeline(): BoardRuntimeMutationPipeli
 	// Construct the pipes
 	const pipes: BoardRuntimeMutationPipe[] = [
 		layoutRefreshGeometryPipe,
-		extensionSystemUpdateStatePipe,
-		requestRenderStatePipe
+		extensionSystemUpdatePipe,
+		requestRenderPipe
 	];
 
 	const basicPipeline = createMutationPipeline<

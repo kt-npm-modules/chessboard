@@ -1,5 +1,5 @@
 import { Square } from '../../../state/board/types';
-import { ExtensionOnUpdateStateContext, ExtensionRenderStateContext } from '../../types';
+import { ExtensionRenderContext, ExtensionUpdateContext } from '../../types';
 import { PieceUrls } from '../types/config';
 
 type PieceNodeRecord = {
@@ -12,7 +12,7 @@ export interface MainRendererPiecesInternal {
 }
 
 export interface MainRendererPieces {
-	onUpdate(context: ExtensionOnUpdateStateContext): void;
-	render(context: ExtensionRenderStateContext, layer: SVGElement): void;
+	onUpdate(context: ExtensionUpdateContext): void;
+	render(context: ExtensionRenderContext, layer: SVGElement): void;
 	unmount(): void;
 }

@@ -9,6 +9,12 @@ export interface SquareRect {
 
 export type SquareRectSnapshot = ReadonlyDeep<SquareRect>;
 
+/**
+ * RenderGeometry represents the derived geometry of the rendered chessboard.
+ * It includes the board size, square size, orientation, and square rectangle mapping.
+ *
+ * It is computed from layout inputs and used by rendering and interaction code.
+ */
 export interface RenderGeometry {
 	readonly boardSize: number; // total board side in px
 	readonly squareSize: number; // derived: boardSize / 8

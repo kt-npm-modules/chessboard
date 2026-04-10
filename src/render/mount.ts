@@ -22,9 +22,9 @@ export function renderUnmount(state: RenderInternal): void {
 		extensionRec.extension.instance.unmount();
 	}
 	// remove our svg root from the container
-	state.container!.removeChild(state.svgRoots.svgRoot);
+	state.svgRoots.svgRoot.remove();
 	state.container = null;
 
 	// Now cleanup the render state
-	state.lastRendered = null;
+	state.currentFrame = null;
 }

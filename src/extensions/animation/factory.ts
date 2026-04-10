@@ -1,8 +1,8 @@
 import {
 	ExtensionAnimationControllerInternalSurface,
 	ExtensionAnimationSessionInternalSurface,
-	ExtensionAnimationSessionSubmitOptions,
-	ExtensionAnimationStatus
+	ExtensionAnimationSessionStatus,
+	ExtensionAnimationSessionSubmitOptions
 } from '../types';
 import { ExtensionAnimationControllerInternal, ExtensionAnimationSessionInternal } from './types';
 
@@ -14,7 +14,7 @@ function createExtensionAnimationSessionInternal(
 		id,
 		startTime: performance.now(),
 		duration: options.duration,
-		status: 'submitted' as ExtensionAnimationStatus
+		status: 'submitted' as ExtensionAnimationSessionStatus
 	};
 }
 
@@ -31,7 +31,7 @@ export function createExtensionAnimationSession(
 		get status() {
 			return internalState.status;
 		},
-		setStatus(newStatus: ExtensionAnimationStatus) {
+		setStatus(newStatus: ExtensionAnimationSessionStatus) {
 			internalState.status = newStatus;
 		}
 	};
@@ -45,7 +45,12 @@ function createExtensionAnimationControllerInternal(): ExtensionAnimationControl
 
 export function createExtensionAnimationController(): ExtensionAnimationControllerInternalSurface {
 	const internalState = createExtensionAnimationControllerInternal();
-	const allStati = new Set<ExtensionAnimationStatus>(['submitted', 'active', 'ended', 'cancelled']);
+	const allStati = new Set<ExtensionAnimationSessionStatus>([
+		'submitted',
+		'active',
+		'ended',
+		'cancelled'
+	]);
 	return {
 		submit(options) {
 			let sessionId: string = performance.now().toString(); // Simple unique ID generation based on timestamp
@@ -64,11 +69,11 @@ export function createExtensionAnimationController(): ExtensionAnimationControll
 			}
 		},
 		getAll(status) {
-			const stati: Set<ExtensionAnimationStatus> = status
+			const stati: Set<ExtensionAnimationSessionStatus> = status
 				? // If iterable
 					Symbol.iterator in Object(status)
-					? (new Set([...status]) as Set<ExtensionAnimationStatus>)
-					: (new Set([status]) as Set<ExtensionAnimationStatus>)
+					? (new Set([...status]) as Set<ExtensionAnimationSessionStatus>)
+					: (new Set([status]) as Set<ExtensionAnimationSessionStatus>)
 				: allStati;
 			return Array.from(internalState.sessions.values()).filter((session) =>
 				stati.has(session.status)

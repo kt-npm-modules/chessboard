@@ -12,17 +12,13 @@ export function createMutationPipeline<PayloadByCause extends Record<string, unk
 			return session;
 		},
 
-		addMutation<Cause extends keyof PayloadByCause>(
-			cause: Cause,
-			changed: boolean,
-			...payload: PayloadByCause[Cause] extends undefined ? [] : [payload: PayloadByCause[Cause]]
-		): boolean {
+		addMutation(cause, changed, ...payload) {
 			return session.addMutation(cause, changed, ...payload);
 		},
 
-		run(ctx: Context): boolean {
+		run(ctx) {
 			// no-op if no mutations recorded
-			if (!session.hasChanges()) return false;
+			if (!session.hasMutation()) return false;
 			try {
 				for (const pipe of registeredPipes) {
 					pipe(ctx, session);

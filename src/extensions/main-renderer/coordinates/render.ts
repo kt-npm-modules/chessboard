@@ -1,7 +1,7 @@
 import { clearElementChildren, createSvgElement, isLightSquare } from '../../../render/svg/helpers';
 import { squareOf, toAlgebraic } from '../../../state/board/coords';
 import { Square } from '../../../state/board/types';
-import { ExtensionRenderStateContext } from '../../types';
+import { ExtensionRenderContext } from '../../types';
 import { DirtyLayer } from '../types/extension';
 import { MainRendererCoordinatesInternal } from './types';
 
@@ -11,14 +11,14 @@ function labelColorForSquare(sq: Square, coordColors: { light: string; dark: str
 
 export function rendererCoordinatesRender(
 	state: MainRendererCoordinatesInternal,
-	context: ExtensionRenderStateContext,
+	context: ExtensionRenderContext,
 	layer: SVGElement
 ): void {
 	if ((context.invalidation.dirtyLayers & DirtyLayer.Coordinates) === 0) {
 		return;
 	}
 
-	const geometry = context.current.layout.geometry;
+	const geometry = context.currentFrame.layout.geometry;
 	clearElementChildren(layer);
 
 	const coords = state.config;

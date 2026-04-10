@@ -46,11 +46,11 @@ function createMainRendererInstance(config: MainRendererConfig): MainRendererIns
 		mount(env) {
 			internalState.slotRoots = env.slotRoots;
 		},
-		onStateUpdate(context) {
+		onUpdate(context) {
 			internalState.board.onUpdate(context);
 			internalState.pieces.onUpdate(context);
 		},
-		renderState(context) {
+		render(context) {
 			validateIsMounted(internalState);
 			internalState.board.render(context, internalState.slotRoots.board);
 			internalState.coordinates.render(context, internalState.slotRoots.coordinates);

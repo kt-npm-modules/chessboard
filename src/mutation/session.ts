@@ -1,83 +1,63 @@
-import type { MutationSession, ReadonlyMutationSession } from './types';
+import type {
+	MutationCause,
+	MutationPayload,
+	MutationSession,
+	ReadonlyMutationSession
+} from './types';
 
 export function createReadonlyMutationSession<PayloadByCause extends Record<string, unknown>>(
-	payloads: ReadonlyMap<keyof PayloadByCause, PayloadByCause[keyof PayloadByCause][] | undefined>
+	payloads: ReadonlyMap<
+		MutationCause<PayloadByCause>,
+		PayloadByCause[MutationCause<PayloadByCause>][] | undefined
+	>
 ): ReadonlyMutationSession<PayloadByCause> {
+	const internalPayloads = new Map(payloads); // Create a mutable copy to prevent external mutations
 	return {
-		hasChanges() {
-			return payloads.size > 0;
-		},
-		hasMutation(causesOrPrefix) {
-			if (typeof causesOrPrefix !== 'string') {
-				for (const cause of causesOrPrefix) {
-					if (payloads.has(cause)) {
+		hasMutation(match) {
+			if (!match) {
+				return internalPayloads.size > 0;
+			}
+
+			const { causes, prefixes } = match;
+
+			if (causes) {
+				for (const cause of causes) {
+					if (internalPayloads.has(cause)) {
 						return true;
 					}
 				}
-			} else {
-				for (const key of payloads.keys()) {
-					if (key.toString().startsWith(causesOrPrefix)) {
-						return true;
+			}
+
+			if (prefixes) {
+				for (const prefix of prefixes) {
+					for (const cause of internalPayloads.keys()) {
+						if (cause.toString().startsWith(prefix.toString())) {
+							return true;
+						}
 					}
 				}
 			}
 
 			return false;
 		},
+
 		getPayloads(cause) {
-			return payloads.get(cause) as PayloadByCause[typeof cause][] | undefined;
+			return internalPayloads.get(cause) as PayloadByCause[typeof cause][] | undefined;
 		},
+
 		getAll() {
-			return new Map(payloads);
+			return new Map(internalPayloads);
 		}
 	};
-}
-
-export function mergeReadonlySessions<PayloadByCause extends Record<string, unknown>>(
-	sessions: ReadonlyMutationSession<PayloadByCause>[],
-	causesOrPrefix?: Iterable<keyof PayloadByCause> | string
-): ReadonlyMutationSession<PayloadByCause> {
-	type MutationCause = keyof PayloadByCause;
-	type MutationPayloads = PayloadByCause[MutationCause];
-
-	const mergedPayloads = new Map<MutationCause, MutationPayloads[] | undefined>();
-	const causeSet = typeof causesOrPrefix === 'string' ? null : new Set(causesOrPrefix);
-	const causePrefix = typeof causesOrPrefix === 'string' ? causesOrPrefix : null;
-
-	for (const session of sessions) {
-		for (const [cause, payloads] of session.getAll()) {
-			const shouldInclude =
-				(!causeSet || causeSet.has(cause)) &&
-				(!causePrefix || cause.toString().startsWith(causePrefix));
-			if (!shouldInclude) {
-				continue; // skip this cause as it's not in the filter set or doesn't match the prefix
-			}
-			if (payloads) {
-				const existingPayloads = mergedPayloads.get(cause);
-				if (existingPayloads) {
-					existingPayloads.push(...payloads);
-				} else {
-					mergedPayloads.set(cause, [...payloads]);
-				}
-			} else {
-				// If any session has a cause with undefined payloads, we treat it as a change with no payload
-				if (!mergedPayloads.has(cause)) {
-					mergedPayloads.set(cause, undefined);
-				}
-			}
-		}
-	}
-
-	return createReadonlyMutationSession(mergedPayloads);
 }
 
 export function createMutationSession<
 	PayloadByCause extends Record<string, unknown>
 >(): MutationSession<PayloadByCause> {
-	type MutationCause = keyof PayloadByCause;
-	type MutationPayloads = PayloadByCause[MutationCause];
+	type _MutationCause = MutationCause<PayloadByCause>;
+	type _MutationPayload = MutationPayload<PayloadByCause>;
 
-	const payloads = new Map<MutationCause, MutationPayloads[] | undefined>();
+	const payloads = new Map<_MutationCause, _MutationPayload[] | undefined>();
 	const readonlySnapshot = createReadonlyMutationSession(payloads);
 
 	return {
@@ -94,15 +74,15 @@ export function createMutationSession<
 				// We already have some payloads for this cause
 				const existingPayloads = payloads.get(cause);
 				if (existingPayloads) {
-					existingPayloads.push(payload[0] as MutationPayloads);
+					existingPayloads.push(payload[0] as _MutationPayload);
 					return true;
 				}
-				payloads.set(cause, [payload[0] as MutationPayloads]);
+				payloads.set(cause, [payload[0] as _MutationPayload]);
 				return true;
 			}
 
 			// No existing entry for this cause, add new one
-			payloads.set(cause, hasPayload ? [payload[0] as MutationPayloads] : undefined);
+			payloads.set(cause, hasPayload ? [payload[0] as _MutationPayload] : undefined);
 			return true;
 		},
 

@@ -1,10 +1,10 @@
-import { isCurrentUpdateContextCommonMounted } from './helpers';
+import { isUpdateContextCommonMounted } from './helpers';
 import {
-	ExtensionOnUpdateStateContext,
-	ExtensionOnUpdateStateContextCommon,
-	ExtensionOnUpdateStateContextCommonUnmounted,
 	ExtensionSystemInternal,
-	ExtensionSystemUpdateRequest
+	ExtensionSystemUpdateRequest,
+	ExtensionUpdateContext,
+	ExtensionUpdateContextCommon,
+	ExtensionUpdateContextCommonUnmounted
 } from './types';
 
 export function extensionSystemUpdateState(
@@ -12,26 +12,24 @@ export function extensionSystemUpdateState(
 	request: ExtensionSystemUpdateRequest
 ): void {
 	// Prepare base context
-	const contextCommon: ExtensionOnUpdateStateContextCommon = {
-		previous: state.lastUpdated?.current ?? null,
+	const contextCommon: ExtensionUpdateContextCommon = {
+		previousFrame: state.currentFrame,
 		mutation: request.mutation,
-		current: request.state
+		currentFrame: request.state
 	};
 
 	// Update invalidation state based on the new request
 	for (const extension of state.extensions.values()) {
-		const context: ExtensionOnUpdateStateContext = isCurrentUpdateContextCommonMounted(
-			contextCommon
-		)
+		const context: ExtensionUpdateContext = isUpdateContextCommonMounted(contextCommon)
 			? {
 					...contextCommon,
 					invalidation: extension.invalidation,
 					animation: extension.animation
 				}
 			: {
-					...(contextCommon as ExtensionOnUpdateStateContextCommonUnmounted)
+					...(contextCommon as ExtensionUpdateContextCommonUnmounted)
 				};
-		extension.instance.onStateUpdate(context);
+		extension.instance.onUpdate(context);
 	}
-	state.lastUpdated = contextCommon;
+	state.currentFrame = request.state;
 }

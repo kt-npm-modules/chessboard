@@ -3,6 +3,7 @@ import { BoardRuntimeReadonlyMutationSession } from '../runtime/mutation/types';
 import { ColorInput, Move, MoveInput, PositionInput, SquareInput } from '../state/board/types';
 import { BoardRuntimeStateSnapshot } from '../state/types';
 import { Movability } from '../state/view/types';
+import { VisualsStateSnapshot } from '../state/visuals/types';
 import {
 	ExtensionInvalidationState,
 	ExtensionReadonlyInvalidationState
@@ -56,85 +57,89 @@ export interface ExtensionInstanceMountOptions<TSlots extends readonly Extension
 	slotRoots: ExtensionSlotSvgRoots<TSlots>;
 }
 
-export interface UpdateStateFrameSnapshotUnmounted {
+export interface UpdateFrameSnapshotUnmounted {
 	readonly isMounted: false;
 	readonly state: BoardRuntimeStateSnapshot;
 }
 
-export interface UpdateStateFrameSnapshotMounted {
+export interface UpdateFrameSnapshotMounted {
 	readonly isMounted: true;
 	readonly state: BoardRuntimeStateSnapshot;
 	readonly layout: LayoutSnapshot;
 }
 
-export type UpdateStateFrameSnapshot =
-	| UpdateStateFrameSnapshotUnmounted
-	| UpdateStateFrameSnapshotMounted;
+export type UpdateFrameSnapshot = UpdateFrameSnapshotUnmounted | UpdateFrameSnapshotMounted;
 
 export interface ExtensionAnimationSessionSubmitOptions {
 	duration: DOMHighResTimeStamp;
 }
 
-export type ExtensionAnimationStatus = 'submitted' | 'active' | 'ended' | 'cancelled';
+export type ExtensionAnimationSessionStatus = 'submitted' | 'active' | 'ended' | 'cancelled';
 
 export interface ExtensionAnimationSession {
 	readonly id: string;
 	readonly startTime: DOMHighResTimeStamp;
 	readonly duration: DOMHighResTimeStamp;
-	readonly status: ExtensionAnimationStatus;
+	readonly status: ExtensionAnimationSessionStatus;
 }
 
 export interface ExtensionAnimationController {
 	submit(options: ExtensionAnimationSessionSubmitOptions): ExtensionAnimationSession;
 	cancel(sessionId: string): void;
 	getAll(
-		status?: ExtensionAnimationStatus | Iterable<ExtensionAnimationStatus>
+		status?: ExtensionAnimationSessionStatus | Iterable<ExtensionAnimationSessionStatus>
 	): readonly ExtensionAnimationSession[];
 }
 
-export interface ExtensionOnUpdateStateContextCommon {
-	readonly previous: UpdateStateFrameSnapshot | null;
+export interface ExtensionUpdateContextCommon {
+	readonly previousFrame: UpdateFrameSnapshot | null;
 	readonly mutation: BoardRuntimeReadonlyMutationSession;
-	readonly current: UpdateStateFrameSnapshot;
+	readonly currentFrame: UpdateFrameSnapshot;
 }
 
-export interface ExtensionOnUpdateStateContextCommonUnmounted extends ExtensionOnUpdateStateContextCommon {
-	readonly current: UpdateStateFrameSnapshotUnmounted;
+export interface ExtensionUpdateContextCommonUnmounted extends ExtensionUpdateContextCommon {
+	readonly currentFrame: UpdateFrameSnapshotUnmounted;
 }
 
-export interface ExtensionOnUpdateStateContextCommonMounted extends ExtensionOnUpdateStateContextCommon {
-	readonly current: UpdateStateFrameSnapshotMounted;
+export interface ExtensionUpdateContextCommonMounted extends ExtensionUpdateContextCommon {
+	readonly currentFrame: UpdateFrameSnapshotMounted;
 }
 
-export type ExtensionOnUpdateStateContextUnmounted = ExtensionOnUpdateStateContextCommonUnmounted;
+export type ExtensionUpdateContextUnmounted = ExtensionUpdateContextCommonUnmounted;
 
-export interface ExtensionOnUpdateStateContextMounted extends ExtensionOnUpdateStateContextCommonMounted {
+export interface ExtensionUpdateContextMounted extends ExtensionUpdateContextCommonMounted {
 	readonly invalidation: ExtensionInvalidationState;
 	readonly animation: ExtensionAnimationController;
 }
 
-export type ExtensionOnUpdateStateContext =
-	| ExtensionOnUpdateStateContextUnmounted
-	| ExtensionOnUpdateStateContextMounted;
+export type ExtensionUpdateContext =
+	| ExtensionUpdateContextUnmounted
+	| ExtensionUpdateContextMounted;
 
 export interface RenderLayoutSnapshot extends LayoutSnapshot {
 	readonly geometry: NonNullable<LayoutSnapshot['geometry']>;
 }
 
-export interface RenderStateFrameSnapshot {
+export interface RenderFrameSnapshot {
 	readonly state: BoardRuntimeStateSnapshot;
 	readonly layout: RenderLayoutSnapshot;
 }
 
-export interface ExtensionRenderStateContext {
-	readonly current: RenderStateFrameSnapshot;
+export interface ExtensionRenderContext {
+	readonly currentFrame: RenderFrameSnapshot;
 	readonly invalidation: ExtensionReadonlyInvalidationState;
 	readonly animation: ExtensionAnimationController;
 }
 
-export type ExtensionRenderAnimationContext = ExtensionRenderStateContext;
+export type ExtensionRenderAnimationContext = ExtensionRenderContext;
 
-export type ExtensionRenderVisualsContext = ExtensionRenderStateContext;
+export interface ExtensionRenderTransientVisualsContextVisuals {
+	previous: VisualsStateSnapshot | null;
+	current: VisualsStateSnapshot;
+}
+export interface ExtensionRenderTransientVisualsContext extends ExtensionRenderContext {
+	readonly transientVisuals: ExtensionRenderTransientVisualsContextVisuals;
+}
 
 export interface ExtensionInstance<
 	TId extends string,
@@ -146,8 +151,8 @@ export interface ExtensionInstance<
 	mount(env: ExtensionInstanceMountOptions<TSlots>): void;
 	unmount(): void;
 	// Render state cycle
-	onStateUpdate(context: ExtensionOnUpdateStateContext): void;
-	renderState?(context: ExtensionRenderStateContext): void;
+	onUpdate(context: ExtensionUpdateContext): void;
+	render?(context: ExtensionRenderContext): void;
 	// Animation
 	prepareAnimation?(
 		context: ExtensionRenderAnimationContext,
@@ -161,8 +166,8 @@ export interface ExtensionInstance<
 		context: ExtensionRenderAnimationContext,
 		sessions: readonly ExtensionAnimationSession[]
 	): void;
-	// Visuals
-	renderVisuals?(context: ExtensionRenderVisualsContext): void;
+	// Transient Visuals
+	renderTransientVisuals?(context: ExtensionRenderTransientVisualsContext): void;
 	// Public API promoted to board.extensions.<extensionId>.API
 	getPublic?(): TPublic;
 }
@@ -241,12 +246,12 @@ export type ExtensionsPublicMap<TExtensions extends readonly AnyExtensionDefinit
 };
 
 export interface ExtensionAnimationSessionInternalSurface extends ExtensionAnimationSession {
-	setStatus(status: ExtensionAnimationStatus): void;
+	setStatus(status: ExtensionAnimationSessionStatus): void;
 }
 
 export interface ExtensionAnimationControllerInternalSurface extends ExtensionAnimationController {
 	getAll(
-		status?: ExtensionAnimationStatus | Iterable<ExtensionAnimationStatus>
+		status?: ExtensionAnimationSessionStatus | Iterable<ExtensionAnimationSessionStatus>
 	): readonly ExtensionAnimationSessionInternalSurface[];
 	remove(sessionId: string | Iterable<string>): void;
 	clear(): void;
@@ -267,18 +272,18 @@ export interface ExtensionSystemInitOptions {
 
 export interface ExtensionSystemInternal {
 	readonly extensions: Map<string, ExtensionSystemExtensionRecord>;
-	lastUpdated: ExtensionOnUpdateStateContextCommon | null;
+	currentFrame: UpdateFrameSnapshot | null;
 }
 
 export interface ExtensionSystemUpdateRequest {
-	readonly state: UpdateStateFrameSnapshot;
+	readonly state: UpdateFrameSnapshot;
 	readonly mutation: BoardRuntimeReadonlyMutationSession;
 }
 
 export interface ExtensionSystem {
 	readonly extensions: ReadonlyMap<string, ExtensionSystemExtensionRecord>;
-	readonly lastUpdated: ExtensionOnUpdateStateContextCommon | null;
-	updateState(request: ExtensionSystemUpdateRequest): void;
+	readonly currentFrame: UpdateFrameSnapshot | null;
+	onUpdate(request: ExtensionSystemUpdateRequest): void;
 	onUnmount(): void;
 	onDestroy(): void;
 }

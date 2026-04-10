@@ -1,4 +1,4 @@
-import { RenderStateFrameSnapshot } from '../extensions/types';
+import { RenderFrameSnapshot } from '../extensions/types';
 import { VisualsStateSnapshot } from '../state/visuals/types';
 import { renderMount, renderUnmount } from './mount';
 import { performAnimationPass } from './rendering/animation';
@@ -40,7 +40,8 @@ function createRenderInternal(options: RenderInitOptionsInternal): RenderInterna
 
 	return {
 		container: null,
-		lastRendered: null,
+		currentFrame: null,
+		currentTransientVisuals: null,
 		svgRoots,
 		scheduler,
 		extensions
@@ -48,7 +49,7 @@ function createRenderInternal(options: RenderInitOptionsInternal): RenderInterna
 }
 
 interface PerformRenderOptions {
-	stateRequest: RenderStateFrameSnapshot | null;
+	stateRequest: RenderFrameSnapshot | null;
 	animationRequest: true | null;
 	requestNextRenderAnimation: () => void;
 	visualsRequest: VisualsStateSnapshot | null;
@@ -75,7 +76,7 @@ function performRender(state: RenderInternal, options: PerformRenderOptions) {
 }
 
 export function createRender(options: RenderInitOptions): Render {
-	let pendingStateRequest: RenderStateFrameSnapshot | null = null;
+	let pendingStateRequest: RenderFrameSnapshot | null = null;
 	let pendingAnimationRequest: true | null = null;
 	let pendingVisualsRequest: VisualsStateSnapshot | null = null;
 

@@ -10,7 +10,5 @@ export type InteractionStateMutationPayloadByCause = {
 	'state.interaction.clearActive': undefined;
 };
 
-export type InteractionStateMutationCause = keyof InteractionStateMutationPayloadByCause;
-
 export type InteractionStateMutationSession =
 	MutationSession<InteractionStateMutationPayloadByCause>;

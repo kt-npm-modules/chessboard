@@ -1,4 +1,4 @@
-import { ExtensionRenderStateContext } from '../../types';
+import { ExtensionRenderContext } from '../../types';
 import { ConfigColorPair } from '../types/config';
 
 export interface MainRendererCoordinatesInternal {
@@ -6,5 +6,5 @@ export interface MainRendererCoordinatesInternal {
 }
 
 export interface MainRendererCoordinates {
-	render(context: ExtensionRenderStateContext, layer: SVGElement): void;
+	render(context: ExtensionRenderContext, layer: SVGElement): void;
 }

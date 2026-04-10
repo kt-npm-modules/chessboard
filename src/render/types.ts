@@ -3,7 +3,7 @@ import {
 	ExtensionAllocatedSlotsInternal,
 	ExtensionSlotSvgRoots,
 	ExtensionSystemExtensionRecord,
-	RenderStateFrameSnapshot
+	RenderFrameSnapshot
 } from '../extensions/types';
 import { VisualsStateSnapshot } from '../state/visuals/types';
 import { Scheduler } from './scheduler/types';
@@ -25,7 +25,8 @@ export interface RenderExtensionRecord {
 
 export interface RenderInternal {
 	container: HTMLElement | null;
-	lastRendered: RenderStateFrameSnapshot | null;
+	currentFrame: RenderFrameSnapshot | null;
+	currentTransientVisuals: VisualsStateSnapshot | null;
 	readonly scheduler: Scheduler;
 	readonly svgRoots: SvgRoots;
 	// readonly animator: Animator;
@@ -43,7 +44,7 @@ export interface RenderInitOptionsInternal extends RenderInitOptions {
 
 export interface Render {
 	readonly extensions: ReadonlyMap<string, RenderExtensionRecord>;
-	requestRenderState(request: RenderStateFrameSnapshot): void;
+	requestRenderState(request: RenderFrameSnapshot): void;
 	requestRenderAnimation(): void;
 	requestRenderVisuals(request: VisualsStateSnapshot): void;
 

@@ -1,21 +1,45 @@
+export type MutationCause<PayloadByCause extends Record<string, unknown>> = Extract<
+	keyof PayloadByCause,
+	string
+>;
+
+export type MutationPayload<PayloadByCause extends Record<string, unknown>> =
+	PayloadByCause[MutationCause<PayloadByCause>];
+
+type Prefixes<S extends string> = S extends `${infer Head}.${infer Tail}`
+	? Head | `${Head}.${Prefixes<Tail>}`
+	: never;
+
+type DotSuffix<T extends string> = `${T}.`;
+
+type DottedPrefixes<S extends string> = DotSuffix<Prefixes<S>>;
+
+export type MutationCausePrefixes<PayloadByCause extends Record<string, unknown>> = DottedPrefixes<
+	MutationCause<PayloadByCause>
+>;
+
+export interface MutationCauseMatchFilter<PayloadByCause extends Record<string, unknown>> {
+	causes?: Iterable<MutationCause<PayloadByCause>>;
+	prefixes?: Iterable<MutationCausePrefixes<PayloadByCause>>;
+}
+
 export interface ReadonlyMutationSession<PayloadByCause extends Record<string, unknown>> {
-	hasChanges(): boolean;
+	hasMutation(match?: MutationCauseMatchFilter<PayloadByCause>): boolean;
 
-	hasMutation<Cause extends keyof PayloadByCause>(
-		causesOrPrefix: Iterable<Cause> | string
-	): boolean;
-
-	getPayloads<Cause extends keyof PayloadByCause>(
+	getPayloads<Cause extends MutationCause<PayloadByCause>>(
 		cause: Cause
 	): PayloadByCause[Cause][] | undefined;
 
-	getAll(): ReadonlyMap<keyof PayloadByCause, PayloadByCause[keyof PayloadByCause][] | undefined>;
+	getAll(): ReadonlyMap<
+		MutationCause<PayloadByCause>,
+		PayloadByCause[MutationCause<PayloadByCause>][] | undefined
+	>;
 }
 
 export interface MutationSession<
 	PayloadByCause extends Record<string, unknown>
 > extends ReadonlyMutationSession<PayloadByCause> {
-	addMutation<Cause extends keyof PayloadByCause>(
+	addMutation<Cause extends MutationCause<PayloadByCause>>(
 		cause: Cause,
 		changed: boolean,
 		...payload: PayloadByCause[Cause] extends undefined ? [] : [payload: PayloadByCause[Cause]]
@@ -31,7 +55,7 @@ export type MutationPipe<PayloadByCause extends Record<string, unknown>, Context
 
 export interface MutationPipeline<PayloadByCause extends Record<string, unknown>, Context> {
 	getSession(): MutationSession<PayloadByCause>;
-	addMutation<Cause extends keyof PayloadByCause>(
+	addMutation<Cause extends MutationCause<PayloadByCause>>(
 		cause: Cause,
 		changed: boolean,
 		...payload: PayloadByCause[Cause] extends undefined ? [] : [payload: PayloadByCause[Cause]]

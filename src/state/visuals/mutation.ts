@@ -6,6 +6,4 @@ export type VisualsStateMutationPayloadByCause = {
 	'state.visuals.setDragPointer': ReadonlyDeep<BoardPoint> | null;
 };
 
-export type VisualsStateMutationCause = keyof VisualsStateMutationPayloadByCause;
-
 export type VisualsStateMutationSession = MutationSession<VisualsStateMutationPayloadByCause>;

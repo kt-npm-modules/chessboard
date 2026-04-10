@@ -5,6 +5,7 @@ import type { ChangeState, ChangeStateSnapshot } from './change/types';
 import type { VisualsState, VisualsStateSnapshot } from './visuals/types';
 
 export interface BoardRuntimeStateInternal {
+	// TODO: rename to BoardRuntime to Runtime
 	readonly board: BoardState;
 	readonly view: ViewState;
 	readonly interaction: InteractionState;

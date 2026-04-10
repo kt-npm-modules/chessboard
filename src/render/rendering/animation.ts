@@ -5,8 +5,8 @@ import { validateIsMounted } from './helpers';
 export function performAnimationPass(state: RenderInternal): boolean {
 	validateIsMounted(state);
 	let requestNextRenderAnimation = false;
-	const lastRendered = state.lastRendered;
-	if (!lastRendered) {
+	const currentFrame = state.currentFrame;
+	if (!currentFrame) {
 		throw new Error(
 			'RenderAnimation called but no previous render state found. RenderState must be called before RenderAnimation.'
 		);
@@ -14,7 +14,7 @@ export function performAnimationPass(state: RenderInternal): boolean {
 	for (const extensionRec of state.extensions.values()) {
 		// Prepare the animation context
 		const context: ExtensionRenderAnimationContext = {
-			current: lastRendered,
+			currentFrame: currentFrame,
 			invalidation: extensionRec.extension.invalidation,
 			animation: extensionRec.extension.animation
 		};

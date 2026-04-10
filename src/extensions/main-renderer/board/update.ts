@@ -1,34 +1,38 @@
-import { isCurrentUpdateContextMounted } from '../../helpers';
-import { ExtensionOnUpdateStateContext } from '../../types';
+import { isFrameRenderable, isUpdateContextRenderable } from '../../helpers';
+import { ExtensionUpdateContext } from '../../types';
 import { DirtyLayer } from '../types/extension';
 import { MainRendererBoardInternal } from './types';
 
 export function rendererBoardOnUpdate(
 	_state: MainRendererBoardInternal,
-	context: ExtensionOnUpdateStateContext
+	context: ExtensionUpdateContext
 ): void {
 	// Check if geometry changed
 	const mutationSession = context.mutation;
-	if (!mutationSession.hasMutation(['layout.refreshGeometry'])) {
+	if (
+		!isUpdateContextRenderable(context) ||
+		!mutationSession.hasMutation({
+			causes: ['layout.refreshGeometry']
+		})
+	) {
 		return; // no-op
 	}
-	if (!isCurrentUpdateContextMounted(context) || !context.current.layout.geometry) {
-		// no-op, we only care about geometry changes on mounted with available geometry, otherwise nothing to do here
-		return;
-	}
+
 	// Ok geometry changed, let's check the board size
-	const currentBoardSize = context.current.layout.geometry.boardSize;
-	const currentOrientation = context.current.layout.geometry.orientation;
-	const previousBoardSize = context.previous?.isMounted
-		? context.previous?.layout.geometry?.boardSize
-		: null;
-	const previousOrientation = context.previous?.isMounted
-		? context.previous?.layout.geometry?.orientation
-		: null;
-	const needsUpdate =
+	const currentGeometry = context.currentFrame.layout.geometry;
+	const currentBoardSize = currentGeometry.boardSize;
+	const currentOrientation = currentGeometry.orientation;
+	const previousGeometry =
+		context.previousFrame && isFrameRenderable(context.previousFrame)
+			? context.previousFrame.layout.geometry
+			: null;
+	const previousBoardSize = previousGeometry?.boardSize;
+	const previousOrientation = previousGeometry?.orientation;
+	const needsRender =
 		currentBoardSize !== previousBoardSize || currentOrientation !== previousOrientation;
-	if (!needsUpdate) {
+	if (!needsRender) {
 		return; // no-op
 	}
+
 	context.invalidation.markDirty(DirtyLayer.Board | DirtyLayer.Coordinates);
 }

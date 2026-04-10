@@ -4,25 +4,34 @@ import { RenderGeometry } from './geometry/types';
 import { LayoutMutationSession } from './mutation';
 
 export interface LayoutInternal {
-	boardSize: number;
+	boardSize: number | null;
+	orientation: Color | null;
 	geometry: RenderGeometry | null;
 	layoutVersion: number;
 }
 
 export type LayoutSnapshot = ReadonlyDeep<LayoutInternal>;
 
+export interface LayoutRefreshOptions {
+	container?: HTMLElement;
+	orientation?: Color;
+}
+
+/**
+ * Layout is a purely derived state computed from container size and view state (state.view.*).
+ *
+ * RenderGeometry is also purely derived.
+ *
+ * Both Layout and RenderGeometry may keep duplicated derived fields
+ * (for example orientation or boardSize) as denormalized render-facing snapshots.
+ * These duplicated fields are for convenience only and are not the source of truth.
+ */
 export interface Layout {
-	getBoardSize(): number;
-	getGeometry(): RenderGeometry | null;
-	getLayoutVersion(): number;
-	refreshGeometry(
-		container: HTMLElement,
-		orientation: Color,
-		mutationSession: LayoutMutationSession
-	): boolean;
-	refreshGeometryForOrientation(
-		orientation: Color,
-		mutationSession: LayoutMutationSession
-	): boolean;
+	readonly boardSize: number | null;
+	readonly orientation: Color | null;
+	readonly geometry: RenderGeometry | null;
+	readonly layoutVersion: number;
+
+	refreshGeometry(options: LayoutRefreshOptions, mutationSession: LayoutMutationSession): boolean;
 	getSnapshot(): LayoutSnapshot;
 }

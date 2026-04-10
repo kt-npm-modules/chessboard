@@ -6,8 +6,10 @@ import { BoardRuntimeInternal } from './types';
 export function boardRuntimeRefreshGeometry(state: BoardRuntimeInternal): void {
 	boardRuntimeValidateIsMounted(state);
 	state.layout.refreshGeometry(
-		state.render.container,
-		state.state.view.getOrientation(),
+		{
+			orientation: state.state.view.getOrientation(),
+			container: state.render.container
+		},
 		state.mutation.getSession() as LayoutMutationSession
 	);
 	boardRuntimeRunMutationPipeline(state);

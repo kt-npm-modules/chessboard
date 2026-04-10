@@ -29,7 +29,7 @@ function createExtensionSystemInternal(
 	}
 	return {
 		extensions,
-		lastUpdated: null
+		currentFrame: null
 	};
 }
 
@@ -40,14 +40,14 @@ export function createExtensionSystem(options: ExtensionSystemInitOptions): Exte
 		get extensions() {
 			return internalState.extensions;
 		},
-		get lastUpdated() {
-			return internalState.lastUpdated;
+		get currentFrame() {
+			return internalState.currentFrame;
 		},
-		updateState(request) {
+		onUpdate(request) {
 			extensionSystemUpdateState(internalState, request);
 		},
 		onUnmount() {
-			internalState.lastUpdated = null;
+			internalState.currentFrame = null;
 			for (const extensionRec of internalState.extensions.values()) {
 				extensionRec.invalidation.clear();
 				extensionRec.animation.clear();

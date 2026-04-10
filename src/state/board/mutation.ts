@@ -7,6 +7,4 @@ export type BoardStateMutationPayloadByCause = {
 	'state.board.move': MoveSnapshot;
 };
 
-export type BoardStateMutationCause = keyof BoardStateMutationPayloadByCause;
-
 export type BoardStateMutationSession = MutationSession<BoardStateMutationPayloadByCause>;

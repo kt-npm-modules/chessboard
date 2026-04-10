@@ -1,20 +1,20 @@
 import { clearElementChildren, createSvgElement, isLightSquare } from '../../../render/svg/helpers';
 import { toAlgebraic } from '../../../state/board/coords';
 import { Square } from '../../../state/board/types';
-import { ExtensionRenderStateContext } from '../../types';
+import { ExtensionRenderContext } from '../../types';
 import { DirtyLayer } from '../types/extension';
 import { MainRendererBoardInternal } from './types';
 
 export function rendererBoardRender(
 	state: MainRendererBoardInternal,
-	context: ExtensionRenderStateContext,
+	context: ExtensionRenderContext,
 	layer: SVGElement
 ): void {
 	// Check if we need to render
 	if ((context.invalidation.dirtyLayers & DirtyLayer.Board) === 0) {
 		return; // no-op
 	}
-	const geometry = context.current.layout.geometry;
+	const geometry = context.currentFrame.layout.geometry;
 	clearElementChildren(layer);
 
 	const { light, dark } = state.config;
