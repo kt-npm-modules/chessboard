@@ -1,3 +1,4 @@
+import { BoardEvent } from '../../../extensions/types/basic/events';
 import { BoardPoint, TransientInput } from '../../../extensions/types/basic/transient-visuals';
 import { BoardStateSnapshot, Move, Square } from '../../../state/board/types';
 import { InteractionStateSnapshot } from '../../../state/interaction/types';
@@ -15,8 +16,5 @@ export interface InteractionRuntimeSurface {
 }
 
 export interface InteractionController {
-	onPointerDown(target: Square | null, point: BoardPoint): void;
-	onPointerMove(target: Square | null, point: BoardPoint | null): void;
-	onPointerUp(target: Square | null): Move | null;
-	onPointerCancel(): void;
+	onEvent(event: BoardEvent): void;
 }

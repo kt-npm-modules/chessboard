@@ -1,3 +1,4 @@
+import { BoardPoint } from '../../../extensions/types/basic/transient-visuals';
 import { RenderGeometry } from '../../../layout/geometry/types';
 import { Square } from '../../../state/board/types';
 
@@ -23,4 +24,12 @@ export function mapBoardPointToSquare(
 	const rank = orientation === 'white' ? 7 - yIndex : yIndex;
 
 	return (rank * 8 + file) as Square;
+}
+
+export function clampBoardPoint(point: BoardPoint, geometry: RenderGeometry): BoardPoint {
+	const { boardSize } = geometry;
+	return {
+		x: Math.min(Math.max(point.x, 0), boardSize),
+		y: Math.min(Math.max(point.y, 0), boardSize)
+	};
 }
