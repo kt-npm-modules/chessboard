@@ -1,9 +1,10 @@
 import {
+	ANIMATION_SESSION_STATUS_ALL,
 	ExtensionAnimationControllerInternalSurface,
 	ExtensionAnimationSessionInternalSurface,
 	ExtensionAnimationSessionStatus,
 	ExtensionAnimationSessionSubmitOptions
-} from '../types';
+} from '../types/basic/animation';
 import { ExtensionAnimationControllerInternal, ExtensionAnimationSessionInternal } from './types';
 
 function createExtensionAnimationSessionInternal(
@@ -14,7 +15,7 @@ function createExtensionAnimationSessionInternal(
 		id,
 		startTime: performance.now(),
 		duration: options.duration,
-		status: 'submitted' as ExtensionAnimationSessionStatus
+		status: 'submitted'
 	};
 }
 
@@ -45,12 +46,6 @@ function createExtensionAnimationControllerInternal(): ExtensionAnimationControl
 
 export function createExtensionAnimationController(): ExtensionAnimationControllerInternalSurface {
 	const internalState = createExtensionAnimationControllerInternal();
-	const allStati = new Set<ExtensionAnimationSessionStatus>([
-		'submitted',
-		'active',
-		'ended',
-		'cancelled'
-	]);
 	return {
 		submit(options) {
 			let sessionId: string = performance.now().toString(); // Simple unique ID generation based on timestamp
@@ -74,7 +69,7 @@ export function createExtensionAnimationController(): ExtensionAnimationControll
 					Symbol.iterator in Object(status)
 					? (new Set([...status]) as Set<ExtensionAnimationSessionStatus>)
 					: (new Set([status]) as Set<ExtensionAnimationSessionStatus>)
-				: allStati;
+				: ANIMATION_SESSION_STATUS_ALL;
 			return Array.from(internalState.sessions.values()).filter((session) =>
 				stati.has(session.status)
 			);

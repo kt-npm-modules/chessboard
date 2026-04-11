@@ -1,5 +1,5 @@
-import { RenderFrameSnapshot } from '../extensions/types';
-import { TransientVisualsSnapshot } from '../transientVisuals/types';
+import { RenderFrameSnapshot } from '../extensions/types/basic/render';
+import { TransientInput } from '../extensions/types/basic/transient-visuals';
 import { renderMount, renderUnmount } from './mount';
 import { performAnimationPass } from './rendering/animation';
 import { validateIsMounted } from './rendering/helpers';
@@ -23,7 +23,7 @@ function createRenderInternal(options: RenderSystemInitOptionsInternal): RenderS
 	});
 
 	const extensions = new Map<string, RenderExtensionRecord>();
-	for (const extensionSystemExt of options.extensions.values()) {
+	for (const extensionSystemExt of options.sharedDataFromExtensionSystem.extensions.values()) {
 		const extensionInternal: RenderExtensionRecord = {
 			id: extensionSystemExt.id,
 			extension: extensionSystemExt,
@@ -41,10 +41,10 @@ function createRenderInternal(options: RenderSystemInitOptionsInternal): RenderS
 	return {
 		container: null,
 		currentFrame: null,
-		currentTransientVisuals: null,
 		svgRoots,
 		scheduler,
-		extensions
+		extensions,
+		transientVisualsSubscribers: options.sharedDataFromExtensionSystem.transientVisualsSubscribers
 	};
 }
 
@@ -53,7 +53,7 @@ interface PerformRenderOptions {
 	animationRequest: true | null;
 	requestRenderAnimation: () => void;
 	requestRender: () => void;
-	visualsRequest: TransientVisualsSnapshot | null;
+	visualsRequest: TransientInput | null;
 }
 
 function performRender(state: RenderSystemInternal, options: PerformRenderOptions) {
@@ -79,10 +79,10 @@ function performRender(state: RenderSystemInternal, options: PerformRenderOption
 	}
 }
 
-export function createRender(options: RenderSystemInitOptions): RenderSystem {
+export function createRenderSystem(options: RenderSystemInitOptions): RenderSystem {
 	let pendingStateRequest: RenderFrameSnapshot | null = null;
 	let pendingAnimationRequest: true | null = null;
-	let pendingVisualsRequest: TransientVisualsSnapshot | null = null;
+	let pendingVisualsRequest: TransientInput | null = null;
 
 	function performRenderClosure() {
 		const stateRequest = pendingStateRequest;
@@ -125,7 +125,7 @@ export function createRender(options: RenderSystemInitOptions): RenderSystem {
 		},
 		requestRenderVisuals(request) {
 			validateIsMounted(internalState);
-			pendingVisualsRequest = request ?? internalState.currentTransientVisuals;
+			pendingVisualsRequest = request;
 			internalState.scheduler.schedule();
 		},
 		mount(element) {

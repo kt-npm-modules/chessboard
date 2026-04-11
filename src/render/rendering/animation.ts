@@ -1,4 +1,11 @@
-import { ExtensionRenderAnimationContext } from '../../extensions/types';
+import {
+	ExtensionActiveAnimationSession,
+	ExtensionCleanAnimationContext,
+	ExtensionFinishedAnimationSession,
+	ExtensionPrepareAnimationContext,
+	ExtensionRenderAnimationContext,
+	ExtensionSubmittedAnimationSession
+} from '../../extensions/types/context/animation';
 import { RenderSystemInternal } from '../types';
 import { validateIsMounted } from './helpers';
 
@@ -19,15 +26,15 @@ export function performAnimationPass(state: RenderSystemInternal): RenderAnimati
 	}
 	for (const extensionRec of state.extensions.values()) {
 		// Prepare the animation context
-		const context: ExtensionRenderAnimationContext = {
-			currentFrame: currentFrame,
-			invalidation: extensionRec.extension.invalidation,
-			animation: extensionRec.extension.animation
-		};
-		// process submitted anymations
 		const submittedSessions = extensionRec.extension.animation.getAll('submitted');
+		// process submitted animations
 		if (submittedSessions.length > 0) {
-			extensionRec.extension.instance.prepareAnimation?.(context, submittedSessions);
+			const context: ExtensionPrepareAnimationContext = {
+				currentFrame: currentFrame,
+				invalidation: extensionRec.extension.invalidation,
+				submittedSessions: submittedSessions as unknown as ExtensionSubmittedAnimationSession[]
+			};
+			extensionRec.extension.instance.prepareAnimation?.(context);
 			submittedSessions.forEach((session) => {
 				session.setStatus('active');
 			});
@@ -35,7 +42,12 @@ export function performAnimationPass(state: RenderSystemInternal): RenderAnimati
 		// Now call the renderAnimation for active sessions
 		const activeSessions = extensionRec.extension.animation.getAll('active');
 		if (activeSessions.length > 0) {
-			extensionRec.extension.instance.renderAnimation?.(context, activeSessions);
+			const context: ExtensionRenderAnimationContext = {
+				currentFrame: currentFrame,
+				invalidation: extensionRec.extension.invalidation,
+				activeSessions: activeSessions as unknown as ExtensionActiveAnimationSession[]
+			};
+			extensionRec.extension.instance.renderAnimation?.(context);
 		}
 		// Now update the sessions that have completed
 		const currentTime = performance.now();
@@ -46,7 +58,12 @@ export function performAnimationPass(state: RenderSystemInternal): RenderAnimati
 		const cancelledSessions = extensionRec.extension.animation.getAll('cancelled');
 		finishedSessions.push(...cancelledSessions);
 		if (finishedSessions.length > 0) {
-			extensionRec.extension.instance.cleanAnimation?.(context, finishedSessions);
+			const context: ExtensionCleanAnimationContext = {
+				currentFrame: currentFrame,
+				invalidation: extensionRec.extension.invalidation,
+				finishedSessions: finishedSessions as unknown as ExtensionFinishedAnimationSession[]
+			};
+			extensionRec.extension.instance.cleanAnimation?.(context);
 			finishedSessions.forEach((session) => {
 				if (session.status !== 'cancelled') {
 					session.setStatus('ended');

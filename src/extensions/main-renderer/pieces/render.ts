@@ -1,7 +1,7 @@
 import { createSvgElement, updateElementAttributes } from '../../../render/svg/helpers';
 import { decodePiece } from '../../../state/board/encode';
 import { Square } from '../../../state/board/types';
-import { ExtensionRenderContext } from '../../types';
+import { ExtensionRenderContext } from '../../types/context/render';
 import { getPieceShortKey, getPieceUrl } from '../helpers';
 import { DirtyLayer } from '../types/extension';
 import { MainRendererPiecesInternal } from './types';

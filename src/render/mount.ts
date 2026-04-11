@@ -1,4 +1,4 @@
-import { ExtensionSlotName, ExtensionSlotSvgRoots } from '../extensions/types';
+import { ExtensionSlotName, ExtensionSlotSvgRoots } from '../extensions/types/basic/mount';
 import { validateIsMounted, validateIsNotMounted } from './rendering/helpers';
 import { RenderSystemInternal } from './types';
 

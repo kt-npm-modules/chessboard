@@ -1,4 +1,4 @@
-import { ExtensionRenderContext } from '../../types';
+import { ExtensionRenderContext } from '../../types/context/render';
 import { ConfigColorPair } from '../types/config';
 
 export interface MainRendererCoordinatesInternal {

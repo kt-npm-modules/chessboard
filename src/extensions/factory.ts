@@ -6,9 +6,22 @@ import {
 	ExtensionSystemInitOptions,
 	ExtensionSystemInternal
 } from './types';
+import { ExtensionRuntimeSurface } from './types/surface';
+import { ExtensionRuntimeSurfaceCommands } from './types/surface/commands';
 import { extensionSystemUpdateState } from './update';
 
+function createExtensionRuntimeSurface(
+	getInternalState: () => ExtensionSystemInternal,
+	commands: ExtensionRuntimeSurfaceCommands
+): ExtensionRuntimeSurface {
+	// @ts-expect-error We will implement events and transient visuals later, for now we just return empty objects for them to satisfy the interface
+	return {
+		commands
+	};
+}
+
 function createExtensionSystemInternal(
+	getInternalState: () => ExtensionSystemInternal,
 	options: ExtensionSystemInitOptions
 ): ExtensionSystemInternal {
 	const extensions = new Map<string, ExtensionSystemExtensionRecord>();
@@ -17,7 +30,12 @@ function createExtensionSystemInternal(
 		if (extensions.has(extensionDef.id)) {
 			throw new Error(`Duplicate extension id found: ${extensionDef.id}`);
 		}
-		const instance = extensionDef.createInstance(options.createInstanceOptions);
+		const instance = extensionDef.createInstance({
+			runtimeSurface: createExtensionRuntimeSurface(
+				getInternalState,
+				options.extensionRuntimeSurfaceCommands
+			)
+		});
 		const record: ExtensionSystemExtensionRecord = {
 			id: extensionDef.id,
 			definition: extensionDef,
@@ -29,16 +47,28 @@ function createExtensionSystemInternal(
 	}
 	return {
 		extensions,
+		transientVisualsSubscribers: new Set(),
+		eventSubscribers: new Map(),
 		currentFrame: null
 	};
 }
 
 export function createExtensionSystem(options: ExtensionSystemInitOptions): ExtensionSystem {
-	const internalState = createExtensionSystemInternal(options);
+	let internalState: ExtensionSystemInternal | null = null;
+	function getInternalState(): ExtensionSystemInternal {
+		if (!internalState) {
+			throw new Error('Extension system internal state is not initialized');
+		}
+		return internalState;
+	}
+	internalState = createExtensionSystemInternal(getInternalState, options);
 
 	return {
-		get extensions() {
-			return internalState.extensions;
+		getSharedDataForRenderSystem() {
+			return {
+				extensions: internalState.extensions,
+				transientVisualsSubscribers: internalState.transientVisualsSubscribers
+			};
 		},
 		get currentFrame() {
 			return internalState.currentFrame;

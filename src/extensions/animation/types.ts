@@ -1,12 +1,12 @@
 import {
 	ExtensionAnimationSessionInternalSurface,
 	ExtensionAnimationSessionStatus
-} from '../types';
+} from '../types/basic/animation';
 
 export interface ExtensionAnimationSessionInternal {
 	readonly id: string;
 	readonly startTime: DOMHighResTimeStamp;
-	readonly duration: DOMHighResTimeStamp;
+	readonly duration: number;
 	status: ExtensionAnimationSessionStatus;
 }
 

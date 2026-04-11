@@ -1,5 +1,6 @@
 import { Square } from '../../../state/board/types';
-import { ExtensionRenderContext, ExtensionUpdateContext } from '../../types';
+import { ExtensionRenderContext } from '../../types/context/render';
+import { ExtensionUpdateContext } from '../../types/context/update';
 import { PieceUrls } from '../types/config';
 
 type PieceNodeRecord = {

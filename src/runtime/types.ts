@@ -1,9 +1,8 @@
+import { AnyExtensionDefinition } from '../extensions/types/extension';
 import {
-	AnyExtensionDefinition,
-	ExtensionCreateInstanceOptions,
-	RuntimeExtensionSurface,
-	RuntimeExtensionSurfaceSnapshot
-} from '../extensions/types';
+	ExtensionRuntimeSurfaceCommands,
+	ExtensionRuntimeSurfaceCommandsSnapshot
+} from '../extensions/types/surface/commands';
 import { RuntimeStateInitOptions } from '../state/types';
 import { RuntimeMutationPipeline, RuntimeMutationPipelineContext } from './mutation/pipeline';
 
@@ -21,7 +20,7 @@ export interface RuntimeInitOptions {
 }
 
 export interface RuntimeInitOptionsInternal extends RuntimeInitOptions {
-	extensionCreateInstanceOptions: ExtensionCreateInstanceOptions;
+	extensionRuntimeSurfaceCommands: ExtensionRuntimeSurfaceCommands;
 }
 
 /**
@@ -30,11 +29,11 @@ export interface RuntimeInitOptionsInternal extends RuntimeInitOptions {
  * Board/view/interaction reducers own mutation logic; the runtime coordinates scheduling
  * and geometry updates in response to state changes.
  */
-export interface Runtime extends RuntimeExtensionSurface {
+export interface Runtime extends ExtensionRuntimeSurfaceCommands {
 	// Lifecycle
 	readonly status: RuntimeStatus;
 	mount(container: HTMLElement): void;
 	unmount(): void; // just unmount, can be remounted
 	destroy(): void; // unmount + cleanup internal state, observers, etc. cannot be reused anymore
-	getSnapshot(): RuntimeExtensionSurfaceSnapshot;
+	getSnapshot(): ExtensionRuntimeSurfaceCommandsSnapshot;
 }

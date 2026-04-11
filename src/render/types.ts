@@ -1,11 +1,14 @@
 import {
+	ExtensionSystemExtensionRecord,
+	ExtensionSystemSharedDataForRenderSystem
+} from '../extensions/types';
+import {
 	ALL_EXTENSION_SLOTS,
 	ExtensionAllocatedSlotsInternal,
-	ExtensionSlotSvgRoots,
-	ExtensionSystemExtensionRecord,
-	RenderFrameSnapshot
-} from '../extensions/types';
-import { TransientVisualsSnapshot } from '../transientVisuals/types';
+	ExtensionSlotSvgRoots
+} from '../extensions/types/basic/mount';
+import { RenderFrameSnapshot } from '../extensions/types/basic/render';
+import { TransientInput } from '../extensions/types/basic/transient-visuals';
 import { Scheduler } from './scheduler/types';
 
 export interface SvgRoots extends ExtensionSlotSvgRoots<typeof ALL_EXTENSION_SLOTS> {
@@ -26,16 +29,15 @@ export interface RenderExtensionRecord {
 export interface RenderSystemInternal {
 	container: HTMLElement | null;
 	currentFrame: RenderFrameSnapshot | null;
-	currentTransientVisuals: TransientVisualsSnapshot | null;
 	readonly scheduler: Scheduler;
 	readonly svgRoots: SvgRoots;
-	// readonly animator: Animator;
 	readonly extensions: Map<string, RenderExtensionRecord>;
+	readonly transientVisualsSubscribers: ReadonlySet<string>;
 }
 
 export interface RenderSystemInitOptions {
 	doc: Document;
-	extensions: ReadonlyMap<string, ExtensionSystemExtensionRecord>;
+	sharedDataFromExtensionSystem: ExtensionSystemSharedDataForRenderSystem;
 }
 
 export interface RenderSystemInitOptionsInternal extends RenderSystemInitOptions {
@@ -46,7 +48,7 @@ export interface RenderSystem {
 	readonly extensions: ReadonlyMap<string, RenderExtensionRecord>;
 	requestRender(request?: RenderFrameSnapshot): void;
 	requestRenderAnimation(): void;
-	requestRenderVisuals(request?: TransientVisualsSnapshot): void;
+	requestRenderVisuals(request: TransientInput): void;
 
 	// Lifecycle methods
 	mount(element: HTMLElement): void;

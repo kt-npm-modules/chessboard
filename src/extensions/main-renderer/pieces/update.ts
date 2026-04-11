@@ -1,5 +1,4 @@
-import { isUpdateContextRenderable } from '../../helpers';
-import { ExtensionUpdateContext } from '../../types';
+import { ExtensionUpdateContext, isUpdateContextRenderable } from '../../types/context/update';
 import { DirtyLayer } from '../types/extension';
 import { MainRendererPiecesInternal } from './types';
 

@@ -1,4 +1,4 @@
-import { isFrameRenderable } from '../../extensions/helpers';
+import { isFrameRenderable } from '../../extensions/types/basic/update';
 import { RuntimeMutationPipe, RuntimeMutationPipeContext } from './pipeline';
 
 export const requestRenderPipe: RuntimeMutationPipe = (context) => {

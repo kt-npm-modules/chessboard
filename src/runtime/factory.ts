@@ -1,9 +1,8 @@
 import { createExtensionSystem } from '../extensions/factory';
-import { RuntimeExtensionSurface, RuntimeExtensionSurfaceSnapshot } from '../extensions/types';
+import { ExtensionRuntimeSurfaceCommands } from '../extensions/types/surface/commands';
 import { createLayout } from '../layout/factory';
-import { createRender } from '../render/factory';
+import { createRenderSystem } from '../render/factory';
 import { createRuntimeState } from '../state/factory';
-import { createTransientVisuals } from '../transientVisuals/factory';
 import { runtimeDestroy, runtimeMount, runtimeUnmount } from './lifecycle';
 import { createRuntimeMutationPipeline } from './mutation/factory';
 import type {
@@ -15,18 +14,14 @@ import type {
 } from './types';
 
 function createRuntimeInternal(options: RuntimeInitOptionsInternal): RuntimeInternal {
-	const extensionSystem = createExtensionSystem({
-		extensions: options.extensions,
-		createInstanceOptions: options.extensionCreateInstanceOptions
-	});
-	const render = createRender({
+	const extensionSystem = createExtensionSystem(options);
+	const render = createRenderSystem({
 		doc: options.doc,
-		extensions: extensionSystem.extensions
+		sharedDataFromExtensionSystem: extensionSystem.getSharedDataForRenderSystem()
 	});
 	return {
 		state: createRuntimeState(options.state ?? {}),
 		layout: createLayout(),
-		transientVisuals: createTransientVisuals(),
 		mutation: createRuntimeMutationPipeline(),
 		renderSystem: render,
 		extensionSystem: extensionSystem,
@@ -34,20 +29,12 @@ function createRuntimeInternal(options: RuntimeInitOptionsInternal): RuntimeInte
 	};
 }
 
-function createRuntimeExtensionSurface(
+function createExtensionRuntimeSurfaceCommands(
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	getInternalState: () => RuntimeInternal
-): RuntimeExtensionSurface {
+): ExtensionRuntimeSurfaceCommands {
 	// @ts-expect-error - For now we just return partial object. TODO: REMOVE!!!!
-	return {
-		getSnapshot(): RuntimeExtensionSurfaceSnapshot {
-			const state = getInternalState();
-			return {
-				state: state.state.getSnapshot(),
-				layout: state.layout.getSnapshot(),
-				transientVisuals: state.transientVisuals.getSnapshot()
-			};
-		}
-	};
+	return {};
 }
 
 export function createRuntime(options: RuntimeInitOptions): Runtime {
@@ -64,14 +51,12 @@ export function createRuntime(options: RuntimeInitOptions): Runtime {
 	}
 
 	// Create RuntimeExtensionSurface to pass to the extension system for initialization of extension instances
-	const extensionSurface = createRuntimeExtensionSurface(getInternalState);
+	const extensionSurface = createExtensionRuntimeSurfaceCommands(getInternalState);
 
 	// Now construct the internal state
 	const optionsInternal: RuntimeInitOptionsInternal = {
 		...options,
-		extensionCreateInstanceOptions: {
-			runtime: extensionSurface
-		}
+		extensionRuntimeSurfaceCommands: extensionSurface
 	};
 	internalState = createRuntimeInternal(optionsInternal);
 

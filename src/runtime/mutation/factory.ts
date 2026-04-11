@@ -17,8 +17,7 @@ function buildPreviousContext(
 ): NonNullable<RuntimeMutationPipeContext['previous']> {
 	return {
 		state: current.state.getSnapshot(),
-		layout: current.layout.getSnapshot(),
-		transientVisuals: current.transientVisuals.getSnapshot()
+		layout: current.layout.getSnapshot()
 	};
 }
 

@@ -1,11 +1,10 @@
-import { isUpdateContextCommonMounted } from './helpers';
+import { ExtensionSystemInternal, ExtensionSystemUpdateRequest } from './types';
 import {
-	ExtensionSystemInternal,
-	ExtensionSystemUpdateRequest,
 	ExtensionUpdateContext,
 	ExtensionUpdateContextCommon,
-	ExtensionUpdateContextCommonUnmounted
-} from './types';
+	ExtensionUpdateContextCommonUnmounted,
+	isUpdateContextCommonMounted
+} from './types/context/update';
 
 export function extensionSystemUpdateState(
 	state: ExtensionSystemInternal,
@@ -23,8 +22,7 @@ export function extensionSystemUpdateState(
 		const context: ExtensionUpdateContext = isUpdateContextCommonMounted(contextCommon)
 			? {
 					...contextCommon,
-					invalidation: extension.invalidation,
-					animation: extension.animation
+					invalidation: extension.invalidation
 				}
 			: {
 					...(contextCommon as ExtensionUpdateContextCommonUnmounted)

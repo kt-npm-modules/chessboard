@@ -1,10 +1,6 @@
 import { PartialDeep } from 'type-fest';
-import {
-	ExtensionDefinition,
-	ExtensionInstance,
-	ExtensionInstanceMountOptions,
-	ExtensionSlotSvgRoots
-} from '../../types';
+import { ExtensionInstanceMountOptions, ExtensionSlotSvgRoots } from '../../types/basic/mount';
+import { ExtensionDefinition, ExtensionInstance } from '../../types/extension';
 import { ConfigColors, PieceUrls } from './config';
 
 export interface MainRendererInitOptions {

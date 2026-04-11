@@ -1,4 +1,5 @@
-import { ExtensionRenderContext, RenderFrameSnapshot } from '../../extensions/types';
+import { RenderFrameSnapshot } from '../../extensions/types/basic/render';
+import { ExtensionRenderContext } from '../../extensions/types/context/render';
 import { updateElementAttributes } from '../svg/helpers';
 import { RenderSystemInternal } from '../types';
 import { validateIsMounted } from './helpers';
@@ -47,8 +48,7 @@ export function performRenderPass(
 		if (extensionRec.extension.invalidation.dirtyLayers !== 0) {
 			const context: ExtensionRenderContext = {
 				currentFrame: request,
-				invalidation: extensionRec.extension.invalidation,
-				animation: extensionRec.extension.animation
+				invalidation: extensionRec.extension.invalidation
 			};
 			extensionRec.extension.instance.render?.(context);
 			extensionRec.extension.invalidation.clear();

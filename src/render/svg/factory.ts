@@ -1,5 +1,8 @@
 import { Writable } from 'type-fest';
-import { ExtensionAllocatedSlotsInternal, ExtensionSlotName } from '../../extensions/types';
+import {
+	ExtensionAllocatedSlotsInternal,
+	ExtensionSlotName
+} from '../../extensions/types/basic/mount';
 import { RenderSystemInitOptionsInternal, SvgRoots } from '../types';
 import { createSvgElement } from './helpers';
 
