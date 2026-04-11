@@ -43,3 +43,5 @@ export interface ExtensionSystem {
 	onUnmount(): void;
 	onDestroy(): void;
 }
+
+export type GetInternalState = () => ExtensionSystemInternal;

@@ -1,4 +1,5 @@
-import { handlePointerDown } from './pointer';
+import { handlePointerDown, handlePointerMove } from './pointer';
+import { transmitTransientInput } from './transient-visuals';
 import {
 	InteractionController,
 	InteractionControllerInitOptions,
@@ -19,9 +20,15 @@ export function createInteractionController(
 	const internalState = createInteractionControllerInternal(options);
 	return {
 		onEvent(event) {
-			if (event.type === 'pointerdown') {
-				handlePointerDown(internalState, event);
+			switch (event.type) {
+				case 'pointerdown':
+					handlePointerDown(internalState, event);
+					break;
+				case 'pointermove':
+					handlePointerMove(internalState, event);
+					break;
 			}
+			transmitTransientInput(internalState, event);
 		}
 	};
 }

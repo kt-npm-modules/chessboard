@@ -53,3 +53,17 @@ export function handlePointerDown(
 		}
 	}
 }
+
+export function handlePointerMove(
+	state: InteractionControllerInternal,
+	event: BoardPointerEvent
+): void {
+	assert(
+		event.type === 'pointermove',
+		'handlePointerMove should only be called for pointermove events'
+	);
+	const interaction = state.surface.getInteractionStateSnapshot();
+	if (interaction.dragSession) {
+		state.surface.updateDragSessionCurrentTarget(event.target);
+	}
+}

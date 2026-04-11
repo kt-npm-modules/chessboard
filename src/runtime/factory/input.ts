@@ -43,6 +43,23 @@ export function createRuntimeInteractionSurface(
 				interactionMutationSession as InteractionStateMutationSession
 			);
 			runtimeRunMutationPipeline(internalState);
+		},
+		transientInput(input) {
+			const internalState = state();
+			internalState.renderSystem.requestRenderVisuals(input);
+		},
+		updateDragSessionCurrentTarget(target) {
+			const internalState = state();
+			const interactionMutationSession =
+				internalState.mutation.getSession() as InteractionStateMutationSession;
+			const interaction = internalState.state.interaction;
+			const currentDragSession = interaction.dragSession;
+			assert(currentDragSession !== null, 'No active drag session to update');
+			internalState.state.interaction.updateDragSessionCurrentTarget(
+				target,
+				interactionMutationSession
+			);
+			runtimeRunMutationPipeline(internalState);
 		}
 	};
 }

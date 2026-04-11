@@ -1,6 +1,8 @@
 import { toMerged } from 'es-toolkit';
+import { ExtensionCreateInstanceOptions } from '../types/extension';
 import { createMainRendererBoard } from './board/factory';
 import { createMainRendererCoordinates } from './coordinates/factory';
+import { createMainRendererDrag } from './drag/factory';
 import { createMainRendererPieces } from './pieces/factory';
 import { DEFAULT_MAIN_RENDERER_CONFIG, MainRendererConfig } from './types/config';
 import {
@@ -17,17 +19,28 @@ export function createMainRenderer(options: MainRendererInitOptions = {}): MainR
 	return {
 		id: EXTENSION_ID,
 		slots: EXTENSION_SLOTS,
-		createInstance() {
-			return createMainRendererInstance(config);
+		createInstance(options) {
+			return createMainRendererInstance(options, config);
 		}
 	};
 }
 
-function createMainRendererInternalState(config: MainRendererConfig): MainRendererInstanceInternal {
+function createMainRendererInternal(
+	options: ExtensionCreateInstanceOptions,
+	config: MainRendererConfig
+): MainRendererInstanceInternal {
 	const board = createMainRendererBoard(config.colors.board);
 	const coordinates = createMainRendererCoordinates(config.colors.coordinates);
 	const pieces = createMainRendererPieces(config.pieceUrls);
-	return { board, coordinates, pieces, slotRoots: null };
+	const drag = createMainRendererDrag(config.pieceUrls, options.runtimeSurface);
+	return {
+		board,
+		coordinates,
+		pieces,
+		drag,
+		slotRoots: null,
+		runtimeSurface: options.runtimeSurface
+	};
 }
 
 function validateIsMounted(
@@ -39,8 +52,11 @@ function validateIsMounted(
 		throw new Error('Extension instance is not mounted yet');
 	}
 }
-function createMainRendererInstance(config: MainRendererConfig): MainRendererInstance {
-	const internalState = createMainRendererInternalState(config);
+function createMainRendererInstance(
+	options: ExtensionCreateInstanceOptions,
+	config: MainRendererConfig
+): MainRendererInstance {
+	const internalState = createMainRendererInternal(options, config);
 	return {
 		id: EXTENSION_ID,
 		mount(env) {
@@ -49,6 +65,7 @@ function createMainRendererInstance(config: MainRendererConfig): MainRendererIns
 		onUpdate(context) {
 			internalState.board.onUpdate(context);
 			internalState.pieces.onUpdate(context);
+			internalState.drag.onUpdate(context);
 		},
 		render(context) {
 			validateIsMounted(internalState);
@@ -56,10 +73,15 @@ function createMainRendererInstance(config: MainRendererConfig): MainRendererIns
 			internalState.coordinates.render(context, internalState.slotRoots.coordinates);
 			internalState.pieces.render(context, internalState.slotRoots.pieces);
 		},
+		renderTransientVisuals(context) {
+			validateIsMounted(internalState);
+			internalState.drag.renderTransientVisuals(context, internalState.slotRoots.drag);
+		},
 		unmount() {
 			// internalState.board.unmount();
 			// internalState.coordinates.unmount();
 			internalState.pieces.unmount();
+			internalState.drag.unmount();
 		}
 	};
 }

@@ -1,24 +1,13 @@
-import { createExtensionAnimationController } from './animation/factory';
-import { createExtensionInvalidationState } from './invalidation/factory';
+import { createExtensionAnimationController } from '../animation/factory';
+import { createExtensionInvalidationState } from '../invalidation/factory';
 import {
 	ExtensionSystem,
 	ExtensionSystemExtensionRecord,
 	ExtensionSystemInitOptions,
 	ExtensionSystemInternal
-} from './types';
-import { ExtensionRuntimeSurface } from './types/surface';
-import { ExtensionRuntimeSurfaceCommands } from './types/surface/commands';
-import { extensionSystemUpdateState } from './update';
-
-function createExtensionRuntimeSurface(
-	getInternalState: () => ExtensionSystemInternal,
-	commands: ExtensionRuntimeSurfaceCommands
-): ExtensionRuntimeSurface {
-	// @ts-expect-error We will implement events and transient visuals later, for now we just return empty objects for them to satisfy the interface
-	return {
-		commands
-	};
-}
+} from '../types';
+import { extensionSystemUpdateState } from '../update';
+import { createExtensionRuntimeSurface } from './runtime';
 
 function createExtensionSystemInternal(
 	getInternalState: () => ExtensionSystemInternal,
@@ -33,7 +22,8 @@ function createExtensionSystemInternal(
 		const instance = extensionDef.createInstance({
 			runtimeSurface: createExtensionRuntimeSurface(
 				getInternalState,
-				options.extensionRuntimeSurfaceCommands
+				options.extensionRuntimeSurfaceCommands,
+				extensionDef
 			)
 		});
 		const record: ExtensionSystemExtensionRecord = {
@@ -77,6 +67,8 @@ export function createExtensionSystem(options: ExtensionSystemInitOptions): Exte
 			extensionSystemUpdateState(internalState, request);
 		},
 		onUnmount() {
+			internalState.transientVisualsSubscribers.clear();
+			internalState.eventSubscribers.clear();
 			internalState.currentFrame = null;
 			for (const extensionRec of internalState.extensions.values()) {
 				extensionRec.invalidation.clear();
@@ -95,10 +87,10 @@ export function createExtensionSystem(options: ExtensionSystemInitOptions): Exte
 						`Extension ${extensionRec.id} was not properly unmounted before destroy. Please make sure to call onUnmount before onDestroy to allow the extension to clean up its state and resources.`
 					);
 				}
-				// So we just clear the extension map to release references to extension definitions and instances and allow them to be garbage collected
-				// Cause they also have back reference to our surface to manipulate the core state
-				internalState.extensions.clear();
 			}
+			// So we just clear the extension map to release references to extension definitions and instances and allow them to be garbage collected
+			// Cause they also have back reference to our surface to manipulate the core state
+			internalState.extensions.clear();
 		}
 	};
 }

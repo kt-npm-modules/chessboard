@@ -100,6 +100,10 @@ export function createInteractionState(options: InteractionStateInitOptions): In
 		},
 
 		updateDragSessionCurrentTarget(sq, mutationSession) {
+			assert(
+				internalState.dragSession,
+				'There must be an active drag session to update its current target'
+			);
 			return mutationSession.addMutation(
 				'state.interaction.updateDragSessionCurrentTarget',
 				interactionUpdateDragSessionCurrentTarget(internalState, sq)

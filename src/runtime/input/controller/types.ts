@@ -10,6 +10,7 @@ export interface RuntimeInteractionSurface {
 	dropTo(target: Square): Move;
 	startReleaseTargetingDrag(source: Square, target: Square): void;
 	releaseTo(target: Square): Move;
+	updateDragSessionCurrentTarget(target: Square | null): void;
 	cancelActiveInteraction(): void;
 	cancelInteraction(): void;
 	transientInput(input: TransientInput): void;
