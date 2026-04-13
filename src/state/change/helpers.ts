@@ -21,10 +21,10 @@ export function movesEqual(moveA: MoveSnapshot | null, moveB: MoveSnapshot | nul
 		return false;
 	}
 	const diffs: boolean[] = [
-		moveA.promotion !== moveB.promotion,
-		moveA.captured?.color !== moveB.captured?.color,
-		moveA.captured?.role !== moveB.captured?.role,
-		moveA.capturedSquare !== moveB.capturedSquare
+		moveA.promotedTo !== moveB.promotedTo,
+		moveA.captured?.piece.color !== moveB.captured?.piece.color,
+		moveA.captured?.piece.role !== moveB.captured?.piece.role,
+		moveA.captured?.square !== moveB.captured?.square
 	];
 	if (diffs.some(Boolean)) {
 		return false;

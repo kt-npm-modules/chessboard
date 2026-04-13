@@ -1,3 +1,4 @@
+import assert from '@ktarmyshov/assert';
 import { fromAlgebraic, toValidSquare } from './coords';
 import { decodePiece, encodePiece, isEmpty } from './encode';
 import { START_FEN, parseFenPlacement, parseFenTurn } from './fen';
@@ -14,7 +15,6 @@ import type {
 	PositionInput,
 	PositionMap,
 	PositionMapShort,
-	RolePromotion,
 	Square,
 	SquareString
 } from './types';
@@ -140,23 +140,24 @@ export function boardMove(state: BoardStateInternal, move: MoveInput): Move {
 	}
 
 	// Decode moving piece to determine color and current role
-	const movingPiece = decodePiece(movingCode);
-	if (!movingPiece) throw new RangeError(`Invalid piece code at from=${from}`);
+	const movedPiece = decodePiece(movingCode);
+	if (!movedPiece) throw new RangeError(`Invalid piece code at from=${from}`);
 
 	// Determine capture square (normal capture at 'to', or EP-like via move.capturedSquare)
-	const captureSq: Square | undefined =
-		move?.capturedSquare !== undefined ? toValidSquare(move.capturedSquare) : to;
-	let capturedPiece: Piece | undefined;
-	if (captureSq !== undefined) {
-		const codeAtCapture = state.pieces[captureSq];
-		capturedPiece = isEmpty(codeAtCapture) ? undefined : decodePiece(codeAtCapture)!;
+	let captured: Move['captured'];
+	const captureSq = move?.capturedSquare !== undefined ? toValidSquare(move.capturedSquare) : to;
+	const codeAtCapture = state.pieces[captureSq];
+	if (!isEmpty(codeAtCapture)) {
+		const capturedPiece = decodePiece(codeAtCapture);
+		assert(capturedPiece, `Invalid piece code at capture square ${captureSq}`);
+		captured = { piece: capturedPiece, square: captureSq };
 	}
 
 	// Write destination: with promotion or same role
 	let newPieceCode = movingCode;
-	if (move?.promotion) {
-		const newRole = normalizeRole(move.promotion);
-		newPieceCode = encodePiece({ color: movingPiece.color, role: newRole });
+	if (move?.promotedTo) {
+		const newRole = normalizeRole(move.promotedTo);
+		newPieceCode = encodePiece({ color: movedPiece.color, role: newRole });
 	}
 
 	// process secondary move if provided (e.g., rook move in castling)
@@ -208,14 +209,13 @@ export function boardMove(state: BoardStateInternal, move: MoveInput): Move {
 	// Position epoch
 	state.positionEpoch++;
 
-	const promotion = move?.promotion ? (normalizeRole(move.promotion) as RolePromotion) : undefined;
+	const promotedTo = move?.promotedTo ? normalizeRole(move.promotedTo) : undefined;
 	const result: Move = {
 		from,
 		to,
-		moved: movingPiece,
-		...(capturedPiece && { captured: capturedPiece }),
-		...(capturedPiece && { capturedSquare: captureSq }),
-		...(promotion && { promotion }),
+		moved: movedPiece,
+		...(captured && { captured }),
+		...(promotedTo && { promotion: promotedTo }),
 		...(secondaryMove && { secondary: secondaryMove })
 	};
 	return result;

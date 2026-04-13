@@ -104,43 +104,39 @@ export interface PieceShort {
 
 export type RolePromotionInput = RolePromotion | RolePromotionShort;
 
-export interface MoveInputBaseSquare {
-	from: Square;
-	to: Square;
+export interface TMoveInputBase<TSquare extends Square | SquareString> {
+	from: TSquare;
+	to: TSquare;
 }
 
-export interface MoveInputSquare extends MoveInputBaseSquare {
-	capturedSquare?: Square; // Optional: the square of the captured piece, useful for en passant
-	secondary?: MoveInputBaseSquare; // Optional: for multi-part moves like castling (rook move)
-	promotion?: RolePromotionInput; // Optional: for promotion moves
+export interface TMoveInput<TSquare extends Square | SquareString> extends TMoveInputBase<TSquare> {
+	capturedSquare?: TSquare; // Optional: the square of the captured piece, useful for en passant
+	promotedTo?: RolePromotionInput; // Optional: for promotion moves
+	secondary?: TMoveInputBase<TSquare>; // For multi-part moves like castling (rook move)
 }
 
-export interface MoveInputBaseString {
-	from: SquareString;
-	to: SquareString;
+export type MoveInput = TMoveInput<Square> | TMoveInput<SquareString>;
+
+export interface TMoveCaptured<TSquare extends Square | SquareString> {
+	piece: Piece;
+	square: TSquare;
 }
 
-export interface MoveInputString extends MoveInputBaseString {
-	capturedSquare?: SquareString; // Optional: the square of the captured piece, useful for en passant
-	secondary?: MoveInputBaseString; // Optional: for multi-part moves like castling (rook move)
-	promotion?: RolePromotionInput; // Optional: for promotion moves
-}
-
-export type MoveInput = MoveInputSquare | MoveInputString;
-
-export interface MoveBase {
-	from: Square;
-	to: Square;
+export interface TMoveBase<TSquare extends Square | SquareString> {
+	from: TSquare;
+	to: TSquare;
 	moved: Piece;
 }
-export type MoveBaseSnapshot = ReadonlyDeep<MoveBase>;
 
-export interface Move extends MoveBase {
-	promotion?: RolePromotion;
-	captured?: Piece;
-	capturedSquare?: Square; // Optional: where the captured piece was (for en passant)
-	secondary?: MoveBase; // Optional: for multi-part moves like castling (rook move)
+export interface TMove<TSquare extends Square | SquareString> extends TMoveBase<TSquare> {
+	captured?: TMoveCaptured<TSquare>;
+	promotedTo?: RolePromotion;
+	secondary?: TMoveBase<TSquare>; // For multi-part moves like castling (rook move)
 }
+
+export type MoveBase = TMoveBase<Square>;
+export type MoveBaseSnapshot = ReadonlyDeep<MoveBase>;
+export type Move = TMove<Square>;
 export type MoveSnapshot = ReadonlyDeep<Move>;
 
 /**
