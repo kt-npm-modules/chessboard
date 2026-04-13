@@ -26,8 +26,8 @@ export interface AnimationTrackStatic {
 export type AnimationTrack = AnimationTrackMove | AnimationTrackFade | AnimationTrackStatic; // Extendable for other effects in the future
 
 export interface AnimationPlan {
+	sessionId: number;
 	tracks: AnimationTrack[];
-	duration: number;
 }
 
 export interface AnimationSession {

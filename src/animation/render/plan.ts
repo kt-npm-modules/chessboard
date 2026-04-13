@@ -1,0 +1,94 @@
+import type { PieceUrls } from '../../extensions/main-renderer/types/config';
+import type { RenderGeometry } from '../../layout/geometry/types';
+import { assertNever } from '../../utils/assert-never';
+import type { AnimationPlan } from '../types';
+import { cleanFadeTrack, prepareFadeTrack, renderFadeTrack } from './fade';
+import { cleanMoveTrack, prepareMoveTrack, renderMoveTrack } from './move';
+import { cleanStaticTrack, prepareStaticTrack, renderStaticTrack } from './static';
+import type { PreparedNodeMap, PreparedTrackNode } from './types';
+
+/**
+ * Prepare all tracks in the plan — creates SVG nodes in `layer` for each track.
+ * Returns a map keyed by track id for use in render/clean passes.
+ */
+export function prepareAnimationPlan(
+	plan: AnimationPlan,
+	geometry: RenderGeometry,
+	pieceUrls: PieceUrls,
+	layer: SVGElement
+): PreparedNodeMap {
+	const nodes: PreparedNodeMap = new Map();
+	for (const track of plan.tracks) {
+		let node: PreparedTrackNode;
+		switch (track.effect) {
+			case 'move':
+				node = prepareMoveTrack(track, geometry, pieceUrls, layer);
+				break;
+			case 'fade-in':
+			case 'fade-out':
+				node = prepareFadeTrack(track, geometry, pieceUrls, layer);
+				break;
+			case 'static':
+				node = prepareStaticTrack(track, geometry, pieceUrls, layer);
+				break;
+			default:
+				assertNever(RangeError, `Unsupported track effect`, track);
+		}
+		nodes.set(track.id, node);
+	}
+	return nodes;
+}
+
+/**
+ * Render all tracks for the current animation frame.
+ * `elapsed` is time in ms since animation start; `duration` is total plan duration.
+ */
+export function renderAnimationPlan(
+	nodes: PreparedNodeMap,
+	geometry: RenderGeometry,
+	startTime: DOMHighResTimeStamp,
+	duration: number,
+	now: DOMHighResTimeStamp
+): void {
+	const elapsed = now - startTime;
+	const progress = duration > 0 ? Math.min(elapsed / duration, 1) : 1;
+	for (const node of nodes.values()) {
+		switch (node.effect) {
+			case 'move':
+				renderMoveTrack(node, geometry, progress);
+				break;
+			case 'fade-in':
+			case 'fade-out':
+				renderFadeTrack(node, progress);
+				break;
+			case 'static':
+				renderStaticTrack(node);
+				break;
+			default:
+				assertNever(RangeError, `Unsupported track effect`, node);
+		}
+	}
+}
+
+/**
+ * Clean up all track nodes — removes SVG elements from the DOM.
+ */
+export function cleanAnimationPlan(nodes: PreparedNodeMap): void {
+	for (const node of nodes.values()) {
+		switch (node.effect) {
+			case 'move':
+				cleanMoveTrack(node);
+				break;
+			case 'fade-in':
+			case 'fade-out':
+				cleanFadeTrack(node);
+				break;
+			case 'static':
+				cleanStaticTrack(node);
+				break;
+			default:
+				assertNever(RangeError, `Unsupported track effect`, node);
+		}
+	}
+	nodes.clear();
+}

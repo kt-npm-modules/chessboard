@@ -6,20 +6,17 @@ import type {
 } from '../types';
 
 /** Prepared node for a move track — holds the SVG image and its track. */
-export interface PreparedMoveNode {
-	track: AnimationTrackMove;
+export interface PreparedMoveNode extends AnimationTrackMove {
 	root: SVGImageElement;
 }
 
 /** Prepared node for a fade-in / fade-out track. */
-export interface PreparedFadeNode {
-	track: AnimationTrackFade;
+export interface PreparedFadeNode extends AnimationTrackFade {
 	root: SVGImageElement;
 }
 
 /** Prepared node for a static (captured piece) track. */
-export interface PreparedStaticNode {
-	track: AnimationTrackStatic;
+export interface PreparedStaticNode extends AnimationTrackStatic {
 	root: SVGImageElement;
 }
 

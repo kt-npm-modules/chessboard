@@ -1,7 +1,7 @@
 import { fileOf, rankOf } from '../state/board/coords';
 import { decodePiece } from '../state/board/encode';
 import { BoardStateSnapshot, Square } from '../state/board/types';
-import { AnimationTrack } from './types';
+import { AnimationPlan, AnimationTrack } from './types';
 
 // Precomputed squared distance: (dFile² + dRank²) for all square pairs.
 // Max value = 7² + 7² = 98, fits in Uint8. Index: a * 64 + b.
@@ -90,4 +90,12 @@ export function calculateAnimationTracks(
 	}
 
 	return tracks;
+}
+
+export function calculateAnimationPlan(
+	pos1: BoardStateSnapshot,
+	pos2: BoardStateSnapshot,
+	sessionId: number
+): AnimationPlan {
+	return { sessionId, tracks: calculateAnimationTracks(pos1, pos2) };
 }

@@ -8,7 +8,7 @@ import {
 import { ExtensionAnimationControllerInternal, ExtensionAnimationSessionInternal } from './types';
 
 function createExtensionAnimationSessionInternal(
-	id: string,
+	id: number,
 	options: ExtensionAnimationSessionSubmitOptions
 ): ExtensionAnimationSessionInternal {
 	return {
@@ -20,7 +20,7 @@ function createExtensionAnimationSessionInternal(
 }
 
 export function createExtensionAnimationSession(
-	id: string,
+	id: number,
 	options: ExtensionAnimationSessionSubmitOptions
 ): ExtensionAnimationSessionInternalSurface {
 	const internalState = createExtensionAnimationSessionInternal(id, options);
@@ -44,16 +44,15 @@ function createExtensionAnimationControllerInternal(): ExtensionAnimationControl
 	};
 }
 
+let gSessionId = 0;
+
 export function createExtensionAnimationController(): ExtensionAnimationControllerInternalSurface {
 	const internalState = createExtensionAnimationControllerInternal();
 	return {
 		submit(options) {
-			let sessionId: string = performance.now().toString(); // Simple unique ID generation based on timestamp
-			while (internalState.sessions.has(sessionId)) {
-				sessionId = (performance.now() + Math.random()).toString(); // Ensure uniqueness
-			}
-			const session = createExtensionAnimationSession(sessionId, options);
-			internalState.sessions.set(sessionId, session);
+			gSessionId++;
+			const session = createExtensionAnimationSession(gSessionId, options);
+			internalState.sessions.set(gSessionId, session);
 			// Logic to start the animation can be added here
 			return session;
 		},
@@ -75,7 +74,7 @@ export function createExtensionAnimationController(): ExtensionAnimationControll
 			);
 		},
 		remove(sessionId) {
-			if (typeof sessionId === 'string') {
+			if (typeof sessionId === 'number') {
 				internalState.sessions.delete(sessionId);
 			} else {
 				for (const id of sessionId) {

@@ -12,7 +12,7 @@ export interface ExtensionAnimationSessionSubmitOptions {
 }
 
 export interface ExtensionAnimationSession {
-	readonly id: string;
+	readonly id: number;
 	readonly startTime: DOMHighResTimeStamp;
 	readonly duration: number;
 	readonly status: ExtensionAnimationSessionStatus;
@@ -20,7 +20,7 @@ export interface ExtensionAnimationSession {
 
 export interface ExtensionAnimationController {
 	submit(options: ExtensionAnimationSessionSubmitOptions): ExtensionAnimationSession;
-	cancel(sessionId: string): void;
+	cancel(sessionId: number): void;
 	getAll(
 		status?: ExtensionAnimationSessionStatus | Iterable<ExtensionAnimationSessionStatus>
 	): readonly ExtensionAnimationSession[];
@@ -34,6 +34,6 @@ export interface ExtensionAnimationControllerInternalSurface extends ExtensionAn
 	getAll(
 		status?: ExtensionAnimationSessionStatus | Iterable<ExtensionAnimationSessionStatus>
 	): readonly ExtensionAnimationSessionInternalSurface[];
-	remove(sessionId: string | Iterable<string>): void;
+	remove(sessionId: number | Iterable<number>): void;
 	clear(): void;
 }

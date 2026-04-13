@@ -24,11 +24,11 @@ export function prepareFadeTrack(
 		height: r.size.toString(),
 		opacity: initialOpacity
 	});
-	return { track, root };
+	return { ...track, root };
 }
 
 export function renderFadeTrack(node: PreparedFadeNode, progress: number): void {
-	const opacity = node.track.effect === 'fade-in' ? progress : 1 - progress;
+	const opacity = node.effect === 'fade-in' ? progress : 1 - progress;
 	updateElementAttributes(node.root, { opacity: opacity.toString() });
 }
 

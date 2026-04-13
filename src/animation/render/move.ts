@@ -22,7 +22,7 @@ export function prepareMoveTrack(
 		width: r.size.toString(),
 		height: r.size.toString()
 	});
-	return { track, root };
+	return { ...track, root };
 }
 
 export function renderMoveTrack(
@@ -30,8 +30,8 @@ export function renderMoveTrack(
 	geometry: RenderGeometry,
 	progress: number
 ): void {
-	const from = geometry.squareRect(node.track.fromSq);
-	const to = geometry.squareRect(node.track.toSq);
+	const from = geometry.squareRect(node.fromSq);
+	const to = geometry.squareRect(node.toSq);
 	const x = from.x + (to.x - from.x) * progress;
 	const y = from.y + (to.y - from.y) * progress;
 	updateElementAttributes(node.root, {

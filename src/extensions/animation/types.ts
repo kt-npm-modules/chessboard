@@ -4,12 +4,12 @@ import {
 } from '../types/basic/animation';
 
 export interface ExtensionAnimationSessionInternal {
-	readonly id: string;
+	readonly id: number;
 	readonly startTime: DOMHighResTimeStamp;
 	readonly duration: number;
 	status: ExtensionAnimationSessionStatus;
 }
 
 export interface ExtensionAnimationControllerInternal {
-	readonly sessions: Map<string, ExtensionAnimationSessionInternalSurface>;
+	readonly sessions: Map<number, ExtensionAnimationSessionInternalSurface>;
 }

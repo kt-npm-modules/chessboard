@@ -22,7 +22,7 @@ export function prepareStaticTrack(
 		width: r.size.toString(),
 		height: r.size.toString()
 	});
-	return { track, root };
+	return { ...track, root };
 }
 
 // No per-frame update needed — static pieces stay in place until the animation layer is cleaned.
