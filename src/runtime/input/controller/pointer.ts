@@ -1,6 +1,6 @@
 import assert from '@ktarmyshov/assert';
 import { BoardPointerEvent } from '../../../extensions/types/basic/events';
-import { decodePiece } from '../../../state/board/encode';
+import { decodePiece, isEmpty } from '../../../state/board/encode';
 import { InteractionControllerInternal } from './types';
 
 export function handlePointerDown(
@@ -48,7 +48,7 @@ export function handlePointerDown(
 		 * So it's either a new lift or re-lift of the same piece. In either case, we can just start a lifted drag session if the target is valid.
 		 */
 		const pieceCode = state.surface.getPieceCodeAt(event.target);
-		if (pieceCode !== 0) {
+		if (isEmpty(pieceCode)) {
 			state.surface.startLiftedDrag(event.target, event.target);
 		}
 	}

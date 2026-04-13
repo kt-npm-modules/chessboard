@@ -6,6 +6,7 @@
  */
 
 import type { ReadonlyDeep } from 'type-fest';
+import { PieceCode } from './encode';
 import type { BoardStateMutationSession } from './mutation';
 
 export type Color = 'white' | 'black';
@@ -174,6 +175,6 @@ export interface BoardState {
 	setPosition(input: PositionInput, mutationSession: BoardStateMutationSession): boolean;
 	setTurn(turn: ColorInput, mutationSession: BoardStateMutationSession): boolean;
 	move(move: MoveInput, mutationSession: BoardStateMutationSession): Move;
-	getPieceCodeAt(square: Square): number;
+	getPieceCodeAt(square: Square): PieceCode;
 	getSnapshot(): BoardStateSnapshot;
 }

@@ -1,7 +1,7 @@
 import assert from '@ktarmyshov/assert';
 import { fromAlgebraic, toValidSquare } from './coords';
-import { decodePiece, encodePiece, isEmpty } from './encode';
-import { START_FEN, parseFenPlacement, parseFenTurn } from './fen';
+import { decodePiece, encodePiece, isEmpty, PieceCodeBase } from './encode';
+import { parseFenPlacement, parseFenTurn, START_FEN } from './fen';
 import { normalizeColor, normalizeRole } from './normalize';
 import type {
 	BoardStateInternal,
@@ -192,15 +192,15 @@ export function boardMove(state: BoardStateInternal, move: MoveInput): Move {
 	// Update now the state
 	// Pieces
 	state.pieces[to] = newPieceCode;
-	state.pieces[from] = 0;
+	state.pieces[from] = PieceCodeBase.Empty;
 	// En passant-like capture: if capture square differs from 'to', clear it now
 	if (captureSq !== undefined && captureSq !== to) {
-		state.pieces[captureSq] = 0;
+		state.pieces[captureSq] = PieceCodeBase.Empty;
 	}
 	// Secondary move
 	if (secFrom !== undefined && secTo !== undefined) {
 		state.pieces[secTo] = state.pieces[secFrom];
-		state.pieces[secFrom] = 0;
+		state.pieces[secFrom] = PieceCodeBase.Empty;
 	}
 
 	// Toggle turn

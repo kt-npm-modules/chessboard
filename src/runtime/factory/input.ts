@@ -1,4 +1,5 @@
 import assert from '@ktarmyshov/assert';
+import { isEmpty } from '../../state/board/encode';
 import { InteractionStateMutationSession } from '../../state/interaction/mutation';
 import { DragSession, InteractionStateSelected } from '../../state/interaction/types';
 import { RuntimeInteractionSurface } from '../input/controller/types';
@@ -25,7 +26,7 @@ export function createRuntimeInteractionSurface(
 			const interaction = internalState.state.interaction;
 
 			const pieceCode = internalState.state.board.getPieceCodeAt(source);
-			assert(pieceCode !== 0, 'Cannot start a lifted-piece-drag session from an empty square');
+			assert(!isEmpty(pieceCode), 'Cannot start a lifted-piece-drag session from an empty square');
 			const interactionSource: InteractionStateSelected = {
 				square: source,
 				pieceCode

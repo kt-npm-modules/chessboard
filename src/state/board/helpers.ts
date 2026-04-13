@@ -1,4 +1,4 @@
-import { decodePiece } from './encode';
+import { decodePiece, PieceCodeBase } from './encode';
 import type { BoardStateSnapshot, Piece, Square } from './types';
 
 export function getPieceAt(board: BoardStateSnapshot, sq: Square): Piece | null {
@@ -7,5 +7,5 @@ export function getPieceAt(board: BoardStateSnapshot, sq: Square): Piece | null 
 }
 
 export function isOccupied(board: BoardStateSnapshot, sq: Square): boolean {
-	return board.pieces[sq] > 0;
+	return board.pieces[sq] > PieceCodeBase.Empty;
 }

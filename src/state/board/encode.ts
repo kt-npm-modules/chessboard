@@ -7,7 +7,7 @@ import type { Color, Piece, Role } from './types';
  * - 9..14 = black: same as white + 8
  */
 
-const enum Base {
+export const enum PieceCodeBase {
 	Empty = 0,
 	Pawn = 1,
 	Knight = 2,
@@ -27,57 +27,57 @@ export function encodePiece(piece: Piece): PieceCode {
 }
 
 export function decodePiece(code: PieceCode): Piece | null {
-	if (code <= 0) return null;
+	if (code <= PieceCodeBase.Empty) return null;
 	const color: Color = code >= BLACK_SHIFT ? 'black' : 'white';
 	const base = color === 'black' ? code - BLACK_SHIFT : code;
 	return { color, role: baseToRole(base) };
 }
 
 export function isEmpty(code: PieceCode): boolean {
-	return code === Base.Empty;
+	return code === PieceCodeBase.Empty;
 }
 
 export function isWhiteCode(code: PieceCode): boolean {
-	return code > 0 && code < BLACK_SHIFT;
+	return code > PieceCodeBase.Empty && code < BLACK_SHIFT;
 }
 
 export function isBlackCode(code: PieceCode): boolean {
 	return code >= BLACK_SHIFT;
 }
 
-function roleToBase(role: Role): Base {
+function roleToBase(role: Role): PieceCodeBase {
 	switch (role) {
 		case 'pawn':
-			return Base.Pawn;
+			return PieceCodeBase.Pawn;
 		case 'knight':
-			return Base.Knight;
+			return PieceCodeBase.Knight;
 		case 'bishop':
-			return Base.Bishop;
+			return PieceCodeBase.Bishop;
 		case 'rook':
-			return Base.Rook;
+			return PieceCodeBase.Rook;
 		case 'queen':
-			return Base.Queen;
+			return PieceCodeBase.Queen;
 		case 'king':
-			return Base.King;
+			return PieceCodeBase.King;
 		default:
 			// Exhaustiveness guard
-			return Base.Empty;
+			return PieceCodeBase.Empty;
 	}
 }
 
-function baseToRole(base: Base): Role {
+function baseToRole(base: PieceCodeBase): Role {
 	switch (base) {
-		case Base.Pawn:
+		case PieceCodeBase.Pawn:
 			return 'pawn';
-		case Base.Knight:
+		case PieceCodeBase.Knight:
 			return 'knight';
-		case Base.Bishop:
+		case PieceCodeBase.Bishop:
 			return 'bishop';
-		case Base.Rook:
+		case PieceCodeBase.Rook:
 			return 'rook';
-		case Base.Queen:
+		case PieceCodeBase.Queen:
 			return 'queen';
-		case Base.King:
+		case PieceCodeBase.King:
 			return 'king';
 		default:
 			throw new RangeError(`Invalid base role code: ${base}`);
