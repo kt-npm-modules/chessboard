@@ -27,6 +27,8 @@ export interface ExtensionAnimationController {
 }
 
 export interface ExtensionAnimationSessionInternalSurface extends ExtensionAnimationSession {
+	readonly elapsedTime: DOMHighResTimeStamp;
+	readonly progress: number;
 	setStatus(status: ExtensionAnimationSessionStatus): void;
 }
 

@@ -32,7 +32,7 @@ export function performAnimationPass(state: RenderSystemInternal): RenderAnimati
 			const context: ExtensionPrepareAnimationContext = {
 				currentFrame: currentFrame,
 				invalidation: extensionRec.extension.invalidation,
-				submittedSessions: submittedSessions as unknown as ExtensionSubmittedAnimationSession[]
+				submittedSessions: submittedSessions as readonly ExtensionSubmittedAnimationSession[]
 			};
 			extensionRec.extension.instance.prepareAnimation?.(context);
 			submittedSessions.forEach((session) => {
@@ -45,7 +45,7 @@ export function performAnimationPass(state: RenderSystemInternal): RenderAnimati
 			const context: ExtensionRenderAnimationContext = {
 				currentFrame: currentFrame,
 				invalidation: extensionRec.extension.invalidation,
-				activeSessions: activeSessions as unknown as ExtensionActiveAnimationSession[]
+				activeSessions: activeSessions as readonly ExtensionActiveAnimationSession[]
 			};
 			extensionRec.extension.instance.renderAnimation?.(context);
 		}
@@ -64,7 +64,7 @@ export function performAnimationPass(state: RenderSystemInternal): RenderAnimati
 			const context: ExtensionCleanAnimationContext = {
 				currentFrame: currentFrame,
 				invalidation: extensionRec.extension.invalidation,
-				finishedSessions: finishedSessions as unknown as ExtensionFinishedAnimationSession[]
+				finishedSessions: finishedSessions as readonly ExtensionFinishedAnimationSession[]
 			};
 			extensionRec.extension.instance.cleanAnimation?.(context);
 		}

@@ -32,6 +32,12 @@ export function createExtensionAnimationSession(
 		get status() {
 			return internalState.status;
 		},
+		get elapsedTime() {
+			return performance.now() - internalState.startTime;
+		},
+		get progress() {
+			return Math.min(1, (performance.now() - internalState.startTime) / internalState.duration);
+		},
 		setStatus(newStatus: ExtensionAnimationSessionStatus) {
 			internalState.status = newStatus;
 		}

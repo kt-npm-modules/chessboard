@@ -8,6 +8,7 @@ export interface ExtensionSubmittedAnimationSession extends ExtensionAnimationSe
 export interface ExtensionActiveAnimationSession extends ExtensionAnimationSession {
 	readonly status: 'active';
 	readonly elapsedTime: DOMHighResTimeStamp;
+	readonly progress: number;
 }
 
 export interface ExtensionFinishedAnimationSession extends ExtensionAnimationSession {
