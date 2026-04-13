@@ -7,7 +7,7 @@ export interface LayoutInternal {
 	boardSize: number | null;
 	orientation: Color | null;
 	geometry: RenderGeometry | null;
-	layoutVersion: number;
+	layoutEpoch: number;
 }
 
 export type LayoutSnapshot = ReadonlyDeep<LayoutInternal>;
@@ -30,7 +30,7 @@ export interface Layout {
 	readonly boardSize: number | null;
 	readonly orientation: Color | null;
 	readonly geometry: RenderGeometry | null;
-	readonly layoutVersion: number;
+	readonly layoutEpoch: number;
 
 	refreshGeometry(options: LayoutRefreshOptions, mutationSession: LayoutMutationSession): boolean;
 	getSnapshot(): LayoutSnapshot;

@@ -9,3 +9,11 @@ export function getPieceAt(board: BoardStateSnapshot, sq: Square): Piece | null 
 export function isOccupied(board: BoardStateSnapshot, sq: Square): boolean {
 	return board.pieces[sq] > PieceCode.Empty;
 }
+
+export function positionsEqual(pos1: BoardStateSnapshot, pos2: BoardStateSnapshot): boolean {
+	if (pos1.positionEpoch !== pos2.positionEpoch) return false;
+	for (let i = 0; i < pos1.pieces.length; i++) {
+		if (pos1.pieces[i] !== pos2.pieces[i]) return false;
+	}
+	return true;
+}

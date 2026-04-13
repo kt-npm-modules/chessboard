@@ -35,6 +35,6 @@ export function layoutRefreshGeometry(
 	} else {
 		state.geometry = createRenderGeometry(boardSize, orientation);
 	}
-	state.layoutVersion++;
+	state.layoutEpoch++;
 	return true;
 }

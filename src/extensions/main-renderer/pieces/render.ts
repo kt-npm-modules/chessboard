@@ -20,8 +20,9 @@ export function rendererPiecesRender(
 	for (let sq = 0 as Square; sq < 64; sq++) {
 		const piece = decodePiece(pieces[sq]);
 		const existing = state.pieceNodes.get(sq) || null;
+		const suppressed = state.suppressedSquares.has(sq);
 
-		if (piece !== null) {
+		if (piece !== null && !suppressed) {
 			const key = getPieceShortKey(piece);
 			const url = getPieceUrl(state.config, key);
 			const r = geometry.squareRect(sq);

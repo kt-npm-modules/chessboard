@@ -6,7 +6,8 @@ import { rendererPiecesOnUpdate } from './update';
 export function createMainRendererPieces(config: PieceUrls): MainRendererPieces {
 	const state: MainRendererPiecesInternal = {
 		config,
-		pieceNodes: new Map()
+		pieceNodes: new Map(),
+		suppressedSquares: new Set()
 	};
 	return {
 		onUpdate(context) {

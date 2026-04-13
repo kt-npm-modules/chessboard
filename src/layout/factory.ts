@@ -7,7 +7,7 @@ function createLayoutInternal(): LayoutInternal {
 		boardSize: 0,
 		orientation: 'white',
 		geometry: null,
-		layoutVersion: 0
+		layoutEpoch: 0
 	};
 }
 
@@ -24,8 +24,8 @@ export function createLayout(): Layout {
 		get geometry() {
 			return internalState.geometry;
 		},
-		get layoutVersion() {
-			return internalState.layoutVersion;
+		get layoutEpoch() {
+			return internalState.layoutEpoch;
 		},
 		refreshGeometry(options, mutationSession) {
 			return mutationSession.addMutation(

@@ -10,6 +10,7 @@ type PieceNodeRecord = {
 export interface MainRendererPiecesInternal {
 	readonly config: PieceUrls;
 	readonly pieceNodes: Map<Square, PieceNodeRecord>;
+	suppressedSquares: ReadonlySet<Square>;
 }
 
 export interface MainRendererPieces {
