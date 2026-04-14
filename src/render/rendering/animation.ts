@@ -1,5 +1,6 @@
 import {
 	ExtensionActiveAnimationSession,
+	ExtensionAnimationFinishedContext,
 	ExtensionCleanAnimationContext,
 	ExtensionFinishedAnimationSession,
 	ExtensionPrepareAnimationContext,
@@ -14,6 +15,34 @@ export interface RenderAnimationResult {
 	requestRender: boolean;
 }
 
+/**
+ * Runs deferred physical cleanup for all sessions that were marked pendingCleanup
+ * in a previous animation pass. Called at the end of performRenderPass (after stable
+ * base ownership has been rendered) so that animation SVG is never removed before
+ * the unsuppressed base piece layer is rendered.
+ */
+export function performAnimationCleanup(state: RenderSystemInternal): void {
+	const currentFrame = state.currentFrame;
+	if (!currentFrame) {
+		throw new Error(
+			'performAnimationCleanup() called but no current render frame found. render() must be called before performAnimationCleanup().'
+		);
+	}
+	for (const extensionRec of state.extensions.values()) {
+		const pendingSessions = extensionRec.extension.animation
+			.getAll(['ended', 'cancelled'])
+			.filter((s) => s.pendingCleanup);
+		if (pendingSessions.length === 0) continue;
+		const context: ExtensionCleanAnimationContext = {
+			currentFrame,
+			invalidation: extensionRec.extension.invalidation,
+			finishedSessions: pendingSessions as readonly ExtensionFinishedAnimationSession[]
+		};
+		extensionRec.extension.instance.cleanAnimation?.(context);
+		extensionRec.extension.animation.remove(pendingSessions.map((s) => s.id));
+	}
+}
+
 export function performAnimationPass(state: RenderSystemInternal): RenderAnimationResult {
 	validateIsMounted(state);
 	let requestRenderAnimation = false;
@@ -21,13 +50,12 @@ export function performAnimationPass(state: RenderSystemInternal): RenderAnimati
 	const currentFrame = state.currentFrame;
 	if (!currentFrame) {
 		throw new Error(
-			'renderAnimation() called but no previous render state found. render() must be called before renderAnimation().'
+			'renderAnimation() called but no current render frame found. render() must be called before renderAnimation().'
 		);
 	}
 	for (const extensionRec of state.extensions.values()) {
-		// Prepare the animation context
+		// Prepare submitted sessions
 		const submittedSessions = extensionRec.extension.animation.getAll('submitted');
-		// process submitted animations
 		if (submittedSessions.length > 0) {
 			const context: ExtensionPrepareAnimationContext = {
 				currentFrame: currentFrame,
@@ -39,7 +67,7 @@ export function performAnimationPass(state: RenderSystemInternal): RenderAnimati
 				session.setStatus('active');
 			});
 		}
-		// Now call the renderAnimation for active sessions
+		// Render active sessions
 		const activeSessions = extensionRec.extension.animation.getAll('active');
 		if (activeSessions.length > 0) {
 			const context: ExtensionRenderAnimationContext = {
@@ -49,30 +77,31 @@ export function performAnimationPass(state: RenderSystemInternal): RenderAnimati
 			};
 			extensionRec.extension.instance.renderAnimation?.(context);
 		}
-		// Now update the sessions that have completed
+		// Detect newly terminal sessions: active sessions that have elapsed their duration
 		const currentTime = performance.now();
-		const finishedSessions = activeSessions.filter(
+		const newlyEndedSessions = activeSessions.filter(
 			(session) => session.startTime + session.duration <= currentTime
 		);
-		finishedSessions.forEach((session) => {
+		newlyEndedSessions.forEach((session) => {
 			session.setStatus('ended');
 		});
-		// Also get cancelled sessions that need to be cleaned up
-		const cancelledSessions = extensionRec.extension.animation.getAll('cancelled');
-		finishedSessions.push(...cancelledSessions);
-		if (finishedSessions.length > 0) {
-			const context: ExtensionCleanAnimationContext = {
-				currentFrame: currentFrame,
+		// Also collect cancelled sessions not yet marked pendingCleanup
+		const cancelledSessions = extensionRec.extension.animation
+			.getAll('cancelled')
+			.filter((s) => !s.pendingCleanup);
+		const terminalSessions = [...newlyEndedSessions, ...cancelledSessions];
+		if (terminalSessions.length > 0) {
+			// Mark for deferred physical cleanup — actual removal happens in performAnimationCleanup,
+			// which runs after performRenderPass so stable base ownership is rendered first.
+			terminalSessions.forEach((session) => session.markPendingCleanup());
+			const context: ExtensionAnimationFinishedContext = {
+				currentFrame,
 				invalidation: extensionRec.extension.invalidation,
-				finishedSessions: finishedSessions as readonly ExtensionFinishedAnimationSession[]
+				finishedSessions: terminalSessions as readonly ExtensionFinishedAnimationSession[]
 			};
-			extensionRec.extension.instance.cleanAnimation?.(context);
-		}
-
-		// Now get all ended and cancelled sessions, call cleanAnimation and remove them from the controller
-		const removeSessions = extensionRec.extension.animation.getAll(['ended', 'cancelled']);
-		if (removeSessions.length > 0) {
-			extensionRec.extension.animation.remove(removeSessions.map((s) => s.id));
+			extensionRec.extension.instance.onAnimationFinished?.(context);
+			// Invariant B: guarantee a state render is requested so performAnimationCleanup will run.
+			requestRender = true;
 		}
 
 		requestRenderAnimation =

@@ -1,6 +1,7 @@
 import { SceneEvent } from './basic/events';
 import { ExtensionInstanceMountOptions, ExtensionSlotName } from './basic/mount';
 import {
+	ExtensionAnimationFinishedContext,
 	ExtensionCleanAnimationContext,
 	ExtensionPrepareAnimationContext,
 	ExtensionRenderAnimationContext
@@ -25,6 +26,7 @@ export interface ExtensionInstance<
 	// Animation
 	prepareAnimation?(context: ExtensionPrepareAnimationContext): void;
 	renderAnimation?(context: ExtensionRenderAnimationContext): void;
+	onAnimationFinished?(context: ExtensionAnimationFinishedContext): void;
 	cleanAnimation?(context: ExtensionCleanAnimationContext): void;
 	// Transient Visuals
 	renderTransientVisuals?(context: ExtensionRenderTransientVisualsContext): void;

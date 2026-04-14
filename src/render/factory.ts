@@ -1,7 +1,7 @@
 import { RenderFrameSnapshot } from '../extensions/types/basic/render';
 import { TransientInput } from '../extensions/types/basic/transient-visuals';
 import { renderMount, renderUnmount } from './mount';
-import { performAnimationPass } from './rendering/animation';
+import { performAnimationCleanup, performAnimationPass } from './rendering/animation';
 import { validateIsMounted } from './rendering/helpers';
 import { performRenderPass } from './rendering/state';
 import { performRenderTransientVisualsPass } from './rendering/visuals';
@@ -57,9 +57,10 @@ interface PerformRenderOptions {
 }
 
 function performRender(state: RenderSystemInternal, options: PerformRenderOptions) {
-	// First we check and run renderPass,
+	// First we check and run renderPass, then deferred animation cleanup.
 	if (options.stateRequest) {
 		performRenderPass(state, options.stateRequest);
+		performAnimationCleanup(state);
 	}
 
 	// Then we check and run renderAnimation,

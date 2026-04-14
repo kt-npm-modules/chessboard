@@ -8,6 +8,7 @@ export interface ExtensionAnimationSessionInternal {
 	readonly startTime: DOMHighResTimeStamp;
 	readonly duration: number;
 	status: ExtensionAnimationSessionStatus;
+	pendingCleanup: boolean;
 }
 
 export interface ExtensionAnimationControllerInternal {

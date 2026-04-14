@@ -15,7 +15,8 @@ function createExtensionAnimationSessionInternal(
 		id,
 		startTime: performance.now(),
 		duration: options.duration,
-		status: 'submitted'
+		status: 'submitted',
+		pendingCleanup: false
 	};
 }
 
@@ -38,8 +39,14 @@ export function createExtensionAnimationSession(
 		get progress() {
 			return Math.min(1, (performance.now() - internalState.startTime) / internalState.duration);
 		},
+		get pendingCleanup() {
+			return internalState.pendingCleanup;
+		},
 		setStatus(newStatus: ExtensionAnimationSessionStatus) {
 			internalState.status = newStatus;
+		},
+		markPendingCleanup() {
+			internalState.pendingCleanup = true;
 		}
 	};
 }

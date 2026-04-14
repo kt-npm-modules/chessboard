@@ -89,12 +89,14 @@ function createMainRendererInstance(
 			validateIsMounted(internalState);
 			internalState.animation.renderAnimation(context);
 		},
-		cleanAnimation(context) {
-			internalState.animation.cleanAnimation(context);
+		onAnimationFinished(context) {
 			internalState.pieces.refreshSuppressedSquares(
 				context,
 				internalState.animation.getSuppressedSquares()
 			);
+		},
+		cleanAnimation(context) {
+			internalState.animation.cleanAnimation(context);
 		},
 		unmount() {
 			// internalState.board.unmount();

@@ -24,9 +24,6 @@ export function rendererAnimationOnUpdate(
 
 	if (positionsEqual(previousBoard, currentBoard)) return;
 
-	const session = state.runtimeSurface.animation.submit({
-		duration: DEFAULT_ANIMATION_DURATION_MS
-	});
 	// On DropTo exclude the move that user did from the animation plan
 	const exclude: AnimationTrackExclude[] = [];
 	if (
@@ -41,8 +38,18 @@ export function rendererAnimationOnUpdate(
 			sq: context.currentFrame.state.change.lastMove.to
 		});
 	}
-	const plan = calculateAnimationPlan(previousBoard, currentBoard, session.id, {
-		exclude
+	const plan = calculateAnimationPlan(
+		previousBoard,
+		currentBoard,
+		0 /* placeholder session id for draft plan */,
+		{
+			exclude
+		}
+	);
+	if (plan.tracks.length === 0) return;
+	const session = state.runtimeSurface.animation.submit({
+		duration: DEFAULT_ANIMATION_DURATION_MS
 	});
-	state.entries.set(session.id, { plan, nodes: null });
+	plan.sessionId = session.id;
+	state.entries.set(plan.sessionId, { plan, nodes: null });
 }

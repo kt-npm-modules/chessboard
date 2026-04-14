@@ -24,6 +24,11 @@ export interface ExtensionRenderAnimationContext extends ExtensionRenderContext 
 	readonly activeSessions: readonly ExtensionActiveAnimationSession[];
 }
 
+export interface ExtensionAnimationFinishedContext extends ExtensionRenderContext {
+	readonly invalidation: ExtensionInvalidationState;
+	readonly finishedSessions: readonly ExtensionFinishedAnimationSession[];
+}
+
 export interface ExtensionCleanAnimationContext extends ExtensionRenderContext {
 	readonly invalidation: ExtensionInvalidationState;
 	readonly finishedSessions: readonly ExtensionFinishedAnimationSession[];

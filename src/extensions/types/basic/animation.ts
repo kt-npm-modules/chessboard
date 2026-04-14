@@ -29,7 +29,9 @@ export interface ExtensionAnimationController {
 export interface ExtensionAnimationSessionInternalSurface extends ExtensionAnimationSession {
 	readonly elapsedTime: DOMHighResTimeStamp;
 	readonly progress: number;
+	readonly pendingCleanup: boolean;
 	setStatus(status: ExtensionAnimationSessionStatus): void;
+	markPendingCleanup(): void;
 }
 
 export interface ExtensionAnimationControllerInternalSurface extends ExtensionAnimationController {
