@@ -13,7 +13,7 @@ import type {
 	PositionMap,
 	PositionMapShort,
 	SquareString
-} from './types/types';
+} from './types/internal';
 
 /**
  * Create a fresh internal state from options.

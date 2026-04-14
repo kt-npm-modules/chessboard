@@ -1,6 +1,6 @@
 import { clearElementChildren, createSvgElement, isLightSquare } from '../../../render/svg/helpers';
 import { squareOf, toAlgebraic } from '../../../state/board/coords';
-import { Square } from '../../../state/board/types/types';
+import { Square } from '../../../state/board/types/internal';
 import { ExtensionRenderContext } from '../../types/context/render';
 import { DirtyLayer } from '../types/extension';
 import { MainRendererCoordinatesInternal } from './types';

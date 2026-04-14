@@ -7,7 +7,7 @@ import type {
 	Square,
 	SquareInput,
 	SquareString
-} from '../board/types/types';
+} from '../board/types/internal';
 import type { InteractionStateMutationSession } from './mutation';
 
 export interface DragSession {

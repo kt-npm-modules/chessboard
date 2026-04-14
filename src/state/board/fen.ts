@@ -9,7 +9,7 @@
 
 import { assertNever } from '../../utils/assert-never';
 import { PieceCodeBase } from './encode';
-import type { Color, Role } from './types/types';
+import type { Color, Role } from './types/internal';
 
 export type FenActiveColor = 'w' | 'b';
 

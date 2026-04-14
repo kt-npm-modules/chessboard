@@ -1,7 +1,7 @@
 import assert from '@ktarmyshov/assert';
 import { cloneDeep } from 'es-toolkit/object';
 import type { ReadonlyDeep } from 'type-fest';
-import type { Square } from '../board/types/types';
+import type { Square } from '../board/types/internal';
 import { selectedEqual } from './helpers';
 import { movabilitiesEqual } from './movability';
 import {

@@ -5,7 +5,7 @@ import {
 	ScenePointerEventType
 } from '../../../extensions/types/basic/events';
 import { ScenePoint } from '../../../extensions/types/basic/transient-visuals';
-import { Square } from '../../../state/board/types/types';
+import { Square } from '../../../state/board/types/internal';
 import { clampBoardPoint, mapBoardPointToSquare } from './helpers';
 import { InputAdapterInternal } from './types';
 

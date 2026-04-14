@@ -1,5 +1,5 @@
 import { normalizeColor } from '../board/normalize';
-import type { ColorInput } from '../board/types/types';
+import type { ColorInput } from '../board/types/internal';
 import type { ViewStateInternal } from './types';
 
 export function viewSetOrientation(state: ViewStateInternal, c: ColorInput): boolean {

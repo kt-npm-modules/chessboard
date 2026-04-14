@@ -1,7 +1,7 @@
 import assert from '@ktarmyshov/assert';
 import { isEmpty } from '../../state/board/encode';
 import { BoardStateMutationSession } from '../../state/board/mutation';
-import { NormalizedMoveInput } from '../../state/board/types/types';
+import { NormalizedMoveInput } from '../../state/board/types/internal';
 import { InteractionStateMutationSession } from '../../state/interaction/mutation';
 import { DragSession, InteractionStateSelected } from '../../state/interaction/types';
 import { RuntimeInteractionSurface } from '../input/controller/types';

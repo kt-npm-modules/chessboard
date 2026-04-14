@@ -1,6 +1,6 @@
 import { assertNever } from '../../utils/assert-never';
 import { toValidSquare } from './coords';
-import type { Color, MoveInput, NormalizedMoveInput, Role, RolePromotion } from './types/types';
+import type { Color, MoveInput, NormalizedMoveInput, Role, RolePromotion } from './types/internal';
 
 /**
  * Normalize color inputs to canonical long names.

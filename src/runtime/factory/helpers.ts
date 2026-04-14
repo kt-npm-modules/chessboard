@@ -1,4 +1,4 @@
-import { NormalizedMoveInput, RolePromotion, Square } from '../../state/board/types/types';
+import { NormalizedMoveInput, RolePromotion, Square } from '../../state/board/types/internal';
 import { MoveDestinationSnapshot } from '../../state/interaction/types';
 
 export function convertDestinationToMoveInput(

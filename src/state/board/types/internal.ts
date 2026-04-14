@@ -92,8 +92,6 @@ export type FileChar = 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h';
 export type RankChar = '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8';
 export type SquareString = `${FileChar}${RankChar}`;
 
-export type SquareInput = Square | SquareString;
-
 export interface Piece {
 	color: Color;
 	role: Role;

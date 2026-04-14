@@ -1,5 +1,5 @@
 import type { ReadonlyDeep } from 'type-fest';
-import type { Color, ColorInput } from '../board/types/types';
+import type { Color, ColorInput } from '../board/types/internal';
 import { ViewStateMutationSession } from './mutation';
 
 export type Orientation = Color; // For clarity in context where it applies

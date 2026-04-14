@@ -1,4 +1,4 @@
-import type { FileChar, RankChar, Square, SquareString } from './types/types';
+import type { FileChar, RankChar, Square, SquareString } from './types/internal';
 
 /**
  * Square indexing:

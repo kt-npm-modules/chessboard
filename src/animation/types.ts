@@ -1,5 +1,5 @@
 import { ReadonlyDeep } from 'type-fest';
-import type { Piece, Square } from '../state/board/types/types';
+import type { Piece, Square } from '../state/board/types/internal';
 
 export interface AnimationTrackMove {
 	id: number;

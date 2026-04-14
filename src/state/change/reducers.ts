@@ -1,5 +1,5 @@
 import { cloneDeep } from 'es-toolkit/object';
-import type { MoveSnapshot } from '../board/types/types';
+import type { MoveSnapshot } from '../board/types/internal';
 import { movesEqual } from './helpers';
 import type { ChangeStateInternal } from './types';
 

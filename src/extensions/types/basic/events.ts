@@ -1,4 +1,4 @@
-import { Square } from '../../../state/board/types/types';
+import { Square } from '../../../state/board/types/internal';
 import { ScenePoint } from '../basic/transient-visuals';
 
 interface SceneEventBase {

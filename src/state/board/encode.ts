@@ -1,5 +1,5 @@
 import { assertNever } from '../../utils/assert-never';
-import type { Color, Piece, Role } from './types/types';
+import type { Color, Piece, Role } from './types/internal';
 
 /**
  * Compact piece encoding

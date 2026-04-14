@@ -1,5 +1,5 @@
 import { fileOf, rankOf } from '../../state/board/coords';
-import { Color, Square } from '../../state/board/types/types';
+import { Color, Square } from '../../state/board/types/internal';
 import { RenderGeometry } from './types';
 
 /**
