@@ -6,6 +6,7 @@ export function createMutationPipeline<PayloadByCause extends Record<string, unk
 ): MutationPipeline<PayloadByCause, Context> {
 	const registeredPipes: MutationPipe<PayloadByCause, Context>[] = [...pipes] as const;
 	const session = createMutationSession<PayloadByCause>();
+	let isRunning = false;
 
 	return {
 		getSession() {
@@ -17,8 +18,15 @@ export function createMutationPipeline<PayloadByCause extends Record<string, unk
 		},
 
 		run(ctx) {
+			if (isRunning) {
+				throw new Error('Cannot run mutation pipeline recursively');
+			}
+			isRunning = true;
 			// no-op if no mutations recorded
-			if (!session.hasMutation()) return false;
+			if (!session.hasMutation()) {
+				isRunning = false;
+				return false;
+			}
 			try {
 				for (const pipe of registeredPipes) {
 					pipe(ctx, session);
@@ -26,6 +34,7 @@ export function createMutationPipeline<PayloadByCause extends Record<string, unk
 			} finally {
 				// Clear session even if a pipe throws
 				session.clear();
+				isRunning = false;
 			}
 			return true;
 		}

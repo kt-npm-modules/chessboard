@@ -1,5 +1,13 @@
 import type { ReadonlyDeep } from 'type-fest';
-import type { MoveDestination, MoveDestinationInput, Square, SquareInput } from '../board/types';
+import type {
+	MoveInput,
+	NormalizedMoveInput,
+	RolePromotion,
+	RolePromotionInput,
+	Square,
+	SquareInput,
+	SquareString
+} from '../board/types';
 import type { InteractionStateMutationSession } from './mutation';
 
 export interface DragSession {
@@ -10,13 +18,21 @@ export interface DragSession {
 }
 export type DragSessionSnapshot = ReadonlyDeep<DragSession>;
 
+export interface MoveDestinationInput extends Omit<MoveInput, 'from' | 'promotedTo'> {
+	promotedTo?: RolePromotionInput[]; // For cases where multiple promotions are possible (e.g., underpromotion options)
+}
+export interface MoveDestination extends Omit<NormalizedMoveInput, 'from' | 'promotedTo'> {
+	promotedTo?: RolePromotion[];
+}
+export type MoveDestinationSnapshot = ReadonlyDeep<MoveDestination>;
+
 // Maps source square to array of destination squares
 export type MovabilityDestinationsRecord = Partial<
 	Record<SquareInput, readonly MoveDestinationInput[]>
 >;
 // Returns undefined if source is not movable, otherwise array of destinations
 export type MovabilityResolver = (
-	source: SquareInput
+	source: SquareString
 ) => readonly MoveDestinationInput[] | undefined;
 export type MovabilityDestinations = MovabilityDestinationsRecord | MovabilityResolver;
 
@@ -62,10 +78,7 @@ export interface InteractionState {
 		mutationSession: InteractionStateMutationSession
 	): boolean;
 	readonly movability: MovabilitySnapshot;
-	setMovability(
-		movability: MovabilitySnapshot,
-		mutationSession: InteractionStateMutationSession
-	): boolean;
+	setMovability(movability: Movability, mutationSession: InteractionStateMutationSession): boolean;
 	readonly activeDestinations: ReadonlyMap<Square, ReadonlyDeep<MoveDestination>>;
 	updateActiveDestinations(mutationSession: InteractionStateMutationSession): boolean;
 	readonly dragSession: DragSessionSnapshot | null;

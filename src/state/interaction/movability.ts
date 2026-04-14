@@ -1,12 +1,15 @@
+import { setsEqual } from '../../helpers/util';
 import { assertNever } from '../../utils/assert-never';
-import { toValidSquare } from '../board/coords';
-import { normalizeMoveDestinationInput } from '../board/normalize';
-import type { MoveDestination, MoveDestinationInput, Square, SquareInput } from '../board/types';
+import { toAlgebraic, toValidSquare } from '../board/coords';
+import type { Square, SquareInput } from '../board/types';
+import { normalizeMoveDestinationInput } from './normalize';
 import type {
 	InteractionStateInternal,
 	MovabilityDestinations,
 	MovabilityDestinationsRecord,
 	MovabilitySnapshot,
+	MoveDestination,
+	MoveDestinationInput,
 	StrictMovability
 } from './types';
 
@@ -21,7 +24,8 @@ function moveInputDestinationsEqual(
 		a.to === b.to &&
 		a.capturedSquare === b.capturedSquare &&
 		a.secondary?.from === b.secondary?.from &&
-		a.secondary?.to === b.secondary?.to
+		a.secondary?.to === b.secondary?.to &&
+		setsEqual(new Set(a.promotedTo ? a.promotedTo : []), new Set(b.promotedTo ? b.promotedTo : []))
 	);
 }
 
@@ -106,7 +110,7 @@ function getDestinationsForSource(
 	source: Square
 ): readonly MoveDestinationInput[] | undefined {
 	if (typeof destinations === 'function') {
-		return destinations(source);
+		return destinations(toAlgebraic(source));
 	}
 	return destinations[source];
 }

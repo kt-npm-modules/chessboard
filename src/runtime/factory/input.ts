@@ -1,12 +1,13 @@
 import assert from '@ktarmyshov/assert';
 import { isEmpty } from '../../state/board/encode';
 import { BoardStateMutationSession } from '../../state/board/mutation';
-import { MoveInput } from '../../state/board/types';
+import { NormalizedMoveInput } from '../../state/board/types';
 import { InteractionStateMutationSession } from '../../state/interaction/mutation';
 import { DragSession, InteractionStateSelected } from '../../state/interaction/types';
 import { RuntimeInteractionSurface } from '../input/controller/types';
 import { runtimeRunMutationPipeline } from '../mutation/run';
 import { GetInternalState } from '../types';
+import { convertDestinationToMoveInput } from './helpers';
 
 export function createRuntimeInteractionSurface(
 	state: GetInternalState
@@ -73,9 +74,11 @@ export function createRuntimeInteractionSurface(
 			);
 
 			const destination = interaction.activeDestinations.get(target);
-			const moveInput: MoveInput = destination
-				? { from: dragSession.sourceSquare, ...destination }
+			const moveInput: NormalizedMoveInput = destination
+				? convertDestinationToMoveInput(dragSession.sourceSquare, destination)
 				: { from: dragSession.sourceSquare, to: target };
+			// TODO: Deferred Move Input flow: Notify extensions, move.isDeferred
+			// TODO: Also dropTo and releaseTo have very similar logic, can we extract a common function/logic?
 			const move = internalState.state.board.move(
 				moveInput,
 				mutationSession as unknown as BoardStateMutationSession
@@ -109,8 +112,8 @@ export function createRuntimeInteractionSurface(
 			);
 
 			const destination = interaction.activeDestinations.get(target);
-			const moveInput: MoveInput = destination
-				? { from: dragSession.sourceSquare, ...destination }
+			const moveInput: NormalizedMoveInput = destination
+				? convertDestinationToMoveInput(dragSession.sourceSquare, destination)
 				: { from: dragSession.sourceSquare, to: target };
 			const move = internalState.state.board.move(
 				moveInput,

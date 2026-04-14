@@ -1,13 +1,6 @@
 import { assertNever } from '../../utils/assert-never';
 import { toValidSquare } from './coords';
-import type {
-	Color,
-	MoveDestination,
-	MoveDestinationInput,
-	MoveInput,
-	NormalizedMoveInput,
-	Role
-} from './types';
+import type { Color, MoveInput, NormalizedMoveInput, Role, RolePromotion } from './types';
 
 /**
  * Normalize color inputs to canonical long names.
@@ -56,6 +49,14 @@ export function normalizeRole(input: string): Role {
 	}
 }
 
+export function normalizeRolePromotion(input: string): RolePromotion {
+	const role = normalizeRole(input);
+	if (role === 'king' || role === 'pawn') {
+		throw new RangeError(`Invalid role promotion input: ${input}`);
+	}
+	return role as RolePromotion;
+}
+
 function isRole(r: unknown): r is Role {
 	return (
 		r === 'pawn' ||
@@ -70,20 +71,13 @@ function isRole(r: unknown): r is Role {
 export function normalizeMoveInput(move: MoveInput): NormalizedMoveInput {
 	return {
 		from: toValidSquare(move.from),
-		...normalizeMoveDestinationInput(move)
-	};
-}
-
-export function normalizeMoveDestinationInput(destination: MoveDestinationInput): MoveDestination {
-	return {
-		to: toValidSquare(destination.to),
-		...(destination.capturedSquare && {
-			capturedSquare: toValidSquare(destination.capturedSquare)
-		}),
-		...(destination.secondary && {
+		to: toValidSquare(move.to),
+		...(move.capturedSquare && { capturedSquare: toValidSquare(move.capturedSquare) }),
+		...(move.promotedTo && { promotedTo: normalizeRolePromotion(move.promotedTo) }),
+		...(move.secondary && {
 			secondary: {
-				from: toValidSquare(destination.secondary.from),
-				to: toValidSquare(destination.secondary.to)
+				from: toValidSquare(move.secondary.from),
+				to: toValidSquare(move.secondary.to)
 			}
 		})
 	};

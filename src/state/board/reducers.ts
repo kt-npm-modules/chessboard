@@ -2,7 +2,7 @@ import assert from '@ktarmyshov/assert';
 import { fromAlgebraic, toValidSquare } from './coords';
 import { decodePiece, encodePiece, isEmpty, PieceCode } from './encode';
 import { parseFenPlacement, parseFenTurn, START_FEN } from './fen';
-import { normalizeColor, normalizeRole } from './normalize';
+import { normalizeColor, normalizeRole, normalizeRolePromotion } from './normalize';
 import type {
 	BoardStateInternal,
 	Color,
@@ -209,13 +209,13 @@ export function boardMove(state: BoardStateInternal, move: MoveInput): Move {
 	// Position epoch
 	state.positionEpoch++;
 
-	const promotedTo = move?.promotedTo ? normalizeRole(move.promotedTo) : undefined;
+	const promotedTo = move?.promotedTo ? normalizeRolePromotion(move.promotedTo) : undefined;
 	const result: Move = {
 		from,
 		to,
 		moved: movedPiece,
 		...(captured && { captured }),
-		...(promotedTo && { promotion: promotedTo }),
+		...(promotedTo && { promotedTo: promotedTo }),
 		...(secondaryMove && { secondary: secondaryMove })
 	};
 	return result;

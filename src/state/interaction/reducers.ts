@@ -1,14 +1,15 @@
 import assert from '@ktarmyshov/assert';
 import { cloneDeep } from 'es-toolkit/object';
 import type { ReadonlyDeep } from 'type-fest';
-import type { MoveDestination, Square } from '../board/types';
+import type { Square } from '../board/types';
 import { selectedEqual } from './helpers';
 import { movabilitiesEqual } from './movability';
-import type {
-	DragSessionSnapshot,
-	InteractionStateInternal,
-	InteractionStateSelected,
-	MovabilitySnapshot
+import {
+	Movability,
+	type DragSessionSnapshot,
+	type InteractionStateInternal,
+	type InteractionStateSelected,
+	type MoveDestination
 } from './types';
 
 export function interactionSetSelected(
@@ -21,12 +22,9 @@ export function interactionSetSelected(
 	return true;
 }
 
-export function interactionSetMovability(
-	state: InteractionStateInternal,
-	m: MovabilitySnapshot
-): boolean {
+export function interactionSetMovability(state: InteractionStateInternal, m: Movability): boolean {
 	if (movabilitiesEqual(state.movability, m)) return false; // no-op
-	state.movability = cloneDeep(m);
+	state.movability = cloneDeep(m); // Defensive copy to prevent external mutations
 	return true;
 }
 
