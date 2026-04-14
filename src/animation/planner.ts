@@ -1,7 +1,7 @@
 import { WritableDeep } from 'type-fest';
 import { fileOf, rankOf } from '../state/board/coords';
 import { decodePiece, PieceCode } from '../state/board/encode';
-import { BoardStateSnapshot, Square } from '../state/board/types';
+import { BoardStateSnapshot, Square } from '../state/board/types/types';
 import {
 	AnimationPlan,
 	AnimationTrack,

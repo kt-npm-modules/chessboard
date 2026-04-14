@@ -1,5 +1,5 @@
 import { ReadonlyDeep } from 'type-fest';
-import { Color } from '../state/board/types';
+import { Color } from '../state/board/types/types';
 import { RenderGeometry } from './geometry/types';
 import { LayoutMutationSession } from './mutation';
 

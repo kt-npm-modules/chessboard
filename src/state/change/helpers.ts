@@ -1,4 +1,4 @@
-import type { MoveBaseSnapshot, MoveSnapshot } from '../board/types';
+import type { MoveBaseSnapshot, MoveSnapshot } from '../board/types/types';
 
 function baseMovesEqual(moveA: MoveBaseSnapshot, moveB: MoveBaseSnapshot): boolean {
 	const diffs: boolean[] = [

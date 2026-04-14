@@ -6,8 +6,8 @@
  */
 
 import type { ReadonlyDeep } from 'type-fest';
-import { PieceCode } from './encode';
-import type { BoardStateMutationSession } from './mutation';
+import { PieceCode } from '../encode';
+import type { BoardStateMutationSession } from '../mutation';
 
 export type Color = 'white' | 'black';
 export type ColorShort = 'w' | 'b';

@@ -1,6 +1,6 @@
 import { ScenePoint } from '../../../extensions/types/basic/transient-visuals';
 import { RenderGeometry } from '../../../layout/geometry/types';
-import { Square } from '../../../state/board/types';
+import { Square } from '../../../state/board/types/types';
 
 export function mapBoardPointToSquare(
 	x: number,

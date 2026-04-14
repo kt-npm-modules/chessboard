@@ -1,6 +1,6 @@
 import { setsEqual } from '../../../helpers/util';
 import { positionsEqual } from '../../../state/board/helpers';
-import { Square } from '../../../state/board/types';
+import { Square } from '../../../state/board/types/types';
 import { ExtensionCleanAnimationContext } from '../../types/context/animation';
 import { ExtensionUpdateContext, isUpdateContextRenderable } from '../../types/context/update';
 import { DirtyLayer } from '../types/extension';

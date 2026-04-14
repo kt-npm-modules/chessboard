@@ -1,10 +1,10 @@
-import type { BoardState, BoardStateInitOptions, BoardStateSnapshot } from '../state/board/types';
 import type {
 	InteractionState,
 	InteractionStateInitOptions,
 	InteractionStateSnapshot
 } from '../state/interaction/types';
 import type { ViewState, ViewStateInitOptions, ViewStateSnapshot } from '../state/view/types';
+import type { BoardState, BoardStateInitOptions, BoardStateSnapshot } from './board/types/types';
 import type { ChangeState, ChangeStateSnapshot } from './change/types';
 
 export interface RuntimeStateInternal {

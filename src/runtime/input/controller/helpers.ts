@@ -1,4 +1,4 @@
-import type { Square } from '../../../state/board/types';
+import type { Square } from '../../../state/board/types/types';
 import type { InteractionStateSnapshot } from '../../../state/interaction/types';
 
 export function canMoveTo(snapshot: InteractionStateSnapshot, target: Square): boolean {

@@ -1,4 +1,4 @@
-import { Square } from '../../../state/board/types';
+import { Square } from '../../../state/board/types/types';
 import { ExtensionCleanAnimationContext } from '../../types/context/animation';
 import { ExtensionUpdateContext } from '../../types/context/update';
 import { MainRendererPiecesInternal } from './types';

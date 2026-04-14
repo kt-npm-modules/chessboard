@@ -1,5 +1,5 @@
 import type { ReadonlyDeep } from 'type-fest';
-import type { Move } from '../board/types';
+import type { Move } from '../board/types/types';
 import type { ChangeStateMutationSession } from './mutation';
 
 export interface ChangeStateInternal {

@@ -1,6 +1,6 @@
 import type { PreparedNodeMap } from '../../../animation/render/types';
 import type { AnimationPlan } from '../../../animation/types';
-import type { Square } from '../../../state/board/types';
+import type { Square } from '../../../state/board/types/types';
 import type {
 	ExtensionCleanAnimationContext,
 	ExtensionPrepareAnimationContext,

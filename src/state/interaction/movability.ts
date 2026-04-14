@@ -1,7 +1,7 @@
 import { setsEqual } from '../../helpers/util';
 import { assertNever } from '../../utils/assert-never';
 import { toAlgebraic, toValidSquare } from '../board/coords';
-import type { Square, SquareInput } from '../board/types';
+import type { Square, SquareInput } from '../board/types/types';
 import { normalizeMoveDestinationInput } from './normalize';
 import type {
 	InteractionStateInternal,

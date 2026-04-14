@@ -1,4 +1,4 @@
-import { Square } from '../../../state/board/types';
+import { Square } from '../../../state/board/types/types';
 
 export interface ScenePoint {
 	readonly x: number;

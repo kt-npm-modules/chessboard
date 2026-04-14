@@ -1,4 +1,4 @@
-import { ColorShort, Role, RoleShort } from '../../../state/board/types';
+import { ColorShort, Role, RoleShort } from '../../../state/board/types/types';
 
 export interface ConfigColorPair {
 	light: string; // board light square color

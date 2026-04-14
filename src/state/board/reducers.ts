@@ -17,7 +17,7 @@ import type {
 	PositionMapShort,
 	Square,
 	SquareString
-} from './types';
+} from './types/types';
 
 /**
  * Replace the entire board position from one of the accepted inputs.

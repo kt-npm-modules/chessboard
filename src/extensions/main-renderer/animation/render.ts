@@ -4,7 +4,7 @@ import {
 	prepareAnimationPlan,
 	renderAnimationPlan
 } from '../../../animation/render/plan';
-import type { Square } from '../../../state/board/types';
+import type { Square } from '../../../state/board/types/types';
 import type {
 	ExtensionCleanAnimationContext,
 	ExtensionPrepareAnimationContext,

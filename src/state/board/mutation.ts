@@ -1,5 +1,5 @@
 import type { MutationSession } from '../../mutation/types';
-import type { MoveSnapshot } from './types';
+import type { MoveSnapshot } from './types/types';
 
 export type BoardStateMutationPayloadByCause = {
 	'state.board.setPosition': undefined;

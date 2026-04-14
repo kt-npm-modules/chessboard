@@ -5,7 +5,7 @@ import {
 	MoveInput,
 	PositionInput,
 	SquareInput
-} from '../../../state/board/types';
+} from '../../../state/board/types/types';
 import { Movability } from '../../../state/interaction/types';
 import { RuntimeStateSnapshot } from '../../../state/types';
 
