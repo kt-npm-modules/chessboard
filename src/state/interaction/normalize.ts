@@ -1,5 +1,5 @@
 import { toValidSquare } from '../board/coords';
-import { normalizeRolePromotion } from '../board/normalize';
+import { normalizeRolePromotion } from '../board/types/normalize';
 import { MoveDestination, MoveDestinationInput } from '../interaction/types';
 
 export function normalizeMoveDestinationInput(destination: MoveDestinationInput): MoveDestination {

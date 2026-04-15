@@ -1,76 +1,21 @@
-import assert from '@ktarmyshov/assert';
-import { fromAlgebraic, toValidSquare } from './coords';
-import { decodePiece, encodePiece, isEmpty, PieceCode } from './encode';
-import { parseFenPlacement, parseFenTurn, START_FEN } from './fen';
-import { normalizeColor, normalizeRole, normalizeRolePromotion } from './normalize';
-import type {
-	BoardStateInternal,
-	Color,
-	ColorInput,
+import { isEmpty } from './check';
+import { denormalizeSquare } from './denormalize';
+import { normalizeColor } from './normalize';
+import { fromPieceCode, toPieceCode } from './piece';
+import { ColorInput } from './types/input';
+import {
+	ColorCode,
 	Move,
 	MoveBase,
-	MoveInput,
-	Piece,
-	PieceShort,
-	PositionInput,
-	PositionMap,
-	PositionMapShort,
-	Square,
-	SquareString
+	MoveCaptured,
+	MoveRequest,
+	MoveRequestBase,
+	PieceCode
 } from './types/internal';
+import { BoardStateInternal } from './types/main';
 
-/**
- * Replace the entire board position from one of the accepted inputs.
- *
- * Semantics
- * - Clears the board first, then applies the provided position.
- * - Regenerates piece IDs for all occupied squares (ids[i] >= 1); empties get -1.
- * - Marks dirty layers for a full redraw:
- *   - DirtyLayer.Board | DirtyLayer.Pieces
- * - Turn handling:
- *   - If input is 'start' or a FEN string, state.turn is set from the FEN active color.
- *   - If input is a PositionMap/PositionMapShort (sparse map), state.turn is NOT changed.
- *
- * Inputs
- * - 'start'                Standard initial position (START_FEN).
- * - FEN                    Full FEN string; field 1 (placement) and field 2 (active color) are used.
- * - PositionMap            Sparse map of occupied squares using canonical Piece (: 'white'|'black', role: 'pawn'|'knight'|'bishop'|'rook'|'queen'|'king').
- * - PositionMapShort       Sparse map using short aliases (color: 'w'|'b', role: 'p'|'N'|'B'|'R'|'Q'|'K').
- *
- * Errors
- * - Invalid FEN strings throw with descriptive messages.
- * - Invalid algebraic square keys throw a RangeError.
- * - Invalid role/color short aliases throw a RangeError.
- *
- * @param state Internal mutable state
- * @param input 'start' | FEN | PositionMap | PositionMapShort
- * @example
- * setBoardPosition(state, 'start');                      // standard start, white to move
- * setBoardPosition(state, '8/8/8/8/8/8/8/8 w - - 0 1');  // empty board, white to move
- * setBoardPosition(state, { e2: { color: 'w', role: 'p' }, e7: { color: 'b', role: 'p' } });
- */
-export function boardSetPosition(state: BoardStateInternal, input: PositionInput): boolean {
-	let pieces: Uint8Array;
-	let turnFromPosition: Color | undefined;
-
-	if (input === 'start') {
-		pieces = parseFenPlacement(START_FEN);
-		turnFromPosition = parseFenTurn(START_FEN);
-	} else if (typeof input === 'string') {
-		// FEN
-		pieces = parseFenPlacement(input);
-		turnFromPosition = parseFenTurn(input);
-	} else {
-		// Position map (long or short)
-		pieces = buildPiecesFromPositionMap(input);
-	}
-
-	state.pieces = pieces;
-
-	// Update turn from position if provided (do not override explicitly-set turn elsewhere)
-	if (turnFromPosition) {
-		state.turn = turnFromPosition;
-	}
+export function boardSetPosition(state: BoardStateInternal, pieces: Uint8Array): boolean {
+	state.pieces = new Uint8Array(pieces);
 
 	// Increment position epoch to prevent false animation across position resets
 	state.positionEpoch++;
@@ -88,150 +33,82 @@ export function boardSetTurn(state: BoardStateInternal, c: ColorInput): boolean 
 	return true;
 }
 
-/**
- * Apply a UI-level move from one square to another. No legality is enforced here.
- *
- * Semantics
- * - Accepts MoveInput: numeric squares (0..63) or algebraic strings (e.g., 'e4').
- * - Preserves the moving piece ID (ID from source transferred to destination).
- * - Capture is handled by overwriting the destination square.
- * - Promotion:
- *   - If opts.promotion is provided, the moving piece role is replaced by the promoted role.
- *   - RolePromotionInput accepts both long and short forms (e.g., 'queen' or 'Q').
- * - Toggles turn between 'white' and 'black'.
- * - Dirty tracking:
- *   - Dirty squares: from, to (and capturedSquare if en passant-like)
- *   - Dirty layers: DirtyLayer.Pieces
- *
- * Limitations (by design)
- * - No rules/legality checks (e.g., legal moves, check, en passant, castling) — handled by higher-level policy/integration.
- * - En passant/castling/halfmove/fullmove counters are not maintained here.
- *
- * Errors
- * - Moving from an empty square throws RangeError.
- * - Invalid squares (out of [0..63] or bad algebraic) throw a RangeError.
- *
- * @param state Internal mutable state
- * @param move MoveInput
- * @param opts Optional MoveOptions { promotion?: RolePromotionInput }
- * @returns Move
- * @example
- * move(state, { from: 'e2', to: 'e4' });
- * move(state, { from: 12, to: 28 }); // numeric squares
- * move(state, { from: 'a7', to: 'a8' }, { promotion: 'Q' });       // short
- * move(state, { from: 'a7', to: 'a8' }, { promotion: 'queen' });   // long
- * move(state, { from: 'e1', to: 'g1' }, { castle: { rookFrom: 'h1', rookTo: 'f1' } }); // castling with algebraic squares
- * move(state, { from: 6, to: 4 }, { castle: { rookFrom: 7, rookTo: 5 } }); // castling with numeric squares
- * move(state, { from: 'e5', to: 'd6' }, { capturedSquare: 'd5' }); // en passant-like move where the captured piece is on a different square
- * move(state, { from: 20, to: 27 }, { capturedSquare: 19 }); // en passant-like move with numeric captured square
- */
-export function boardMove(state: BoardStateInternal, move: MoveInput): Move {
-	// First prepare data and validate then atomic update to state
-	const from = toValidSquare(move.from); // toValidSquare will validate the square input
-	const to = toValidSquare(move.to); // toValidSquare will validate the square input
-
+function buildMoveBase(state: BoardStateInternal, request: MoveRequestBase): MoveBase {
+	const from = request.from;
+	const to = request.to;
 	if (from === to) {
 		throw new RangeError(`Source and destination squares are the same: ${from}`);
 	}
-
-	const movingCode = state.pieces[from];
-	if (isEmpty(movingCode)) {
+	const moved = state.pieces[from];
+	if (isEmpty(moved)) {
 		throw new RangeError(`Cannot move from empty square: ${from}`);
 	}
+	return {
+		from,
+		to,
+		moved: moved
+	};
+}
 
-	// Decode moving piece to determine color and current role
-	const movedPiece = decodePiece(movingCode);
-	if (!movedPiece) throw new RangeError(`Invalid piece code at from=${from}`);
-
-	// Determine capture square (normal capture at 'to', or EP-like via move.capturedSquare)
-	let captured: Move['captured'];
-	const captureSq = move?.capturedSquare !== undefined ? toValidSquare(move.capturedSquare) : to;
+function buildMove(state: BoardStateInternal, request: MoveRequest): Move {
+	const base = buildMoveBase(state, request);
+	let captured: MoveCaptured | undefined;
+	const captureSq = request.capturedSquare ?? request.to;
 	const codeAtCapture = state.pieces[captureSq];
 	if (!isEmpty(codeAtCapture)) {
-		const capturedPiece = decodePiece(codeAtCapture);
-		assert(capturedPiece, `Invalid piece code at capture square ${captureSq}`);
-		captured = { piece: capturedPiece, square: captureSq };
+		captured = { piece: codeAtCapture, square: captureSq };
 	}
 
-	// Write destination: with promotion or same role
-	let newPieceCode = movingCode;
-	if (move?.promotedTo) {
-		const newRole = normalizeRole(move.promotedTo);
-		newPieceCode = encodePiece({ color: movedPiece.color, role: newRole });
+	let promotedTo: PieceCode | undefined;
+	if (request.promotedTo) {
+		const moved = base.moved;
+		const [, colorCode] = fromPieceCode(moved);
+		const newPieceCode = toPieceCode(request.promotedTo, colorCode);
+		promotedTo = newPieceCode;
 	}
 
-	// process secondary move if provided (e.g., rook move in castling)
-	let secondaryMove: MoveBase | undefined;
-	let secFrom: Square | undefined;
-	let secTo: Square | undefined;
-	let secCode: number | undefined;
-	if (move?.secondary) {
-		secFrom = toValidSquare(move.secondary.from);
-		secTo = toValidSquare(move.secondary.to);
-		if (secFrom === secTo) {
+	let secondary: MoveBase | undefined;
+	if (request.secondary) {
+		secondary = buildMoveBase(state, request.secondary);
+		if (
+			secondary.from === base.to ||
+			secondary.to === base.to ||
+			secondary.from === base.from ||
+			secondary.to === base.from
+		) {
 			throw new RangeError(
-				`Secondary move source and destination squares are the same: ${secFrom}`
+				`Secondary move squares cannot overlap with primary move squares: ${denormalizeSquare(secondary.from)}, ${denormalizeSquare(secondary.to)} vs ${denormalizeSquare(base.from)}, ${denormalizeSquare(base.to)}`
 			);
 		}
-		if (to === secTo || from === secFrom || from === secTo || to === secFrom) {
-			throw new RangeError(
-				`Secondary move squares must differ from primary move squares: secondary from ${secFrom}, secondary to ${secTo}, primary from ${from}, primary to ${to}`
-			);
-		}
-		secCode = state.pieces[secFrom];
-		if (isEmpty(secCode)) {
-			throw new RangeError(`Cannot move from empty square in secondary move: ${secFrom}`);
-		}
-		const secPiece = decodePiece(secCode);
-		if (!secPiece) {
-			throw new RangeError(`Invalid piece code at secondary from=${secFrom}`);
-		}
-		secondaryMove = { from: secFrom, to: secTo, moved: secPiece };
 	}
 
-	// Update now the state
-	// Pieces
-	state.pieces[to] = newPieceCode;
-	state.pieces[from] = PieceCode.Empty;
-	// En passant-like capture: if capture square differs from 'to', clear it now
-	if (captureSq !== undefined && captureSq !== to) {
-		state.pieces[captureSq] = PieceCode.Empty;
+	return {
+		...base,
+		...(captured && { captured }),
+		...(promotedTo && { promotedTo }),
+		...(secondary && { secondary })
+	};
+}
+
+export function boardMove(state: BoardStateInternal, request: MoveRequest): Move {
+	const move = buildMove(state, request);
+	state.pieces[move.to] = move.promotedTo ?? move.moved;
+	state.pieces[move.from] = PieceCode.Empty;
+
+	if (move.captured && move.captured.square !== move.to) {
+		state.pieces[move.captured.square] = PieceCode.Empty;
 	}
-	// Secondary move
-	if (secFrom !== undefined && secTo !== undefined) {
-		state.pieces[secTo] = state.pieces[secFrom];
-		state.pieces[secFrom] = PieceCode.Empty;
+
+	if (move.secondary) {
+		state.pieces[move.secondary.to] = move.secondary.moved;
+		state.pieces[move.secondary.from] = PieceCode.Empty;
 	}
 
 	// Toggle turn
-	state.turn = state.turn === 'white' ? 'black' : 'white';
+	state.turn = state.turn === ColorCode.White ? ColorCode.Black : ColorCode.White;
 
-	// Position epoch
+	// Increment position epoch
 	state.positionEpoch++;
 
-	const promotedTo = move?.promotedTo ? normalizeRolePromotion(move.promotedTo) : undefined;
-	const result: Move = {
-		from,
-		to,
-		moved: movedPiece,
-		...(captured && { captured }),
-		...(promotedTo && { promotedTo: promotedTo }),
-		...(secondaryMove && { secondary: secondaryMove })
-	};
-	return result;
-}
-
-/**
- * Helpers local to reducers
- */
-
-function buildPiecesFromPositionMap(map: PositionMap | PositionMapShort): Uint8Array {
-	const out = new Uint8Array(64);
-	for (const [sqStr, piece] of Object.entries<Piece | PieceShort>(map)) {
-		const sq = fromAlgebraic(sqStr as SquareString);
-		const color = normalizeColor(piece.color);
-		const role = normalizeRole(piece.role);
-		out[sq] = encodePiece({ color, role });
-	}
-	return out;
+	return move;
 }

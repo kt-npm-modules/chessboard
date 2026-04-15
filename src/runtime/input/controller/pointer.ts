@@ -1,6 +1,6 @@
 import assert from '@ktarmyshov/assert';
 import { ScenePointerEvent } from '../../../extensions/types/basic/events';
-import { decodePiece, isEmpty } from '../../../state/board/encode';
+import { decodePiece, isEmpty } from '../../../state/board/check';
 import { canMoveTo } from './helpers';
 import { InteractionControllerInternal } from './types';
 

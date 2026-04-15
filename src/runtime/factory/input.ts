@@ -1,5 +1,5 @@
 import assert from '@ktarmyshov/assert';
-import { isEmpty } from '../../state/board/encode';
+import { isEmpty } from '../../state/board/check';
 import { BoardStateMutationSession } from '../../state/board/mutation';
 import { NormalizedMoveInput } from '../../state/board/types/internal';
 import { InteractionStateMutationSession } from '../../state/interaction/mutation';

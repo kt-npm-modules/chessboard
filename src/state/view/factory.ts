@@ -1,5 +1,5 @@
 import { cloneDeep } from 'es-toolkit/object';
-import { normalizeColor } from '../board/normalize';
+import { normalizeColor } from '../board/types/normalize';
 import { viewSetOrientation } from './reducers';
 import type { ViewState, ViewStateInitOptions, ViewStateInternal } from './types';
 

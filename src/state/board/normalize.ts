@@ -1,83 +1,100 @@
-import { assertNever } from '../../utils/assert-never';
-import { toValidSquare } from './coords';
-import type { Color, MoveInput, NormalizedMoveInput, Role, RolePromotion } from './types/internal';
+import { isPieceString, isRolePromotionCode, isValidSquare } from './check';
+import {
+	ColorInput,
+	ColorShort,
+	MoveRequestInput,
+	PieceInput,
+	RoleInput,
+	RolePromotionInput,
+	RoleShort,
+	SquareString
+} from './types/input';
+import {
+	ColorCode,
+	FILE_START,
+	MoveRequest,
+	PieceCode,
+	RANK_START,
+	RoleCode,
+	RolePromotionCode,
+	Square
+} from './types/internal';
 
-/**
- * Normalize color inputs to canonical long names.
- * Accepts: 'white' | 'black' | 'w' | 'b'
- * Returns: 'white' | 'black'
- */
-export function normalizeColor(input: string): Color {
+export function normalizeColor(input: ColorInput): ColorCode {
 	switch (input) {
 		case 'white':
-		case 'black':
-			return input;
 		case 'w':
-			return 'white';
+			return ColorCode.White;
+		case 'black':
 		case 'b':
-			return 'black';
+			return ColorCode.Black;
 		default:
-			assertNever(RangeError, `Invalid color input`, input);
+			throw new RangeError(`Invalid color input: ${input}`);
 	}
 }
 
-/**
- * Normalize role inputs to canonical long names.
- * Accepts:
- *  - Long: 'pawn' | 'knight' | 'bishop' | 'rook' | 'queen' | 'king'
- *  - Short (single-case policy aligned with PGN letters): 'p' | 'N' | 'B' | 'R' | 'Q' | 'K'
- * Returns: long canonical role
- */
-export function normalizeRole(input: string): Role {
-	if (isRole(input)) return input;
-
+export function normalizeRole(input: RoleInput): RoleCode {
 	switch (input) {
 		case 'p':
-			return 'pawn';
+		case 'pawn':
+			return RoleCode.Pawn;
 		case 'N':
-			return 'knight';
+		case 'knight':
+			return RoleCode.Knight;
 		case 'B':
-			return 'bishop';
+		case 'bishop':
+			return RoleCode.Bishop;
 		case 'R':
-			return 'rook';
+		case 'rook':
+			return RoleCode.Rook;
 		case 'Q':
-			return 'queen';
+		case 'queen':
+			return RoleCode.Queen;
 		case 'K':
-			return 'king';
+		case 'king':
+			return RoleCode.King;
 		default:
-			assertNever(RangeError, `Invalid role input`, input);
+			throw new RangeError(`Invalid role input: ${input}`);
 	}
 }
 
-export function normalizeRolePromotion(input: string): RolePromotion {
+export function normalizePiece(input: PieceInput): PieceCode {
+	const [color, role] = isPieceString(input)
+		? [input[0] as ColorShort, input[1] as RoleShort]
+		: [input.color, input.role];
+	const colorCode = normalizeColor(color);
+	const roleCode = normalizeRole(role);
+	return colorCode + roleCode;
+}
+
+export function normalizeRolePromotion(input: RolePromotionInput): RolePromotionCode {
 	const role = normalizeRole(input);
-	if (role === 'king' || role === 'pawn') {
-		throw new RangeError(`Invalid role promotion input: ${input}`);
+	if (!isRolePromotionCode(role)) {
+		throw new RangeError(`Invalid role promotion input (cannot promote to ${role}): ${input}`);
 	}
-	return role as RolePromotion;
+	return role;
 }
 
-function isRole(r: unknown): r is Role {
-	return (
-		r === 'pawn' ||
-		r === 'knight' ||
-		r === 'bishop' ||
-		r === 'rook' ||
-		r === 'queen' ||
-		r === 'king'
-	);
+export function normalizeSquare(s: SquareString): Square {
+	const file = Math.trunc(s.charCodeAt(0) - FILE_START);
+	const rank = Math.trunc(s.charCodeAt(1) - RANK_START);
+	const sq = Math.trunc(rank * 8 + file);
+	if (!isValidSquare(sq)) {
+		throw new TypeError(`Invalid algebraic square: ${s}`);
+	}
+	return sq;
 }
 
-export function normalizeMoveInput(move: MoveInput): NormalizedMoveInput {
+export function normalizeMoveRequest(move: MoveRequestInput): MoveRequest {
 	return {
-		from: toValidSquare(move.from),
-		to: toValidSquare(move.to),
-		...(move.capturedSquare && { capturedSquare: toValidSquare(move.capturedSquare) }),
+		from: normalizeSquare(move.from),
+		to: normalizeSquare(move.to),
+		...(move.capturedSquare && { capturedSquare: normalizeSquare(move.capturedSquare) }),
 		...(move.promotedTo && { promotedTo: normalizeRolePromotion(move.promotedTo) }),
 		...(move.secondary && {
 			secondary: {
-				from: toValidSquare(move.secondary.from),
-				to: toValidSquare(move.secondary.to)
+				from: normalizeSquare(move.secondary.from),
+				to: normalizeSquare(move.secondary.to)
 			}
 		})
 	};

@@ -1,5 +1,5 @@
 import assert from '@ktarmyshov/assert';
-import { decodePiece } from '../../../state/board/encode';
+import { decodePiece } from '../../../state/board/check';
 import { ExtensionUpdateContext } from '../../types/context/update';
 import { getPieceShortKey, getPieceUrl } from '../helpers';
 import { MainRendererDragInternal } from './types';
