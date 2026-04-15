@@ -1,6 +1,7 @@
 import { clearElementChildren, createSvgElement, isLightSquare } from '../../../render/svg/helpers';
-import { squareOf, toAlgebraic } from '../../../state/board/coords';
-import { Square } from '../../../state/board/types/internal';
+import { squareOf } from '../../../state/board/coords';
+import { denormalizeSquare } from '../../../state/board/denormalize';
+import { ColorCode, Square, SquareFile, SquareRank } from '../../../state/board/types/internal';
 import { ExtensionRenderContext } from '../../types/context/render';
 import { DirtyLayer } from '../types/extension';
 import { MainRendererCoordinatesInternal } from './types';
@@ -26,19 +27,21 @@ export function rendererCoordinatesRender(
 	const offset = 3;
 
 	// Rank labels on the visual left edge
-	const rankFile = geometry.orientation === 'white' ? 0 : 7;
+	const rankFile = geometry.orientation === ColorCode.White ? 0 : 7;
 	for (let visualRank = 0; visualRank < 8; visualRank++) {
-		const logicalRank = geometry.orientation === 'white' ? 7 - visualRank : visualRank;
+		const logicalRank = (
+			geometry.orientation === ColorCode.White ? 7 - visualRank : visualRank
+		) as SquareRank;
 		const sq = squareOf(rankFile, logicalRank);
 		const label =
-			geometry.orientation === 'white' ? String(8 - visualRank) : String(1 + visualRank);
+			geometry.orientation === ColorCode.White ? String(8 - visualRank) : String(1 + visualRank);
 
 		const r = geometry.squareRect(sq);
 		const color = labelColorForSquare(sq, coords);
 
 		const text = createSvgElement(layer, 'text', {
 			'data-chessboard-id': `coord-rank-${label}`,
-			'data-chessboard-square': toAlgebraic(sq),
+			'data-chessboard-square': denormalizeSquare(sq),
 			x: (r.x + offset).toString(),
 			y: (r.y + offset).toString(),
 			'font-size': fontSize.toString(),
@@ -52,12 +55,14 @@ export function rendererCoordinatesRender(
 	}
 
 	// File labels on the visual bottom edge
-	const fileRank = geometry.orientation === 'white' ? 0 : 7;
+	const fileRank = geometry.orientation === ColorCode.White ? 0 : 7;
 	for (let visualFile = 0; visualFile < 8; visualFile++) {
-		const logicalFile = geometry.orientation === 'white' ? visualFile : 7 - visualFile;
+		const logicalFile = (
+			geometry.orientation === ColorCode.White ? visualFile : 7 - visualFile
+		) as SquareFile;
 		const sq = squareOf(logicalFile, fileRank);
 		const label =
-			geometry.orientation === 'white'
+			geometry.orientation === ColorCode.White
 				? String.fromCharCode('a'.charCodeAt(0) + visualFile)
 				: String.fromCharCode('h'.charCodeAt(0) - visualFile);
 
@@ -66,7 +71,7 @@ export function rendererCoordinatesRender(
 
 		const text = createSvgElement(layer, 'text', {
 			'data-chessboard-id': `coord-file-${label}`,
-			'data-chessboard-square': toAlgebraic(sq),
+			'data-chessboard-square': denormalizeSquare(sq),
 			x: (r.x + r.size - offset).toString(),
 			y: (r.y + r.size - offset).toString(),
 			'font-size': fontSize.toString(),

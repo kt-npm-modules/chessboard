@@ -1,6 +1,6 @@
 import { calculateAnimationPlan } from '../../../animation/planner';
 import { AnimationTrackExclude } from '../../../animation/types';
-import { positionsEqual } from '../../../state/board/helpers';
+import { piecePositionsEqual } from '../../../state/board/check';
 import type { ExtensionUpdateContext } from '../../types/context/update';
 import { isUpdateContextRenderable } from '../../types/context/update';
 import type { MainRendererAnimationInternal } from './types';
@@ -22,7 +22,7 @@ export function rendererAnimationOnUpdate(
 	const previousBoard = context.previousFrame.state.board;
 	const currentBoard = context.currentFrame.state.board;
 
-	if (positionsEqual(previousBoard, currentBoard)) return;
+	if (piecePositionsEqual(previousBoard, currentBoard)) return;
 
 	// On DropTo exclude the move that user did from the animation plan
 	const exclude: AnimationTrackExclude[] = [];
@@ -33,6 +33,9 @@ export function rendererAnimationOnUpdate(
 		exclude.push({
 			fromSq: context.currentFrame.state.change.lastMove.from,
 			toSq: context.currentFrame.state.change.lastMove.to
+		});
+		exclude.push({
+			sq: context.currentFrame.state.change.lastMove.from
 		});
 		exclude.push({
 			sq: context.currentFrame.state.change.lastMove.to

@@ -1,4 +1,4 @@
-import { PieceUrls } from '../types/config';
+import { PieceUrls } from '../types/internal';
 import { rendererPiecesRender } from './render';
 import { MainRendererPieces, MainRendererPiecesInternal } from './types';
 import { rendererPiecesOnUpdate, rendererPiecesRefreshSuppressedSquares } from './update';

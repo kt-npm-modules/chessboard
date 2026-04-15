@@ -61,7 +61,7 @@ export function createInteractionState(options: InteractionStateInitOptions): In
 		setMovability(movability, mutationSession) {
 			const changed = mutationSession.addMutation(
 				'state.interaction.setMovability',
-				interactionSetMovability(internalState, movability)
+				interactionSetMovability(internalState, normalizeMovability(movability))
 			);
 
 			if (!changed) return false; // no-op

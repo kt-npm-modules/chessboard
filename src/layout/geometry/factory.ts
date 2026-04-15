@@ -1,5 +1,6 @@
 import { fileOf, rankOf } from '../../state/board/coords';
-import { Color, Square } from '../../state/board/types/internal';
+import { ColorCode } from '../../state/board/types/internal';
+import { OrientationCode } from '../../state/view/types/internal';
 import { RenderGeometry } from './types';
 
 /**
@@ -11,18 +12,21 @@ import { RenderGeometry } from './types';
  *   - 'black': files increase right→left (a..h), ranks increase top→bottom (1..8).
  *              yIndex = rank, xIndex = 7 - file
  */
-export function createRenderGeometry(boardSize: number, orientation: Color): RenderGeometry {
+export function createRenderGeometry(
+	boardSize: number,
+	orientation: OrientationCode
+): RenderGeometry {
 	if (!(boardSize > 0 && Number.isFinite(boardSize))) {
 		throw new RangeError(`Invalid boardSize: ${boardSize}`);
 	}
 	const squareSize = boardSize / 8;
-	const white = orientation === 'white';
+	const white = orientation === ColorCode.White;
 
 	return {
 		boardSize,
 		squareSize,
 		orientation,
-		squareRect(sq: Square) {
+		squareRect(sq) {
 			const f = fileOf(sq);
 			const r = rankOf(sq);
 			const xIndex = white ? f : 7 - f;

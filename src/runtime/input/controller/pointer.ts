@@ -1,6 +1,7 @@
 import assert from '@ktarmyshov/assert';
 import { ScenePointerEvent } from '../../../extensions/types/basic/events';
-import { decodePiece, isEmpty } from '../../../state/board/check';
+import { isEmptyPieceCode, isNonEmptyPieceCode } from '../../../state/board/check';
+import { fromPieceCode } from '../../../state/board/piece';
 import { canMoveTo } from './helpers';
 import { InteractionControllerInternal } from './types';
 
@@ -31,13 +32,11 @@ export function handlePointerDown(
 		 */
 		if (interaction.selected && event.target !== interaction.selected.square) {
 			const selectedPieceCode = interaction.selected.pieceCode;
+			assert(isNonEmptyPieceCode(selectedPieceCode), 'Selected piece code must be non-zero');
 			const targetPieceCode = state.surface.getPieceCodeAt(event.target);
-			const selectedPiece = decodePiece(selectedPieceCode);
-			assert(selectedPiece !== null, 'Selected piece code must be non-zero');
-			const targetPiece = decodePiece(targetPieceCode);
 			if (
-				targetPiece === null || // empty square
-				targetPiece.color !== selectedPiece.color // opponent piece
+				isEmptyPieceCode(targetPieceCode) || // empty square
+				fromPieceCode(targetPieceCode).color !== fromPieceCode(selectedPieceCode).color // opponent piece
 			) {
 				state.surface.startReleaseTargetingDrag(interaction.selected.square, event.target);
 				return;
@@ -49,7 +48,7 @@ export function handlePointerDown(
 		 * So it's either a new lift or re-lift of the same piece. In either case, we can just start a lifted drag session if the target is valid.
 		 */
 		const pieceCode = state.surface.getPieceCodeAt(event.target);
-		if (!isEmpty(pieceCode)) {
+		if (!isEmptyPieceCode(pieceCode)) {
 			state.surface.startLiftedDrag(event.target, event.target);
 		}
 	}

@@ -1,5 +1,5 @@
 import { ReadonlyDeep } from 'type-fest';
-import { PieceCode, Square } from '../../board/types/internal';
+import { NonEmptyPieceCode, Square } from '../../board/types/internal';
 import { InteractionStateMutationSession } from '../mutation';
 import { MovabilityInput } from './input';
 import {
@@ -12,7 +12,7 @@ import {
 
 export interface InteractionStateSelected {
 	square: Square;
-	pieceCode: PieceCode;
+	pieceCode: NonEmptyPieceCode;
 }
 
 export interface InteractionStateInternal {
@@ -35,7 +35,10 @@ export interface InteractionState {
 		mutationSession: InteractionStateMutationSession
 	): boolean;
 	readonly movability: MovabilitySnapshot;
-	setMovability(movability: Movability, mutationSession: InteractionStateMutationSession): boolean;
+	setMovability(
+		movability: MovabilityInput,
+		mutationSession: InteractionStateMutationSession
+	): boolean;
 	readonly activeDestinations: ReadonlyMap<Square, MoveDestinationSnapshot>;
 	updateActiveDestinations(mutationSession: InteractionStateMutationSession): boolean;
 	readonly dragSession: DragSessionSnapshot | null;

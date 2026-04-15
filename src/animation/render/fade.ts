@@ -1,5 +1,4 @@
-import { getPieceUrl } from '../../extensions/main-renderer/helpers';
-import type { PieceUrls } from '../../extensions/main-renderer/types/config';
+import type { PieceUrls } from '../../extensions/main-renderer/types/internal';
 import type { RenderGeometry } from '../../layout/geometry/types';
 import { createSvgElement, updateElementAttributes } from '../../render/svg/helpers';
 import type { AnimationTrackFade } from '../types';
@@ -12,7 +11,7 @@ export function prepareFadeTrack(
 	layer: SVGElement
 ): PreparedFadeNode {
 	const r = geometry.squareRect(track.sq);
-	const url = getPieceUrl(pieceUrls, track.piece);
+	const url = pieceUrls[track.pieceCode];
 	const initialOpacity = track.effect === 'fade-in' ? '0' : '1';
 	const root = createSvgElement(layer, 'image', {
 		'data-chessboard-id': `animation-fade-${track.id}`,

@@ -1,49 +1,49 @@
 <script lang="ts">
 	import { createMainRenderer } from '@mirasen/chessboard/unstable/extensions/main-renderer/factory.js';
 	import { createRuntime } from '@mirasen/chessboard/unstable/runtime/factory/main.js';
-	import type { PositionMapShort } from '@mirasen/chessboard/unstable/state/board/types.js';
+	import type { PiecePositionRecordString } from '@mirasen/chessboard/unstable/state/board/types/input.js';
 	import { onDestroy, onMount } from 'svelte';
 
 	let boardEl: HTMLDivElement;
 	let runtime: ReturnType<typeof createRuntime> | null = null;
 	let snapshotText = $state('');
 
-	const START_POSITION: PositionMapShort = {
-		a2: { color: 'w', role: 'p' },
-		b2: { color: 'w', role: 'p' },
-		c2: { color: 'w', role: 'p' },
-		d2: { color: 'w', role: 'p' },
-		e2: { color: 'w', role: 'p' },
-		f2: { color: 'w', role: 'p' },
-		g2: { color: 'w', role: 'p' },
-		h2: { color: 'w', role: 'p' },
+	const START_POSITION: PiecePositionRecordString = {
+		a2: 'wP',
+		b2: 'wP',
+		c2: 'wP',
+		d2: 'wP',
+		e2: 'wP',
+		f2: 'wP',
+		g2: 'wP',
+		h2: 'wP',
 
-		a1: { color: 'w', role: 'R' },
-		b1: { color: 'w', role: 'N' },
-		c1: { color: 'w', role: 'B' },
-		d1: { color: 'w', role: 'Q' },
-		e1: { color: 'w', role: 'K' },
-		f1: { color: 'w', role: 'B' },
-		g1: { color: 'w', role: 'N' },
-		h1: { color: 'w', role: 'R' },
+		a1: 'wR',
+		b1: 'wN',
+		c1: 'wB',
+		d1: 'wQ',
+		e1: 'wK',
+		f1: 'wB',
+		g1: 'wN',
+		h1: 'wR',
 
-		a7: { color: 'b', role: 'p' },
-		b7: { color: 'b', role: 'p' },
-		c7: { color: 'b', role: 'p' },
-		d7: { color: 'b', role: 'p' },
-		e7: { color: 'b', role: 'p' },
-		f7: { color: 'b', role: 'p' },
-		g7: { color: 'b', role: 'p' },
-		h7: { color: 'b', role: 'p' },
+		a7: 'bP',
+		b7: 'bP',
+		c7: 'bP',
+		d7: 'bP',
+		e7: 'bP',
+		f7: 'bP',
+		g7: 'bP',
+		h7: 'bP',
 
-		a8: { color: 'b', role: 'R' },
-		b8: { color: 'b', role: 'N' },
-		c8: { color: 'b', role: 'B' },
-		d8: { color: 'b', role: 'Q' },
-		e8: { color: 'b', role: 'K' },
-		f8: { color: 'b', role: 'B' },
-		g8: { color: 'b', role: 'N' },
-		h8: { color: 'b', role: 'R' }
+		a8: 'bR',
+		b8: 'bN',
+		c8: 'bB',
+		d8: 'bQ',
+		e8: 'bK',
+		f8: 'bB',
+		g8: 'bN',
+		h8: 'bR'
 	} as const;
 
 	function refreshSnapshot() {
@@ -65,7 +65,7 @@
 
 	function resetPosition() {
 		if (!runtime) return;
-		runtime.setPosition(START_POSITION);
+		runtime.setPiecePosition(START_POSITION);
 		refreshSnapshot();
 	}
 
@@ -78,7 +78,7 @@
 	onMount(() => {
 		runtime = createRuntime({
 			doc: document,
-			extensions: [createMainRenderer()]
+			extensions: [createMainRenderer({})]
 		});
 		runtime.setMovability({ mode: 'free' });
 		runtime.mount(boardEl);

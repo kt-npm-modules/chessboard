@@ -35,7 +35,7 @@ export function normalizeColor(input: ColorInput): ColorCode {
 
 export function normalizeRole(input: RoleInput): RoleCode {
 	switch (input) {
-		case 'p':
+		case 'P':
 		case 'pawn':
 			return RoleCode.Pawn;
 		case 'N':

@@ -1,10 +1,10 @@
-import { ColorCode, PieceCode, PieceCoded, RoleCode, RolePromotionCode } from './types/internal';
+import { ColorCode, NonEmptyPieceCode, PieceCode, PieceCoded, RoleCode } from './types/internal';
 
-export function toPieceCode(role: RoleCode | RolePromotionCode, color: ColorCode): PieceCode {
+export function toPieceCode(role: RoleCode, color: ColorCode): PieceCode {
 	return color + role;
 }
 
-export function fromPieceCode(code: PieceCode): PieceCoded {
+export function fromPieceCode(code: NonEmptyPieceCode): PieceCoded {
 	if (code <= PieceCode.Empty) {
 		throw new RangeError(`Invalid piece code: ${code}`);
 	}

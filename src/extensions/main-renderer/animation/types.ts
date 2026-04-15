@@ -8,7 +8,7 @@ import type {
 } from '../../types/context/animation';
 import type { ExtensionUpdateContext } from '../../types/context/update';
 import type { ExtensionRuntimeSurface } from '../../types/surface/main';
-import type { PieceUrls } from '../types/config';
+import type { PieceUrls } from '../types/internal';
 
 export interface MainRendererAnimationEntry {
 	plan: AnimationPlan;

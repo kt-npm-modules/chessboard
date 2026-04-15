@@ -1,10 +1,10 @@
-import type { ColorInput } from '../board/types/internal';
-import { normalizeColor } from '../board/types/normalize';
-import type { ViewStateInternal } from './types';
+import type { OrientationCode, ViewStateInternal } from './types/internal';
 
-export function viewSetOrientation(state: ViewStateInternal, c: ColorInput): boolean {
-	const newOrient = normalizeColor(c);
-	if (state.orientation === newOrient) return false; // no-op
-	state.orientation = newOrient;
+export function viewSetOrientation(
+	state: ViewStateInternal,
+	orientation: OrientationCode
+): boolean {
+	if (state.orientation === orientation) return false; // no-op
+	state.orientation = orientation;
 	return true;
 }

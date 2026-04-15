@@ -1,4 +1,4 @@
-import { ConfigColorPair } from '../types/config';
+import { ConfigColorPair } from '../types/internal';
 import { rendererCoordinatesRender } from './render';
 import { MainRendererCoordinates, MainRendererCoordinatesInternal } from './types';
 

@@ -1,4 +1,4 @@
-import { ConfigColorPair } from '../types/config';
+import { ConfigColorPair } from '../types/internal';
 import { rendererBoardRender } from './render';
 import { MainRendererBoard, MainRendererBoardInternal } from './types';
 import { rendererBoardOnUpdate } from './update';

@@ -1,6 +1,6 @@
 import { ScenePoint } from '../../../extensions/types/basic/transient-visuals';
 import { RenderGeometry } from '../../../layout/geometry/types';
-import { Square } from '../../../state/board/types/internal';
+import { ColorCode, Square } from '../../../state/board/types/internal';
 
 export function mapBoardPointToSquare(
 	x: number,
@@ -20,8 +20,8 @@ export function mapBoardPointToSquare(
 	// Invert the orientation mapping used by geometry.squareRect:
 	//   white: xIndex = file,     yIndex = 7 - rank  →  file = xIndex,     rank = 7 - yIndex
 	//   black: xIndex = 7 - file, yIndex = rank       →  file = 7 - xIndex, rank = yIndex
-	const file = orientation === 'white' ? xIndex : 7 - xIndex;
-	const rank = orientation === 'white' ? 7 - yIndex : yIndex;
+	const file = orientation === ColorCode.White ? xIndex : 7 - xIndex;
+	const rank = orientation === ColorCode.White ? 7 - yIndex : yIndex;
 
 	return (rank * 8 + file) as Square;
 }

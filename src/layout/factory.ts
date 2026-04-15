@@ -1,11 +1,12 @@
 import { cloneDeep } from 'es-toolkit/object';
+import { ColorCode } from '../state/board/types/internal';
 import { layoutRefreshGeometry } from './reducers';
 import { Layout, LayoutInternal } from './types';
 
 function createLayoutInternal(): LayoutInternal {
 	return {
 		boardSize: 0,
-		orientation: 'white',
+		orientation: ColorCode.White,
 		geometry: null,
 		layoutEpoch: 0
 	};

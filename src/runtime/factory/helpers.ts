@@ -1,11 +1,11 @@
-import { NormalizedMoveInput, RolePromotion, Square } from '../../state/board/types/internal';
+import { MoveRequest, RolePromotionCode, Square } from '../../state/board/types/internal';
 import { MoveDestinationSnapshot } from '../../state/interaction/types/internal';
 
 export function convertDestinationToMoveInput(
 	from: Square,
 	destination: MoveDestinationSnapshot
-): NormalizedMoveInput {
-	let promotedTo: RolePromotion | undefined;
+): MoveRequest {
+	let promotedTo: RolePromotionCode | undefined;
 	if (destination.promotedTo && destination.promotedTo.length === 1) {
 		promotedTo = destination.promotedTo[0];
 	} else if (destination.promotedTo && destination.promotedTo.length > 1) {

@@ -1,7 +1,24 @@
 import { isValidSquare } from './check';
 import { fileOf, rankOf } from './coords';
-import { Color, FileChar, Piece, RankChar, Role, SquareString } from './types/input';
-import { ColorCode, FILE_START, PieceCode, RANK_START, RoleCode, Square } from './types/internal';
+import {
+	Color,
+	FileChar,
+	Piece,
+	PieceString,
+	RankChar,
+	Role,
+	RoleShort,
+	SquareString
+} from './types/input';
+import {
+	ColorCode,
+	FILE_START,
+	NonEmptyPieceCode,
+	PieceCode,
+	RANK_START,
+	RoleCode,
+	Square
+} from './types/internal';
 
 export function denormalizeSquare(sq: Square): SquareString {
 	if (!isValidSquare(sq)) {
@@ -33,9 +50,35 @@ export function denormalizeRole(role: RoleCode): Role {
 	}
 }
 
+export function denormalizeRoleShort(role: RoleCode): RoleShort {
+	switch (role) {
+		case RoleCode.Pawn:
+			return 'P';
+		case RoleCode.King:
+			return 'K';
+		case RoleCode.Knight:
+			return 'N';
+		case RoleCode.Bishop:
+			return 'B';
+		case RoleCode.Rook:
+			return 'R';
+		case RoleCode.Queen:
+			return 'Q';
+		default:
+			throw new RangeError(`Invalid role code: ${role}`);
+	}
+}
+
 export function denormalizePiece(code: PieceCode): Piece | null {
 	if (code <= PieceCode.Empty) return null;
 	const color: Color = code >= ColorCode.Black ? 'black' : 'white';
 	const roleCode: RoleCode = color === 'black' ? code - ColorCode.Black : code;
 	return { color, role: denormalizeRole(roleCode) };
+}
+
+export function denormalizePieceString(code: NonEmptyPieceCode): PieceString {
+	const colorPrefix = code >= ColorCode.Black ? 'b' : 'w';
+	const roleCode: RoleCode = colorPrefix === 'b' ? code - ColorCode.Black : code;
+	const roleStr = denormalizeRoleShort(roleCode);
+	return `${colorPrefix}${roleStr}`;
 }

@@ -1,4 +1,4 @@
-import { isEmpty } from './check';
+import { isEmptyPieceCode } from './check';
 import { denormalizeSquare } from './denormalize';
 import { fromPieceCode, toPieceCode } from './piece';
 import {
@@ -37,7 +37,7 @@ function buildMoveBase(state: BoardStateInternal, request: MoveRequestBase): Mov
 		throw new RangeError(`Source and destination squares are the same: ${from}`);
 	}
 	const moved = state.pieces[from];
-	if (isEmpty(moved)) {
+	if (isEmptyPieceCode(moved)) {
 		throw new RangeError(`Cannot move from empty square: ${from}`);
 	}
 	return {
@@ -52,7 +52,7 @@ function buildMove(state: BoardStateInternal, request: MoveRequest): Move {
 	let captured: MoveCaptured | undefined;
 	const captureSq = request.capturedSquare ?? request.to;
 	const codeAtCapture = state.pieces[captureSq];
-	if (!isEmpty(codeAtCapture)) {
+	if (!isEmptyPieceCode(codeAtCapture)) {
 		captured = { piece: codeAtCapture, square: captureSq };
 	}
 

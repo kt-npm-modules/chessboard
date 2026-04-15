@@ -1,6 +1,5 @@
-import type { PieceUrls } from '../../extensions/main-renderer/types/config';
+import type { PieceUrls } from '../../extensions/main-renderer/types/internal';
 import type { RenderGeometry } from '../../layout/geometry/types';
-import { assertNever } from '../../utils/assert-never';
 import type { AnimationPlan } from '../types';
 import { cleanFadeTrack, prepareFadeTrack, renderFadeTrack } from './fade';
 import { cleanMoveTrack, prepareMoveTrack, renderMoveTrack } from './move';
@@ -32,7 +31,7 @@ export function prepareAnimationPlan(
 				node = prepareStaticTrack(track, geometry, pieceUrls, layer);
 				break;
 			default:
-				assertNever(RangeError, `Unsupported track effect`, track);
+				throw new RangeError(`Unsupported track effect: ${track}`);
 		}
 		nodes.set(track.id, node);
 	}
@@ -57,7 +56,7 @@ export function renderAnimationPlan(
 				renderStaticTrack(node);
 				break;
 			default:
-				assertNever(RangeError, `Unsupported track effect`, node);
+				throw new RangeError(`Unsupported track effect: ${node}`);
 		}
 	}
 }
@@ -79,7 +78,7 @@ export function cleanAnimationPlan(nodes: PreparedNodeMap): void {
 				cleanStaticTrack(node);
 				break;
 			default:
-				assertNever(RangeError, `Unsupported track effect`, node);
+				throw new RangeError(`Unsupported track effect: ${node}`);
 		}
 	}
 	nodes.clear();

@@ -1,7 +1,6 @@
 import assert from '@ktarmyshov/assert';
-import { decodePiece } from '../../../state/board/check';
+import { isNonEmptyPieceCode } from '../../../state/board/check';
 import { ExtensionUpdateContext } from '../../types/context/update';
-import { getPieceShortKey, getPieceUrl } from '../helpers';
 import { MainRendererDragInternal } from './types';
 
 export function rendererDragOnUpdate(
@@ -14,10 +13,8 @@ export function rendererDragOnUpdate(
 	if (isLiftedDragActive) {
 		if (!state.isDragActive) {
 			const pieceCode = context.currentFrame.state.interaction.dragSession.sourcePieceCode;
-			const piece = decodePiece(pieceCode);
-			assert(piece !== null, 'Invalid piece code in drag session');
-			const key = getPieceShortKey(piece);
-			state.pieceUrl = getPieceUrl(state.config, key);
+			assert(isNonEmptyPieceCode(pieceCode), 'Invalid piece code in drag session');
+			state.pieceUrl = state.config[pieceCode];
 			state.runtimeSurface.transientVisuals.subscribe();
 		}
 		state.isDragActive = true;

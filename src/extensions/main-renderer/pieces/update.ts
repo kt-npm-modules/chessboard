@@ -1,5 +1,5 @@
 import { setsEqual } from '../../../helpers/util';
-import { positionsEqual } from '../../../state/board/helpers';
+import { piecePositionsEqual } from '../../../state/board/check';
 import { Square } from '../../../state/board/types/internal';
 import { ExtensionCleanAnimationContext } from '../../types/context/animation';
 import { ExtensionUpdateContext, isUpdateContextRenderable } from '../../types/context/update';
@@ -28,7 +28,7 @@ export function rendererPiecesOnUpdate(
 		context.mutation.hasMutation({ causes: ['layout.refreshGeometry'] }) ||
 		!context.previousFrame ||
 		!setsEqual(previousSuppressedSquares, state.suppressedSquares) ||
-		!positionsEqual(context.currentFrame.state.board, context.previousFrame.state.board);
+		!piecePositionsEqual(context.currentFrame.state.board, context.previousFrame.state.board);
 
 	if (!needsRender) return;
 	context.invalidation.markDirty(DirtyLayer.Pieces);

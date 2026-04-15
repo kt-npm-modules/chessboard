@@ -1,6 +1,7 @@
 import {
 	Color,
 	ColorShort,
+	MoveRequestInput,
 	Piece,
 	PiecePositionInput,
 	PiecePositionRecord,
@@ -14,9 +15,14 @@ import {
 } from './types/input';
 import {
 	ColorCode,
+	EmptyPieceCode,
+	MoveRequest,
+	NonEmptyPieceCode,
 	PieceCode,
+	RoleCode,
 	RolePromotionCode,
 	Square,
+	SQUARE_COUNT,
 	SquareFile,
 	SquareRank
 } from './types/internal';
@@ -34,11 +40,15 @@ export function isOccupied(board: BoardStateSnapshot, sq: Square): boolean {
 	return board.pieces[sq] > PieceCode.Empty;
 }
 
-export function isEmpty(code: PieceCode): boolean {
+export function isEmptyPieceCode(code: PieceCode): code is EmptyPieceCode {
 	return code === PieceCode.Empty;
 }
 
-export function positionsEqual(pos1: BoardStateSnapshot, pos2: BoardStateSnapshot): boolean {
+export function isNonEmptyPieceCode(code: PieceCode): code is NonEmptyPieceCode {
+	return code !== PieceCode.Empty;
+}
+
+export function piecePositionsEqual(pos1: BoardStateSnapshot, pos2: BoardStateSnapshot): boolean {
 	if (pos1.positionEpoch !== pos2.positionEpoch) return false;
 	for (let i = 0; i < pos1.pieces.length; i++) {
 		if (pos1.pieces[i] !== pos2.pieces[i]) return false;
@@ -55,7 +65,7 @@ export function isFile(n: number): n is SquareFile {
 }
 
 export function isValidSquare(n: number): n is Square {
-	return Number.isInteger(n) && n >= 0 && n < 64;
+	return Number.isInteger(n) && n >= 0 && n < SQUARE_COUNT;
 }
 
 export function assertValidSquare(n: number): asserts n is Square {
@@ -66,14 +76,14 @@ export function assertValidSquare(n: number): asserts n is Square {
 
 export function isRolePromotionCode(role: number): role is RolePromotionCode {
 	return (
-		role === RolePromotionCode.Knight ||
-		role === RolePromotionCode.Bishop ||
-		role === RolePromotionCode.Rook ||
-		role === RolePromotionCode.Queen
+		role === RoleCode.Knight ||
+		role === RoleCode.Bishop ||
+		role === RoleCode.Rook ||
+		role === RoleCode.Queen
 	);
 }
 
-const PIECE_STRING_REGEX = /^[bw][KQRBNp]$/;
+const PIECE_STRING_REGEX = /^[bw][KQRBNP]$/;
 
 export function isPieceString(value: unknown): value is PieceString {
 	return typeof value === 'string' && PIECE_STRING_REGEX.test(value);
@@ -113,7 +123,7 @@ export function isRoleShort(value: unknown): value is RoleShort {
 		value === 'R' ||
 		value === 'B' ||
 		value === 'N' ||
-		value === 'p'
+		value === 'P'
 	);
 }
 
@@ -182,4 +192,24 @@ export function assertValidRoleCode(n: number): asserts n is RolePromotionCode {
 	if (!isRolePromotionCode(n)) {
 		throw new RangeError(`Invalid role promotion code: ${n}`);
 	}
+}
+
+export function isNormalizedMoveRequest(
+	input: MoveRequest | MoveRequestInput
+): input is MoveRequest {
+	return (
+		typeof input === 'object' &&
+		input !== null &&
+		'from' in input &&
+		'to' in input &&
+		typeof input.from === 'number' &&
+		isValidSquare(input.from) &&
+		typeof input.to === 'number' &&
+		isValidSquare(input.to) &&
+		(input.capturedSquare === undefined ||
+			(typeof input.capturedSquare === 'number' && isValidSquare(input.capturedSquare))) &&
+		(input.promotedTo === undefined ||
+			(typeof input.promotedTo === 'number' && isRolePromotionCode(input.promotedTo))) &&
+		(input.secondary === undefined || isNormalizedMoveRequest(input.secondary))
+	);
 }

@@ -1,7 +1,7 @@
-import { isEmpty } from '../../state/board/check';
+import { isEmptyPieceCode } from '../../state/board/check';
 import { selectedEqual } from '../../state/interaction/helpers';
 import { InteractionStateMutationSession } from '../../state/interaction/mutation';
-import { InteractionStateSelected } from '../../state/interaction/types/internal';
+import { InteractionStateSelected } from '../../state/interaction/types/main';
 import { RuntimeMutationPipe } from './pipeline';
 
 export const reconcileInteractionSelectionAfterBoardStateChange: RuntimeMutationPipe = (
@@ -31,7 +31,7 @@ export const reconcileInteractionSelectionAfterBoardStateChange: RuntimeMutation
 	const wouldBeCurrentSelected: InteractionStateSelected | null =
 		currentSelectedSquare !== null &&
 		wouldBeCurrentSelectedPieceCode !== null &&
-		!isEmpty(wouldBeCurrentSelectedPieceCode)
+		!isEmptyPieceCode(wouldBeCurrentSelectedPieceCode)
 			? {
 					square: currentSelectedSquare,
 					pieceCode: wouldBeCurrentSelectedPieceCode

@@ -82,12 +82,7 @@ export const enum RoleCode {
 	King = 6
 }
 
-export const enum RolePromotionCode {
-	Knight = RoleCode.Knight,
-	Bishop = RoleCode.Bishop,
-	Rook = RoleCode.Rook,
-	Queen = RoleCode.Queen
-}
+export type RolePromotionCode = Exclude<RoleCode, RoleCode.King | RoleCode.Pawn>;
 
 export const enum ColorCode {
 	White = 0,
@@ -110,6 +105,24 @@ export const enum PieceCode {
 	BlackKing = RoleCode.King + ColorCode.Black
 }
 
+export type EmptyPieceCode = Extract<PieceCode, PieceCode.Empty>;
+export type NonEmptyPieceCode = Exclude<PieceCode, PieceCode.Empty>;
+
+export const ALL_NON_EMPTY_PIECE_CODES: NonEmptyPieceCode[] = [
+	PieceCode.WhitePawn,
+	PieceCode.WhiteKnight,
+	PieceCode.WhiteBishop,
+	PieceCode.WhiteRook,
+	PieceCode.WhiteQueen,
+	PieceCode.WhiteKing,
+	PieceCode.BlackPawn,
+	PieceCode.BlackKnight,
+	PieceCode.BlackBishop,
+	PieceCode.BlackRook,
+	PieceCode.BlackQueen,
+	PieceCode.BlackKing
+];
+
 export interface PieceCoded {
 	role: RoleCode;
 	color: ColorCode;
@@ -117,12 +130,12 @@ export interface PieceCoded {
 
 export type MoveRequestBase = TMoveRequestBase<Square>;
 export type MoveRequest = TMoveRequest<Square, RolePromotionCode>;
-export type Move = TMove<Square, PieceCode, PieceCode>;
-export type MoveBase = TMoveBase<Square, PieceCode>;
-export type MoveCaptured = TMoveCaptured<Square, PieceCode>;
+export type Move = TMove<Square, NonEmptyPieceCode, NonEmptyPieceCode>;
+export type MoveBase = TMoveBase<Square, NonEmptyPieceCode>;
+export type MoveCaptured = TMoveCaptured<Square, NonEmptyPieceCode>;
 
-export type MoveSnapshot = ReadonlyDeep<Move>;
 export type MoveBaseSnapshot = ReadonlyDeep<MoveBase>;
+export type MoveSnapshot = ReadonlyDeep<Move>;
 
 export const FILE_START = 'a'.charCodeAt(0);
 export const RANK_START = '1'.charCodeAt(0);

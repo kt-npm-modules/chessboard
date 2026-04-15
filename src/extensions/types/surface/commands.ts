@@ -1,13 +1,15 @@
 import { LayoutSnapshot } from '../../../layout/types';
 import {
 	ColorInput,
-	Move,
-	MoveInput,
+	MoveRequestInput,
+	PiecePositionInput,
 	PositionInput,
-	SquareInput
-} from '../../../state/board/types/internal';
-import { Movability } from '../../../state/interaction/types/internal';
+	SquareString
+} from '../../../state/board/types/input';
+import { Move } from '../../../state/board/types/internal';
+import { MovabilityInput } from '../../../state/interaction/types/input';
 import { RuntimeStateSnapshot } from '../../../state/types';
+import { OrientationInput } from '../../../state/view/types/input';
 
 export interface ExtensionRuntimeSurfaceCommandsSnapshot {
 	readonly state: RuntimeStateSnapshot;
@@ -22,13 +24,14 @@ export interface ExtensionRuntimeSurfaceCommandsRenderRequest {
 export interface ExtensionRuntimeSurfaceCommands {
 	// Board state
 	setPosition(input: PositionInput): boolean;
+	setPiecePosition(input: PiecePositionInput): boolean;
 	setTurn(turn: ColorInput): boolean;
-	move(move: MoveInput): Move;
+	move(request: MoveRequestInput): Move;
 	// View state
-	setOrientation(orientation: ColorInput): boolean;
-	setMovability(movability: Movability): boolean;
+	setOrientation(orientation: OrientationInput): boolean;
+	setMovability(movability: MovabilityInput): boolean;
 	// Interaction state
-	select(square: SquareInput | null): boolean;
+	select(square: SquareString | null): boolean;
 	cancelInteraction(): boolean;
 	// Snapshot
 	getSnapshot(): ExtensionRuntimeSurfaceCommandsSnapshot;

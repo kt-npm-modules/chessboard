@@ -1,5 +1,4 @@
-import { getPieceUrl } from '../../extensions/main-renderer/helpers';
-import type { PieceUrls } from '../../extensions/main-renderer/types/config';
+import type { PieceUrls } from '../../extensions/main-renderer/types/internal';
 import type { RenderGeometry } from '../../layout/geometry/types';
 import { createSvgElement } from '../../render/svg/helpers';
 import type { AnimationTrackStatic } from '../types';
@@ -12,7 +11,7 @@ export function prepareStaticTrack(
 	layer: SVGElement
 ): PreparedStaticNode {
 	const r = geometry.squareRect(track.sq);
-	const url = getPieceUrl(pieceUrls, track.piece);
+	const url = pieceUrls[track.pieceCode];
 	const root = createSvgElement(layer, 'image', {
 		'data-chessboard-id': `animation-static-${track.id}`,
 		'data-animation-effect': 'static',

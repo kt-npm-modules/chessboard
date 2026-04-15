@@ -4,8 +4,8 @@ import { createMainRendererAnimation } from './animation/factory';
 import { createMainRendererBoard } from './board/factory';
 import { createMainRendererCoordinates } from './coordinates/factory';
 import { createMainRendererDrag } from './drag/factory';
+import { normalizeMainRendererConfig } from './normalize';
 import { createMainRendererPieces } from './pieces/factory';
-import { DEFAULT_MAIN_RENDERER_CONFIG, MainRendererConfig } from './types/config';
 import {
 	EXTENSION_ID,
 	EXTENSION_SLOTS,
@@ -14,9 +14,13 @@ import {
 	MainRendererInstance
 } from './types/extension';
 import { MainRendererInstanceInternal } from './types/instance';
+import { DEFAULT_MAIN_RENDERER_CONFIG, MainRendererConfig } from './types/internal';
 
-export function createMainRenderer(options: MainRendererInitOptions = {}): MainRendererDefinition {
-	const config: MainRendererConfig = toMerged(DEFAULT_MAIN_RENDERER_CONFIG, options);
+export function createMainRenderer(options: MainRendererInitOptions): MainRendererDefinition {
+	const config: MainRendererConfig = toMerged(
+		DEFAULT_MAIN_RENDERER_CONFIG,
+		normalizeMainRendererConfig(options)
+	);
 	return {
 		id: EXTENSION_ID,
 		slots: EXTENSION_SLOTS,

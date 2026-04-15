@@ -1,12 +1,8 @@
-import { PartialDeep } from 'type-fest';
 import { ExtensionInstanceMountOptions, ExtensionSlotSvgRoots } from '../../types/basic/mount';
 import { ExtensionDefinition, ExtensionInstance } from '../../types/extension';
-import { ConfigColors, PieceUrls } from './config';
+import { MainRendererConfigInput } from './input';
 
-export interface MainRendererInitOptions {
-	colors?: PartialDeep<ConfigColors>;
-	pieceUrls?: PieceUrls;
-}
+export type MainRendererInitOptions = Partial<MainRendererConfigInput>;
 
 export const EXTENSION_SLOTS = ['board', 'coordinates', 'pieces', 'animation', 'drag'] as const;
 export const EXTENSION_ID = 'main-renderer' as const;

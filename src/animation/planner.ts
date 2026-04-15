@@ -1,7 +1,8 @@
 import { WritableDeep } from 'type-fest';
+import { isNonEmptyPieceCode } from '../state/board/check';
 import { fileOf, rankOf } from '../state/board/coords';
 import { fromPieceCode } from '../state/board/piece';
-import { PieceCode, Square } from '../state/board/types/internal';
+import { NonEmptyPieceCode, PieceCode, Square, SQUARE_COUNT } from '../state/board/types/internal';
 import { BoardStateSnapshot } from '../state/board/types/main';
 import {
 	AnimationPlan,
@@ -14,12 +15,12 @@ import {
 
 // Precomputed squared distance: (dFile² + dRank²) for all square pairs.
 // Max value = 7² + 7² = 98, fits in Uint8. Index: a * 64 + b.
-const SQUARE_DIST = new Uint8Array(64 * 64);
-for (let a = 0; a < 64; a++) {
-	for (let b = 0; b < 64; b++) {
+const SQUARE_DIST = new Uint8Array(SQUARE_COUNT * SQUARE_COUNT);
+for (let a = 0; a < SQUARE_COUNT; a++) {
+	for (let b = 0; b < SQUARE_COUNT; b++) {
 		const df = fileOf(a as Square) - fileOf(b as Square);
 		const dr = rankOf(a as Square) - rankOf(b as Square);
-		SQUARE_DIST[a * 64 + b] = df * df + dr * dr;
+		SQUARE_DIST[a * SQUARE_COUNT + b] = df * df + dr * dr;
 	}
 }
 
@@ -45,16 +46,16 @@ export function calculateAnimationTracks(
 	let nextId = 0;
 
 	// Step 1: collect changed squares into removed/added lists
-	type Entry = { code: PieceCode; sq: Square };
+	type Entry = { pieceCode: NonEmptyPieceCode; sq: Square };
 	const removed: Entry[] = [];
 	const added: Entry[] = [];
 
-	for (let sq = 0; sq < 64; sq++) {
-		const c1 = pos1.pieces[sq];
-		const c2 = pos2.pieces[sq];
+	for (let sq = 0; sq < SQUARE_COUNT; sq++) {
+		const c1 = pos1.pieces[sq] as PieceCode;
+		const c2 = pos2.pieces[sq] as PieceCode;
 		if (c1 === c2) continue;
-		if (c1 !== 0) removed.push({ code: c1, sq: sq as Square });
-		if (c2 !== 0) added.push({ code: c2, sq: sq as Square });
+		if (isNonEmptyPieceCode(c1)) removed.push({ pieceCode: c1, sq: sq as Square });
+		if (isNonEmptyPieceCode(c2)) added.push({ pieceCode: c2, sq: sq as Square });
 	}
 
 	// Step 2: greedy min-distance matching of same-code pairs → move tracks
@@ -66,8 +67,8 @@ export function calculateAnimationTracks(
 	const candidates: { dist: number; ri: number; ai: number }[] = [];
 	for (let ri = 0; ri < removed.length; ri++) {
 		for (let ai = 0; ai < added.length; ai++) {
-			if (removed[ri].code !== added[ai].code) continue;
-			candidates.push({ dist: SQUARE_DIST[removed[ri].sq * 64 + added[ai].sq], ri, ai });
+			if (removed[ri].pieceCode !== added[ai].pieceCode) continue;
+			candidates.push({ dist: SQUARE_DIST[removed[ri].sq * SQUARE_COUNT + added[ai].sq], ri, ai });
 		}
 	}
 	candidates.sort((a, b) => a.dist - b.dist);
@@ -78,7 +79,7 @@ export function calculateAnimationTracks(
 		if (removedMatched[ri] || addedMatched[ai]) continue;
 		removedMatched[ri] = 1;
 		addedMatched[ai] = 1;
-		movedToSqCode.set(added[ai].sq, removed[ri].code);
+		movedToSqCode.set(added[ai].sq, removed[ri].pieceCode);
 		if (
 			excl &&
 			preparedExcl.move.has(removed[ri].sq) &&
@@ -89,9 +90,9 @@ export function calculateAnimationTracks(
 		}
 		tracks.push({
 			id: nextId++,
-			pieceCode: removed[ri].code,
-			fromSq: removed[ri].sq as Square,
-			toSq: added[ai].sq as Square,
+			pieceCode: removed[ri].pieceCode,
+			fromSq: removed[ri].sq,
+			toSq: added[ai].sq,
 			effect: 'move'
 		});
 	}
@@ -104,8 +105,8 @@ export function calculateAnimationTracks(
 		}
 		tracks.push({
 			id: nextId++,
-			pieceCode: added[ai].code,
-			sq: added[ai].sq as Square,
+			pieceCode: added[ai].pieceCode,
+			sq: added[ai].sq,
 			effect: 'fade-in'
 		});
 	}
@@ -116,15 +117,15 @@ export function calculateAnimationTracks(
 		if (preparedExcl.square.has(removed[ri].sq)) {
 			continue;
 		}
-		const { code, sq } = removed[ri];
+		const { pieceCode: code, sq } = removed[ri];
 		const movedCode = movedToSqCode.get(sq);
 		const isCapture =
 			movedCode !== undefined && fromPieceCode(code).color !== fromPieceCode(movedCode).color;
 		const pieceCode = code;
 		if (isCapture) {
-			tracks.push({ id: nextId++, pieceCode, sq: sq as Square, effect: 'fade-out' });
+			tracks.push({ id: nextId++, pieceCode, sq, effect: 'fade-out' });
 		} else {
-			tracks.push({ id: nextId++, pieceCode, sq: sq as Square, effect: 'fade-out' });
+			tracks.push({ id: nextId++, pieceCode, sq, effect: 'fade-out' });
 		}
 	}
 

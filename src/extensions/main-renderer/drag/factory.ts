@@ -1,5 +1,5 @@
 import { ExtensionRuntimeSurface } from '../../types/surface/main';
-import { PieceUrls } from '../types/config';
+import { PieceUrls } from '../types/internal';
 import { rendererDragRenderTransientVisuals } from './render';
 import { MainRendererDrag, MainRendererDragInternal } from './types';
 import { rendererDragOnUpdate } from './update';

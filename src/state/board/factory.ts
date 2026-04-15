@@ -1,4 +1,5 @@
 import { cloneDeep } from 'es-toolkit/object';
+import { isNormalizedMoveRequest } from './check';
 import { normalizeColor, normalizeMoveRequest } from './normalize';
 import { boardParsePiecePositionInput, boardParsePosition } from './position';
 import { boardMove, boardSetPosition, boardSetTurn } from './reducers';
@@ -39,7 +40,9 @@ export function createBoardState(position?: PositionInput): BoardState {
 			);
 		},
 		move(request, mutationSession) {
-			const moveRequest = normalizeMoveRequest(request);
+			const moveRequest = isNormalizedMoveRequest(request)
+				? request
+				: normalizeMoveRequest(request);
 			const result = boardMove(internalState, moveRequest);
 			mutationSession.addMutation('state.board.move', true, result);
 			return result;

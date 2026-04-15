@@ -5,7 +5,7 @@ export type ColorShort = 'w' | 'b';
 export type ColorInput = Color | ColorShort;
 
 export type Role = 'pawn' | 'knight' | 'bishop' | 'rook' | 'queen' | 'king';
-export type RoleShort = 'p' | 'N' | 'B' | 'R' | 'Q' | 'K';
+export type RoleShort = 'P' | 'N' | 'B' | 'R' | 'Q' | 'K';
 export type RoleInput = Role | RoleShort;
 export type RolePromotion = Exclude<Role, 'king' | 'pawn'>;
 export type RolePromotionShort = Exclude<RoleShort, 'p' | 'K'>;

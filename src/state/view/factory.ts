@@ -1,10 +1,12 @@
 import { cloneDeep } from 'es-toolkit/object';
-import { normalizeColor } from '../board/types/normalize';
+import { normalizeColor } from '../board/normalize';
+import { ColorCode } from '../board/types/internal';
 import { viewSetOrientation } from './reducers';
-import type { ViewState, ViewStateInitOptions, ViewStateInternal } from './types';
+import type { ViewStateInternal } from './types/internal';
+import { ViewState, ViewStateInitOptions } from './types/main';
 
 function createViewStateInternal(opts: ViewStateInitOptions): ViewStateInternal {
-	const orientation = opts.orientation ? normalizeColor(opts.orientation) : 'white';
+	const orientation = opts.orientation ? normalizeColor(opts.orientation) : ColorCode.White;
 	return {
 		orientation
 	};

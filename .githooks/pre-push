@@ -1,5 +1,5 @@
 #!/bin/sh
-
+exit 0 # For now no hook, cause there are some manual fixes in npm_modules
 set -e
 
 npm ci

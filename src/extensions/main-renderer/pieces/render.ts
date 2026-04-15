@@ -1,8 +1,8 @@
 import { createSvgElement, updateElementAttributes } from '../../../render/svg/helpers';
-import { decodePiece } from '../../../state/board/check';
-import { Square } from '../../../state/board/types/internal';
+import { isNonEmptyPieceCode } from '../../../state/board/check';
+import { denormalizePieceString, denormalizeSquare } from '../../../state/board/denormalize';
+import { Square, SQUARE_COUNT } from '../../../state/board/types/internal';
 import { ExtensionRenderContext } from '../../types/context/render';
-import { getPieceShortKey, getPieceUrl } from '../helpers';
 import { DirtyLayer } from '../types/extension';
 import { MainRendererPiecesInternal } from './types';
 
@@ -17,19 +17,17 @@ export function rendererPiecesRender(
 	const geometry = context.currentFrame.layout.geometry;
 	const pieces = context.currentFrame.state.board.pieces;
 
-	for (let sq = 0 as Square; sq < 64; sq++) {
-		const piece = decodePiece(pieces[sq]);
+	for (let sq = 0 as Square; sq < SQUARE_COUNT; sq++) {
+		const pieceCode = pieces[sq];
 		const existing = state.pieceNodes.get(sq) || null;
 		const suppressed = state.suppressedSquares.has(sq);
 
-		if (piece !== null && !suppressed) {
-			const key = getPieceShortKey(piece);
-			const url = getPieceUrl(state.config, key);
+		if (isNonEmptyPieceCode(pieceCode) && !suppressed) {
+			const url = state.config[pieceCode];
 			const r = geometry.squareRect(sq);
 
 			if (existing !== null) {
 				updateElementAttributes(existing.root, {
-					'data-chessboard-piece-key': key,
 					x: r.x.toString(),
 					y: r.y.toString(),
 					width: r.size.toString(),
@@ -39,8 +37,8 @@ export function rendererPiecesRender(
 			} else {
 				state.pieceNodes.set(sq, {
 					root: createSvgElement(layer, 'image', {
-						'data-chessboard-id': `piece-${sq}`,
-						'data-chessboard-piece-key': key,
+						'data-chessboard-id': `piece-${denormalizeSquare(sq)}`,
+						'data-chessboard-piece-key': denormalizePieceString(pieceCode),
 						href: url,
 						x: r.x.toString(),
 						y: r.y.toString(),

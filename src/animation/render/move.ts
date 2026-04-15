@@ -1,5 +1,4 @@
-import { getPieceUrl } from '../../extensions/main-renderer/helpers';
-import type { PieceUrls } from '../../extensions/main-renderer/types/config';
+import type { PieceUrls } from '../../extensions/main-renderer/types/internal';
 import type { RenderGeometry } from '../../layout/geometry/types';
 import { createSvgElement, updateElementAttributes } from '../../render/svg/helpers';
 import type { AnimationTrackMove } from '../types';
@@ -12,7 +11,7 @@ export function prepareMoveTrack(
 	layer: SVGElement
 ): PreparedMoveNode {
 	const r = geometry.squareRect(track.fromSq);
-	const url = getPieceUrl(pieceUrls, track.piece);
+	const url = pieceUrls[track.pieceCode];
 	const root = createSvgElement(layer, 'image', {
 		'data-chessboard-id': `animation-move-${track.id}`,
 		'data-animation-effect': 'move',

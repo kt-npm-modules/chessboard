@@ -1,14 +1,15 @@
-import type { ViewState, ViewStateInitOptions, ViewStateSnapshot } from '../state/view/types';
-import type { BoardState, BoardStateInitOptions, BoardStateSnapshot } from './board/types/internal';
+import { PositionInput } from './board/types/input';
+import { BoardState, BoardStateSnapshot } from './board/types/main';
 import type { ChangeState, ChangeStateSnapshot } from './change/types';
-import type {
+import {
 	InteractionState,
 	InteractionStateInitOptions,
 	InteractionStateSnapshot
-} from './interaction/types/internal';
+} from './interaction/types/main';
+import { ViewStateSnapshot } from './view/types/internal';
+import { ViewState, ViewStateInitOptions } from './view/types/main';
 
 export interface RuntimeStateInternal {
-	// TODO: rename to Runtime to Runtime
 	readonly board: BoardState;
 	readonly view: ViewState;
 	readonly interaction: InteractionState;
@@ -23,7 +24,7 @@ export interface RuntimeStateSnapshot {
 }
 
 export interface RuntimeStateInitOptions {
-	board?: BoardStateInitOptions;
+	board?: PositionInput;
 	view?: ViewStateInitOptions;
 	interaction?: InteractionStateInitOptions;
 }
