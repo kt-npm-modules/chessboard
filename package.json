@@ -86,6 +86,7 @@
 		"node": ">=22"
 	},
 	"dependencies": {
+		"@echecs/fen": "^2.1.0",
 		"@ktarmyshov/assert": "^0.1.9",
 		"es-toolkit": "^1.45.1",
 		"type-fest": "^5.5.0"

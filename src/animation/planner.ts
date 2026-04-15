@@ -1,7 +1,8 @@
 import { WritableDeep } from 'type-fest';
-import { decodePiece, PieceCode } from '../state/board/check';
 import { fileOf, rankOf } from '../state/board/coords';
-import { BoardStateSnapshot, Square } from '../state/board/types/internal';
+import { fromPieceCode } from '../state/board/piece';
+import { PieceCode, Square } from '../state/board/types/internal';
+import { BoardStateSnapshot } from '../state/board/types/main';
 import {
 	AnimationPlan,
 	AnimationTrack,
@@ -88,7 +89,7 @@ export function calculateAnimationTracks(
 		}
 		tracks.push({
 			id: nextId++,
-			piece: decodePiece(removed[ri].code)!,
+			pieceCode: removed[ri].code,
 			fromSq: removed[ri].sq as Square,
 			toSq: added[ai].sq as Square,
 			effect: 'move'
@@ -103,7 +104,7 @@ export function calculateAnimationTracks(
 		}
 		tracks.push({
 			id: nextId++,
-			piece: decodePiece(added[ai].code)!,
+			pieceCode: added[ai].code,
 			sq: added[ai].sq as Square,
 			effect: 'fade-in'
 		});
@@ -118,12 +119,12 @@ export function calculateAnimationTracks(
 		const { code, sq } = removed[ri];
 		const movedCode = movedToSqCode.get(sq);
 		const isCapture =
-			movedCode !== undefined && decodePiece(code)!.color !== decodePiece(movedCode)!.color;
-		const piece = decodePiece(code)!;
+			movedCode !== undefined && fromPieceCode(code).color !== fromPieceCode(movedCode).color;
+		const pieceCode = code;
 		if (isCapture) {
-			tracks.push({ id: nextId++, piece, sq: sq as Square, effect: 'fade-out' });
+			tracks.push({ id: nextId++, pieceCode, sq: sq as Square, effect: 'fade-out' });
 		} else {
-			tracks.push({ id: nextId++, piece, sq: sq as Square, effect: 'fade-out' });
+			tracks.push({ id: nextId++, pieceCode, sq: sq as Square, effect: 'fade-out' });
 		}
 	}
 

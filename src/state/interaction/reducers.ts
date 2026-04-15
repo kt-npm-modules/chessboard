@@ -4,13 +4,8 @@ import type { ReadonlyDeep } from 'type-fest';
 import type { Square } from '../board/types/internal';
 import { selectedEqual } from './helpers';
 import { movabilitiesEqual } from './movability';
-import {
-	Movability,
-	type DragSessionSnapshot,
-	type InteractionStateInternal,
-	type InteractionStateSelected,
-	type MoveDestination
-} from './types';
+import { Movability, type DragSessionSnapshot, type MoveDestination } from './types/internal';
+import { InteractionStateInternal, InteractionStateSelected } from './types/main';
 
 export function interactionSetSelected(
 	state: InteractionStateInternal,

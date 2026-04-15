@@ -2,12 +2,12 @@ import {
 	Color,
 	ColorShort,
 	Piece,
+	PiecePositionInput,
+	PiecePositionRecord,
+	PiecePositionRecordShort,
+	PiecePositionRecordString,
 	PieceShort,
 	PieceString,
-	PositionInput,
-	PositionMap,
-	PositionMapShort,
-	PositionMapString,
 	Role,
 	RoleShort,
 	SquareString
@@ -90,7 +90,7 @@ export function isSquareString(value: unknown): value is SquareString {
 	);
 }
 
-export function isPositionMapString(pos: PositionInput): pos is PositionMapString {
+export function isPositionMapString(pos: PiecePositionInput): pos is PiecePositionRecordString {
 	for (const [sq, piece] of Object.entries(pos)) {
 		if (!isSquareString(sq)) {
 			return false;
@@ -128,7 +128,7 @@ export function isPieceShort(value: unknown): value is PieceShort {
 	);
 }
 
-export function isPositionMapShort(pos: PositionInput): pos is PositionMapShort {
+export function isPositionMapShort(pos: PiecePositionInput): pos is PiecePositionRecordShort {
 	for (const [sq, piece] of Object.entries(pos)) {
 		if (!isSquareString(sq)) {
 			return false;
@@ -166,7 +166,7 @@ export function isPiece(value: unknown): value is Piece {
 	);
 }
 
-export function isPositionMap(pos: PositionInput): pos is PositionMap {
+export function isPositionMap(pos: PiecePositionInput): pos is PiecePositionRecord {
 	for (const [sq, piece] of Object.entries(pos)) {
 		if (!isSquareString(sq)) {
 			return false;

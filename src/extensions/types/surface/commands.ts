@@ -6,7 +6,7 @@ import {
 	PositionInput,
 	SquareInput
 } from '../../../state/board/types/internal';
-import { Movability } from '../../../state/interaction/types';
+import { Movability } from '../../../state/interaction/types/internal';
 import { RuntimeStateSnapshot } from '../../../state/types';
 
 export interface ExtensionRuntimeSurfaceCommandsSnapshot {

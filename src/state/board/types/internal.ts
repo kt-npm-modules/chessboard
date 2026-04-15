@@ -110,6 +110,11 @@ export const enum PieceCode {
 	BlackKing = RoleCode.King + ColorCode.Black
 }
 
+export interface PieceCoded {
+	role: RoleCode;
+	color: ColorCode;
+}
+
 export type MoveRequestBase = TMoveRequestBase<Square>;
 export type MoveRequest = TMoveRequest<Square, RolePromotionCode>;
 export type Move = TMove<Square, PieceCode, PieceCode>;
@@ -117,6 +122,12 @@ export type MoveBase = TMoveBase<Square, PieceCode>;
 export type MoveCaptured = TMoveCaptured<Square, PieceCode>;
 
 export type MoveSnapshot = ReadonlyDeep<Move>;
+export type MoveBaseSnapshot = ReadonlyDeep<MoveBase>;
 
 export const FILE_START = 'a'.charCodeAt(0);
 export const RANK_START = '1'.charCodeAt(0);
+
+export type ParsedPosition = {
+	pieces: Uint8Array;
+	turn: ColorCode;
+};

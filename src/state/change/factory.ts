@@ -4,7 +4,8 @@ import type { ChangeState, ChangeStateInternal } from './types';
 
 function createChangeStateInternal(): ChangeStateInternal {
 	return {
-		lastMove: null
+		lastMove: null,
+		deferredMove: null
 	};
 }
 

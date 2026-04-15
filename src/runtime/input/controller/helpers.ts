@@ -1,5 +1,5 @@
 import type { Square } from '../../../state/board/types/internal';
-import type { InteractionStateSnapshot } from '../../../state/interaction/types';
+import type { InteractionStateSnapshot } from '../../../state/interaction/types/internal';
 
 export function canMoveTo(snapshot: InteractionStateSnapshot, target: Square): boolean {
 	const { movability } = snapshot;

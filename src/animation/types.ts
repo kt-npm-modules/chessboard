@@ -1,9 +1,9 @@
 import { ReadonlyDeep } from 'type-fest';
-import type { Piece, Square } from '../state/board/types/internal';
+import type { PieceCode, Square } from '../state/board/types/internal';
 
 export interface AnimationTrackMove {
 	id: number;
-	piece: Piece;
+	pieceCode: PieceCode;
 	fromSq: Square;
 	toSq: Square;
 	effect: 'move';
@@ -11,14 +11,14 @@ export interface AnimationTrackMove {
 
 export interface AnimationTrackFade {
 	id: number;
-	piece: Piece;
+	pieceCode: PieceCode;
 	sq: Square;
 	effect: 'fade-in' | 'fade-out';
 }
 
 export interface AnimationTrackStatic {
 	id: number;
-	piece: Piece;
+	pieceCode: PieceCode;
 	sq: Square;
 	effect: 'static';
 }

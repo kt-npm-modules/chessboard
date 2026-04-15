@@ -20,22 +20,27 @@ export interface Piece {
 	color: Color;
 	role: Role;
 }
-
 export interface PieceShort {
 	color: ColorShort;
 	role: RoleShort;
 }
-
 export type PieceString = `${ColorShort}${RoleShort}`;
-
 export type PieceInput = Piece | PieceShort | PieceString;
 
-export type MoveRequestInput = TMoveRequest<SquareString, RolePromotionInput>;
+export type PiecePositionRecord = Partial<Record<SquareString, Piece>>;
+export type PiecePositionRecordShort = Partial<Record<SquareString, PieceShort>>;
+export type PiecePositionRecordString = Partial<Record<SquareString, PieceString>>;
+export type PiecePositionInputRecord =
+	| PiecePositionRecord
+	| PiecePositionRecordShort
+	| PiecePositionRecordString;
+export type PiecePositionInput = 'start' | PiecePositionInputRecord;
 
-// Position map acceptance forms (public inputs)
-// Long/canonical
-export type PositionMap = Partial<Record<SquareString, Piece>>;
-// Short/alias
-export type PositionMapShort = Partial<Record<SquareString, PieceShort>>;
-export type PositionMapString = Partial<Record<SquareString, PieceString>>;
-export type PositionInput = 'start' | PositionMap | PositionMapShort | PositionMapString;
+export type PositionInputObject = {
+	pieces?: PiecePositionInput;
+	turn?: ColorInput;
+};
+export type FenString = string;
+export type PositionInput = 'start' | PositionInputObject | FenString;
+
+export type MoveRequestInput = TMoveRequest<SquareString, RolePromotionInput>;

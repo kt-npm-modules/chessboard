@@ -1,6 +1,7 @@
 import assert from '@ktarmyshov/assert';
 import { cloneDeep } from 'es-toolkit';
 import { updateActiveDestinations } from './helpers';
+import { normalizeMovability } from './normalize';
 import {
 	interactionClear,
 	interactionClearActive,
@@ -9,11 +10,14 @@ import {
 	interactionSetSelected,
 	interactionUpdateDragSessionCurrentTarget
 } from './reducers';
-import type {
+import { MovabilityDisabled, MovabilityModeCode } from './types/internal';
+import {
 	InteractionState,
 	InteractionStateInitOptions,
 	InteractionStateInternal
-} from './types';
+} from './types/main';
+
+const DefaultMovabilityDisabled: MovabilityDisabled = { mode: MovabilityModeCode.Disabled };
 
 /**
  * Create a fresh interaction state with all fields set to null or false.
@@ -21,10 +25,12 @@ import type {
 function createInteractionStateInternal(
 	options: InteractionStateInitOptions
 ): InteractionStateInternal {
-	const movability = options.movability ?? { mode: 'disabled' };
+	const movability = options.movability
+		? normalizeMovability(options.movability)
+		: DefaultMovabilityDisabled;
 
 	return {
-		movability: cloneDeep(movability),
+		movability,
 		selected: null,
 		activeDestinations: new Map(),
 		dragSession: null

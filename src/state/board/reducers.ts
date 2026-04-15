@@ -1,8 +1,6 @@
 import { isEmpty } from './check';
 import { denormalizeSquare } from './denormalize';
-import { normalizeColor } from './normalize';
 import { fromPieceCode, toPieceCode } from './piece';
-import { ColorInput } from './types/input';
 import {
 	ColorCode,
 	Move,
@@ -26,8 +24,7 @@ export function boardSetPosition(state: BoardStateInternal, pieces: Uint8Array):
 /**
  * Set active color turn.
  */
-export function boardSetTurn(state: BoardStateInternal, c: ColorInput): boolean {
-	const turn = normalizeColor(c);
+export function boardSetTurn(state: BoardStateInternal, turn: ColorCode): boolean {
 	if (state.turn === turn) return false; // no-op
 	state.turn = turn;
 	return true;
@@ -62,8 +59,8 @@ function buildMove(state: BoardStateInternal, request: MoveRequest): Move {
 	let promotedTo: PieceCode | undefined;
 	if (request.promotedTo) {
 		const moved = base.moved;
-		const [, colorCode] = fromPieceCode(moved);
-		const newPieceCode = toPieceCode(request.promotedTo, colorCode);
+		const pieceCoded = fromPieceCode(moved);
+		const newPieceCode = toPieceCode(request.promotedTo, pieceCoded.color);
 		promotedTo = newPieceCode;
 	}
 

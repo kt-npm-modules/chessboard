@@ -4,8 +4,7 @@ function baseMovesEqual(moveA: MoveBaseSnapshot, moveB: MoveBaseSnapshot): boole
 	const diffs: boolean[] = [
 		moveA.from !== moveB.from,
 		moveA.to !== moveB.to,
-		moveA.moved.color !== moveB.moved.color,
-		moveA.moved.role !== moveB.moved.role
+		moveA.moved !== moveB.moved
 	];
 	return !diffs.some(Boolean);
 }
@@ -22,8 +21,7 @@ export function movesEqual(moveA: MoveSnapshot | null, moveB: MoveSnapshot | nul
 	}
 	const diffs: boolean[] = [
 		moveA.promotedTo !== moveB.promotedTo,
-		moveA.captured?.piece.color !== moveB.captured?.piece.color,
-		moveA.captured?.piece.role !== moveB.captured?.piece.role,
+		moveA.captured?.piece !== moveB.captured?.piece,
 		moveA.captured?.square !== moveB.captured?.square
 	];
 	if (diffs.some(Boolean)) {

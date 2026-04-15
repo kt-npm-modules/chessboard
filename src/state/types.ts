@@ -1,11 +1,11 @@
+import type { ViewState, ViewStateInitOptions, ViewStateSnapshot } from '../state/view/types';
+import type { BoardState, BoardStateInitOptions, BoardStateSnapshot } from './board/types/internal';
+import type { ChangeState, ChangeStateSnapshot } from './change/types';
 import type {
 	InteractionState,
 	InteractionStateInitOptions,
 	InteractionStateSnapshot
-} from '../state/interaction/types';
-import type { ViewState, ViewStateInitOptions, ViewStateSnapshot } from '../state/view/types';
-import type { BoardState, BoardStateInitOptions, BoardStateSnapshot } from './board/types/internal';
-import type { ChangeState, ChangeStateSnapshot } from './change/types';
+} from './interaction/types/internal';
 
 export interface RuntimeStateInternal {
 	// TODO: rename to Runtime to Runtime

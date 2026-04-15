@@ -1,7 +1,7 @@
 import { getActiveDestinations } from './movability';
 import { InteractionStateMutationSession } from './mutation';
 import { interactionSetActiveDestinations } from './reducers';
-import { InteractionStateInternal, InteractionStateSelected } from './types';
+import { InteractionStateInternal, InteractionStateSelected } from './types/internal';
 
 export function selectedEqual(
 	a: InteractionStateSelected | null,

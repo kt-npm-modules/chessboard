@@ -1,7 +1,7 @@
 import { isEmpty } from '../../state/board/check';
 import { selectedEqual } from '../../state/interaction/helpers';
 import { InteractionStateMutationSession } from '../../state/interaction/mutation';
-import { InteractionStateSelected } from '../../state/interaction/types';
+import { InteractionStateSelected } from '../../state/interaction/types/internal';
 import { RuntimeMutationPipe } from './pipeline';
 
 export const reconcileInteractionSelectionAfterBoardStateChange: RuntimeMutationPipe = (

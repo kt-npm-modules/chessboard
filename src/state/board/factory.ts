@@ -1,30 +1,42 @@
 import { cloneDeep } from 'es-toolkit/object';
 import { normalizeColor, normalizeMoveRequest } from './normalize';
-import { parsePositionInput } from './position';
+import { boardParsePiecePositionInput, boardParsePosition } from './position';
 import { boardMove, boardSetPosition, boardSetTurn } from './reducers';
-import { BoardState, BoardStateInitOptions, BoardStateInternal } from './types/main';
+import { PositionInput } from './types/input';
+import { BoardState, BoardStateInternal } from './types/main';
 
-function createBoardStateInternal(opts: BoardStateInitOptions): BoardStateInternal {
+function createBoardStateInternal(position: PositionInput): BoardStateInternal {
+	const parsedPosition = boardParsePosition(position);
 	return {
-		pieces: parsePositionInput(opts.position || 'start'),
-		turn: normalizeColor(opts.turn ?? 'white'),
+		pieces: parsedPosition.pieces,
+		turn: parsedPosition.turn,
 		positionEpoch: 0
 	};
 }
 
-export function createBoardState(options: BoardStateInitOptions): BoardState {
-	const internalState = createBoardStateInternal(options);
+export function createBoardState(position?: PositionInput): BoardState {
+	const internalState = createBoardStateInternal(position ?? 'start');
 
 	return {
 		setPosition(input, mutationSession) {
-			const pieces = parsePositionInput(input);
+			const position = boardParsePosition(input);
+			let changed = boardSetPosition(internalState, position.pieces);
+			changed = boardSetTurn(internalState, position.turn) || changed;
+			return mutationSession.addMutation('state.board.setPosition', changed);
+		},
+		setPiecePosition(input, mutationSession) {
+			const pieces = boardParsePiecePositionInput(input);
 			return mutationSession.addMutation(
-				'state.board.setPosition',
+				'state.board.setPiecePosition',
 				boardSetPosition(internalState, pieces)
 			);
 		},
 		setTurn(turn, mutationSession) {
-			return mutationSession.addMutation('state.board.setTurn', boardSetTurn(internalState, turn));
+			const normalizedTurn = normalizeColor(turn);
+			return mutationSession.addMutation(
+				'state.board.setTurn',
+				boardSetTurn(internalState, normalizedTurn)
+			);
 		},
 		move(request, mutationSession) {
 			const moveRequest = normalizeMoveRequest(request);

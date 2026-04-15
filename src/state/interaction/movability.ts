@@ -1,21 +1,18 @@
 import { setsEqual } from '../../helpers/util';
-import { assertNever } from '../../utils/assert-never';
-import { toAlgebraic, toValidSquare } from '../board/coords';
-import type { Square, SquareInput } from '../board/types/internal';
-import { normalizeMoveDestinationInput } from './normalize';
-import type {
-	InteractionStateInternal,
-	MovabilityDestinations,
-	MovabilityDestinationsRecord,
-	MovabilitySnapshot,
-	MoveDestination,
-	MoveDestinationInput,
-	StrictMovability
-} from './types';
+import type { Square } from '../board/types/internal';
+import {
+	MovabilityDestinationsRecordSnapshot,
+	MovabilityDestinationsSnapshot,
+	MovabilityModeCode,
+	MoveDestinationSnapshot,
+	type MovabilitySnapshot,
+	type MovabilityStrict
+} from './types/internal';
+import { InteractionStateInternal } from './types/main';
 
-function moveInputDestinationsEqual(
-	a: MoveDestinationInput | null | undefined,
-	b: MoveDestinationInput | null | undefined
+function moveDestinationsEqual(
+	a: MoveDestinationSnapshot | null | undefined,
+	b: MoveDestinationSnapshot | null | undefined
 ): boolean {
 	if (a === b) return true;
 	if (a == null || b == null) return false;
@@ -29,17 +26,17 @@ function moveInputDestinationsEqual(
 	);
 }
 
-function recordToDestinationInputMap(
-	record: MovabilityDestinationsRecord
-): Map<Square, readonly MoveDestinationInput[]> {
-	const map = new Map<Square, readonly MoveDestinationInput[]>();
+function recordToDestinationsMap(
+	record: MovabilityDestinationsRecordSnapshot
+): Map<Square, readonly MoveDestinationSnapshot[]> {
+	const map = new Map<Square, readonly MoveDestinationSnapshot[]>();
 	for (const [key, dests] of Object.entries(record)) {
 		if (dests) {
-			const validSquare = toValidSquare(key as SquareInput);
-			if (map.has(validSquare)) {
+			const square = Number(key) as Square;
+			if (map.has(square)) {
 				throw new RangeError(`Duplicate square key in movability destinations: ${key}`);
 			}
-			map.set(validSquare, dests);
+			map.set(square, dests);
 		}
 	}
 	return map;
@@ -50,15 +47,15 @@ export function movabilitiesEqual(a: MovabilitySnapshot, b: MovabilitySnapshot):
 	if (a.mode !== b.mode) return false;
 
 	switch (a.mode) {
-		case 'disabled':
+		case MovabilityModeCode.Disabled:
 			return true;
 
-		case 'free':
+		case MovabilityModeCode.Free:
 			return true;
 
-		case 'strict': {
+		case MovabilityModeCode.Strict: {
 			const aDests = a.destinations;
-			const bDests = (b as StrictMovability).destinations;
+			const bDests = (b as MovabilityStrict).destinations;
 
 			const aIsResolver = typeof aDests === 'function';
 			const bIsResolver = typeof bDests === 'function';
@@ -66,8 +63,8 @@ export function movabilitiesEqual(a: MovabilitySnapshot, b: MovabilitySnapshot):
 			if (aIsResolver && bIsResolver) return aDests === bDests;
 			if (aIsResolver !== bIsResolver) return false;
 
-			const aMap = recordToDestinationInputMap(aDests as MovabilityDestinationsRecord);
-			const bMap = recordToDestinationInputMap(bDests as MovabilityDestinationsRecord);
+			const aMap = recordToDestinationsMap(aDests as MovabilityDestinationsRecordSnapshot);
+			const bMap = recordToDestinationsMap(bDests as MovabilityDestinationsRecordSnapshot);
 
 			if (aMap.size !== bMap.size) return false;
 
@@ -76,7 +73,7 @@ export function movabilitiesEqual(a: MovabilitySnapshot, b: MovabilitySnapshot):
 				if (!bDestArr) return false;
 				if (aDestArr.length !== bDestArr.length) return false;
 				for (let i = 0; i < aDestArr.length; i++) {
-					if (!moveInputDestinationsEqual(aDestArr[i], bDestArr[i])) return false;
+					if (!moveDestinationsEqual(aDestArr[i], bDestArr[i])) return false;
 				}
 			}
 
@@ -84,33 +81,32 @@ export function movabilitiesEqual(a: MovabilitySnapshot, b: MovabilitySnapshot):
 		}
 
 		default:
-			return assertNever(RangeError, 'Unhandled movability comparison case', a);
+			throw new RangeError(`Unhandled movability mode code: ${a}`);
 	}
 }
 
 export function getActiveDestinations(
 	state: InteractionStateInternal,
 	from: Square
-): ReadonlyMap<Square, MoveDestination> {
+): ReadonlyMap<Square, MoveDestinationSnapshot> {
 	const movability = state.movability;
-	if (movability.mode === 'disabled') return new Map();
-	if (movability.mode === 'free') return new Map();
+	if (movability.mode === MovabilityModeCode.Disabled) return new Map();
+	if (movability.mode === MovabilityModeCode.Free) return new Map();
 	// strict mode: normalize and build a Map keyed by destination square
 	const dests = getDestinationsForSource(movability.destinations, from) ?? [];
-	const map = new Map<Square, MoveDestination>();
+	const map = new Map<Square, MoveDestinationSnapshot>();
 	for (const dest of dests) {
-		const normalized = normalizeMoveDestinationInput(dest);
-		map.set(normalized.to, normalized);
+		map.set(dest.to, dest);
 	}
 	return map;
 }
 
 function getDestinationsForSource(
-	destinations: MovabilityDestinations,
+	destinations: MovabilityDestinationsSnapshot,
 	source: Square
-): readonly MoveDestinationInput[] | undefined {
+): readonly MoveDestinationSnapshot[] | undefined {
 	if (typeof destinations === 'function') {
-		return destinations(toAlgebraic(source));
+		return destinations(source);
 	}
 	return destinations[source];
 }

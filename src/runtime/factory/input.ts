@@ -3,7 +3,7 @@ import { isEmpty } from '../../state/board/check';
 import { BoardStateMutationSession } from '../../state/board/mutation';
 import { NormalizedMoveInput } from '../../state/board/types/internal';
 import { InteractionStateMutationSession } from '../../state/interaction/mutation';
-import { DragSession, InteractionStateSelected } from '../../state/interaction/types';
+import { DragSession, InteractionStateSelected } from '../../state/interaction/types/internal';
 import { RuntimeInteractionSurface } from '../input/controller/types';
 import { runtimeRunMutationPipeline } from '../mutation/run';
 import { GetInternalState } from '../types';
