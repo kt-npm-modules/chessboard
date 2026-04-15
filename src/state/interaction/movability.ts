@@ -1,4 +1,5 @@
 import { setsEqual } from '../../helpers/util';
+import { assertValidSquare } from '../board/check';
 import type { Square } from '../board/types/internal';
 import {
 	MovabilityDestinationsRecordSnapshot,
@@ -32,7 +33,8 @@ function recordToDestinationsMap(
 	const map = new Map<Square, readonly MoveDestinationSnapshot[]>();
 	for (const [key, dests] of Object.entries(record)) {
 		if (dests) {
-			const square = Number(key) as Square;
+			const square = Number(key);
+			assertValidSquare(square);
 			if (map.has(square)) {
 				throw new RangeError(`Duplicate square key in movability destinations: ${key}`);
 			}

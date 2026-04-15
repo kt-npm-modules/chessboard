@@ -1,7 +1,8 @@
 import assert from '@ktarmyshov/assert';
 import { cloneDeep } from 'es-toolkit/object';
 import type { ReadonlyDeep } from 'type-fest';
-import type { Square } from '../board/types/internal';
+import { setsEqual } from '../../helpers/util';
+import type { RolePromotionCode, Square } from '../board/types/internal';
 import { selectedEqual } from './helpers';
 import { movabilitiesEqual } from './movability';
 import { Movability, type DragSessionSnapshot, type MoveDestination } from './types/internal';
@@ -23,6 +24,15 @@ export function interactionSetMovability(state: InteractionStateInternal, m: Mov
 	return true;
 }
 
+function promotedTosEqual(
+	a: readonly RolePromotionCode[] | undefined,
+	b: readonly RolePromotionCode[] | undefined
+): boolean {
+	if (a === b) return true;
+	if (a == null || b == null) return false;
+	return setsEqual(new Set(a), new Set(b));
+}
+
 function activeDestinationsEqual(
 	a: ReadonlyMap<Square, ReadonlyDeep<MoveDestination>>,
 	b: ReadonlyMap<Square, ReadonlyDeep<MoveDestination>>
@@ -35,7 +45,8 @@ function activeDestinationsEqual(
 			aDest.to !== bDest.to ||
 			aDest.capturedSquare !== bDest.capturedSquare ||
 			aDest.secondary?.from !== bDest.secondary?.from ||
-			aDest.secondary?.to !== bDest.secondary?.to
+			aDest.secondary?.to !== bDest.secondary?.to ||
+			!promotedTosEqual(aDest.promotedTo, bDest.promotedTo)
 		)
 			return false;
 	}
