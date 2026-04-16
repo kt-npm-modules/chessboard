@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { createLastMove } from '@mirasen/chessboard/unstable/extensions/first-party/last-move/factory.js';
 	import { createMainRenderer } from '@mirasen/chessboard/unstable/extensions/first-party/main-renderer/factory.js';
 	import { createSelectedSquare } from '@mirasen/chessboard/unstable/extensions/first-party/selected-square/factory.js';
 	import { createRuntime } from '@mirasen/chessboard/unstable/runtime/factory/main.js';
@@ -79,13 +80,14 @@
 	onMount(() => {
 		runtime = createRuntime({
 			doc: document,
-			extensions: [createMainRenderer({}), createSelectedSquare()]
+			extensions: [createMainRenderer({}), createSelectedSquare(), createLastMove()]
 		});
 		runtime.setMovability({ mode: 'free' });
 		runtime.mount(boardEl);
 		refreshSnapshot();
 
 		const intervalId = window.setInterval(refreshSnapshot, 100);
+		const z = createLastMove();
 
 		return () => {
 			window.clearInterval(intervalId);

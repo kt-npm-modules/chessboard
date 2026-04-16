@@ -15,7 +15,17 @@ export const updateLastMoveOnBoardMove: RuntimeMutationPipe = (context, mutation
 
 export const clearLastMoveOnBoardSetPosition: RuntimeMutationPipe = (context, mutationSession) => {
 	const { current } = context;
-	if (!mutationSession.hasMutation({ causes: ['state.board.setPosition'] })) {
+	console.log(
+		'clearLastMoveOnBoardSetPosition called with mutationSession:',
+		mutationSession.hasMutation({
+			causes: ['state.board.setPosition', 'state.board.setPiecePosition']
+		})
+	);
+	if (
+		!mutationSession.hasMutation({
+			causes: ['state.board.setPosition', 'state.board.setPiecePosition']
+		})
+	) {
 		return;
 	}
 	// @ts-expect-error - We know this mutation session is a ChangeStateMutationSession
