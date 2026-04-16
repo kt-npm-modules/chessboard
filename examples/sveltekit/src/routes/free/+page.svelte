@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { createMainRenderer } from '@mirasen/chessboard/unstable/extensions/first-party/main-renderer/factory.js';
+	import { createSelectedSquare } from '@mirasen/chessboard/unstable/extensions/first-party/selected-square/factory.js';
 	import { createRuntime } from '@mirasen/chessboard/unstable/runtime/factory/main.js';
 	import type { PiecePositionRecordString } from '@mirasen/chessboard/unstable/state/board/types/input.js';
 	import { onDestroy, onMount } from 'svelte';
@@ -78,7 +79,7 @@
 	onMount(() => {
 		runtime = createRuntime({
 			doc: document,
-			extensions: [createMainRenderer({})]
+			extensions: [createMainRenderer({}), createSelectedSquare()]
 		});
 		runtime.setMovability({ mode: 'free' });
 		runtime.mount(boardEl);
