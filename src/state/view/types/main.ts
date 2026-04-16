@@ -1,14 +1,14 @@
+import { ColorInput } from '../../board/types/input';
 import { ColorCode } from '../../board/types/internal';
 import { ViewStateMutationSession } from '../mutation';
-import { OrientationInput } from './input';
 import { ViewStateSnapshot } from './internal';
 
 export interface ViewStateInitOptions {
-	orientation?: OrientationInput;
+	orientation?: ColorInput;
 }
 
 export interface ViewState {
 	readonly orientation: ColorCode;
-	setOrientation(orientation: OrientationInput, mutationSession: ViewStateMutationSession): boolean;
+	setOrientation(orientation: ColorInput, mutationSession: ViewStateMutationSession): boolean;
 	getSnapshot(): ViewStateSnapshot;
 }

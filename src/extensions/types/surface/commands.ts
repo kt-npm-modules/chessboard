@@ -9,7 +9,6 @@ import {
 import { Move } from '../../../state/board/types/internal';
 import { MovabilityInput } from '../../../state/interaction/types/input';
 import { RuntimeStateSnapshot } from '../../../state/types';
-import { OrientationInput } from '../../../state/view/types/input';
 
 export interface ExtensionRuntimeSurfaceCommandsSnapshot {
 	readonly state: RuntimeStateSnapshot;
@@ -28,13 +27,14 @@ export interface ExtensionRuntimeSurfaceCommands {
 	setTurn(turn: ColorInput): boolean;
 	move(request: MoveRequestInput): Move;
 	// View state
-	setOrientation(orientation: OrientationInput): boolean;
+	setOrientation(orientation: ColorInput): boolean;
 	setMovability(movability: MovabilityInput): boolean;
 	// Interaction state
 	select(square: SquareString | null): boolean;
+	clearActiveInteraction(): boolean;
 	cancelInteraction(): boolean;
-	// Snapshot
-	getSnapshot(): ExtensionRuntimeSurfaceCommandsSnapshot;
 	// Render
 	requestRender(request: ExtensionRuntimeSurfaceCommandsRenderRequest): void;
+	// Snapshot
+	getSnapshot(): ExtensionRuntimeSurfaceCommandsSnapshot;
 }

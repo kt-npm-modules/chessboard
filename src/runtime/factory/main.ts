@@ -3,7 +3,6 @@ import { ExtensionRuntimeSurfaceCommands } from '../../extensions/types/surface/
 import { createLayout } from '../../layout/factory';
 import { createRenderSystem } from '../../render/factory';
 import { createRuntimeState } from '../../state/factory';
-import { InteractionStateMutationSession } from '../../state/interaction/mutation';
 import { createInteractionController } from '../input/controller/factory';
 import { runtimeDestroy, runtimeMount, runtimeUnmount } from '../lifecycle';
 import { createRuntimeMutationPipeline } from '../mutation/factory';
@@ -42,18 +41,10 @@ function createExtensionRuntimeSurfaceCommands(
 ): ExtensionRuntimeSurfaceCommands {
 	// @ts-expect-error - For now we just return partial object. TODO: REMOVE!!!!
 	return {
-		getSnapshot() {
-			const state = getInternalState();
-			return {
-				state: state.state.getSnapshot(),
-				layout: state.layout.getSnapshot()
-			};
-		},
 		setPosition(input) {
 			const state = getInternalState();
 			const mutationSession = state.mutation.getSession();
-			// @ts-expect-error - We know that mutation session fits the type
-			// but not recognized.
+			// @ts-expect-error - We know that mutation session fits the type but not recognized.
 			const changed = state.state.board.setPosition(input, mutationSession);
 			runtimeRunMutationPipeline(state);
 			return changed;
@@ -61,18 +52,65 @@ function createExtensionRuntimeSurfaceCommands(
 		setPiecePosition(input) {
 			const state = getInternalState();
 			const mutationSession = state.mutation.getSession();
-			// @ts-expect-error - We know that mutation session fits the type
-			// but not recognized.
+			// @ts-expect-error - We know that mutation session fits the type but not recognized.
 			const changed = state.state.board.setPiecePosition(input, mutationSession);
+			runtimeRunMutationPipeline(state);
+			return changed;
+		},
+		setTurn(turn) {
+			const state = getInternalState();
+			const mutationSession = state.mutation.getSession();
+			// @ts-expect-error - We know that mutation session fits the type but not recognized.
+			const changed = state.state.board.setTurn(turn, mutationSession);
+			runtimeRunMutationPipeline(state);
+			return changed;
+		},
+		setOrientation(orientation) {
+			const state = getInternalState();
+			const mutationSession = state.mutation.getSession();
+			// @ts-expect-error - We know that mutation session fits the type but not recognized.
+			const changed = state.state.view.setOrientation(orientation, mutationSession);
 			runtimeRunMutationPipeline(state);
 			return changed;
 		},
 		setMovability(movability) {
 			const state = getInternalState();
-			const mutationSession = state.mutation.getSession() as InteractionStateMutationSession;
+			const mutationSession = state.mutation.getSession();
+			// @ts-expect-error - We know that mutation session fits the type but not recognized.
 			const changed = state.state.interaction.setMovability(movability, mutationSession);
 			runtimeRunMutationPipeline(state);
 			return changed;
+		},
+		select(square) {
+			const state = getInternalState();
+			const mutationSession = state.mutation.getSession();
+			// @ts-expect-error - We know that mutation session fits the type but not recognized.
+			const changed = state.state.interaction.setSelected(square, mutationSession);
+			runtimeRunMutationPipeline(state);
+			return changed;
+		},
+		clearActiveInteraction() {
+			const state = getInternalState();
+			const mutationSession = state.mutation.getSession();
+			// @ts-expect-error - We know that mutation session fits the type but not recognized.
+			const changed = state.state.interaction.clearActive(mutationSession);
+			runtimeRunMutationPipeline(state);
+			return changed;
+		},
+		cancelInteraction() {
+			const state = getInternalState();
+			const mutationSession = state.mutation.getSession();
+			// @ts-expect-error - We know that mutation session fits the type but not recognized.
+			const changed = state.state.interaction.cancel(mutationSession);
+			runtimeRunMutationPipeline(state);
+			return changed;
+		},
+		getSnapshot() {
+			const state = getInternalState();
+			return {
+				state: state.state.getSnapshot(),
+				layout: state.layout.getSnapshot()
+			};
 		}
 	};
 }
