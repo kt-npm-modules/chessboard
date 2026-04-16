@@ -1,6 +1,5 @@
 import { fileOf, rankOf } from '../../state/board/coords';
 import { ColorCode } from '../../state/board/types/internal';
-import { OrientationCode } from '../../state/view/types/internal';
 import { RenderGeometry } from './types';
 
 /**
@@ -12,10 +11,7 @@ import { RenderGeometry } from './types';
  *   - 'black': files increase right→left (a..h), ranks increase top→bottom (1..8).
  *              yIndex = rank, xIndex = 7 - file
  */
-export function createRenderGeometry(
-	boardSize: number,
-	orientation: OrientationCode
-): RenderGeometry {
+export function createRenderGeometry(boardSize: number, orientation: ColorCode): RenderGeometry {
 	if (!(boardSize > 0 && Number.isFinite(boardSize))) {
 		throw new RangeError(`Invalid boardSize: ${boardSize}`);
 	}

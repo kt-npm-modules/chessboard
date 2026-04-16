@@ -1,6 +1,5 @@
 import { ReadonlyDeep } from 'type-fest';
-import { Square } from '../../state/board/types/internal';
-import { OrientationCode } from '../../state/view/types/internal';
+import { ColorCode, Square } from '../../state/board/types/internal';
 
 export interface SquareRect {
 	x: number; // top-left x coordinate in px
@@ -19,6 +18,6 @@ export type SquareRectSnapshot = ReadonlyDeep<SquareRect>;
 export interface RenderGeometry {
 	readonly boardSize: number; // total board side in px
 	readonly squareSize: number; // derived: boardSize / 8
-	readonly orientation: OrientationCode; // 'white' or 'black', affects square indexing and coordinate rendering
+	readonly orientation: ColorCode; // 'white' or 'black', affects square indexing and coordinate rendering
 	squareRect(sq: Square): SquareRectSnapshot;
 }

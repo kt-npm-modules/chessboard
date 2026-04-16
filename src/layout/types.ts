@@ -1,11 +1,11 @@
 import { ReadonlyDeep } from 'type-fest';
-import { OrientationCode } from '../state/view/types/internal';
+import { ColorCode } from '../state/board/types/internal';
 import { RenderGeometry } from './geometry/types';
 import { LayoutMutationSession } from './mutation';
 
 export interface LayoutInternal {
 	boardSize: number | null;
-	orientation: OrientationCode | null;
+	orientation: ColorCode | null;
 	geometry: RenderGeometry | null;
 	layoutEpoch: number;
 }
@@ -14,7 +14,7 @@ export type LayoutSnapshot = ReadonlyDeep<LayoutInternal>;
 
 export interface LayoutRefreshOptions {
 	container?: HTMLElement;
-	orientation?: OrientationCode;
+	orientation?: ColorCode;
 }
 
 /**
@@ -28,7 +28,7 @@ export interface LayoutRefreshOptions {
  */
 export interface Layout {
 	readonly boardSize: number | null;
-	readonly orientation: OrientationCode | null;
+	readonly orientation: ColorCode | null;
 	readonly geometry: RenderGeometry | null;
 	readonly layoutEpoch: number;
 

@@ -1,10 +1,8 @@
 import type { ReadonlyDeep } from 'type-fest';
-import type { ColorCode } from '../../board/types/internal';
-
-export type OrientationCode = ColorCode; // For clarity in context where it applies
+import { ColorCode } from '../../board/types/internal';
 
 export interface ViewStateInternal {
-	orientation: OrientationCode;
+	orientation: ColorCode;
 }
 
 export type ViewStateSnapshot = ReadonlyDeep<ViewStateInternal>;
