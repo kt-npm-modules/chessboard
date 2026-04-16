@@ -1,6 +1,5 @@
 import { createSvgElement, updateElementAttributes } from '../../../render/svg/helpers';
 import { isNonEmptyPieceCode } from '../../../state/board/check';
-import { denormalizePieceString, denormalizeSquare } from '../../../state/board/denormalize';
 import { Square, SQUARE_COUNT } from '../../../state/board/types/internal';
 import { ExtensionRenderContext } from '../../types/context/render';
 import { DirtyLayer } from '../types/extension';
@@ -37,8 +36,8 @@ export function rendererPiecesRender(
 			} else {
 				state.pieceNodes.set(sq, {
 					root: createSvgElement(layer, 'image', {
-						'data-chessboard-id': `piece-${denormalizeSquare(sq)}`,
-						'data-chessboard-piece-key': denormalizePieceString(pieceCode),
+						'data-chessboard-id': `piece-${pieceCode}-${sq}`,
+						// 'data-chessboard-piece-key': denormalizePieceString(pieceCode),
 						href: url,
 						x: r.x.toString(),
 						y: r.y.toString(),

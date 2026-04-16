@@ -1,6 +1,5 @@
 import { clearElementChildren, createSvgElement, isLightSquare } from '../../../render/svg/helpers';
 import { squareOf } from '../../../state/board/coords';
-import { denormalizeSquare } from '../../../state/board/denormalize';
 import { ColorCode, Square, SquareFile, SquareRank } from '../../../state/board/types/internal';
 import { ExtensionRenderContext } from '../../types/context/render';
 import { DirtyLayer } from '../types/extension';
@@ -41,7 +40,7 @@ export function rendererCoordinatesRender(
 
 		const text = createSvgElement(layer, 'text', {
 			'data-chessboard-id': `coord-rank-${label}`,
-			'data-chessboard-square': denormalizeSquare(sq),
+			// 'data-chessboard-square': denormalizeSquare(sq),
 			x: (r.x + offset).toString(),
 			y: (r.y + offset).toString(),
 			'font-size': fontSize.toString(),
@@ -71,7 +70,7 @@ export function rendererCoordinatesRender(
 
 		const text = createSvgElement(layer, 'text', {
 			'data-chessboard-id': `coord-file-${label}`,
-			'data-chessboard-square': denormalizeSquare(sq),
+			// 'data-chessboard-square': denormalizeSquare(sq),
 			x: (r.x + r.size - offset).toString(),
 			y: (r.y + r.size - offset).toString(),
 			'font-size': fontSize.toString(),

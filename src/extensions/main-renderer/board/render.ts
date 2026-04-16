@@ -1,5 +1,4 @@
 import { clearElementChildren, createSvgElement, isLightSquare } from '../../../render/svg/helpers';
-import { denormalizeSquare } from '../../../state/board/denormalize';
 import { Square, SQUARE_COUNT } from '../../../state/board/types/internal';
 import { ExtensionRenderContext } from '../../types/context/render';
 import { DirtyLayer } from '../types/extension';
@@ -23,7 +22,7 @@ export function rendererBoardRender(
 		const r = geometry.squareRect(sq);
 		createSvgElement(layer, 'rect', {
 			'data-chessboard-id': `square-${sq}`,
-			'data-chessboard-square': denormalizeSquare(sq),
+			// 'data-chessboard-square': denormalizeSquare(sq),
 			x: r.x.toString(),
 			y: r.y.toString(),
 			width: r.size.toString(),
