@@ -1,5 +1,5 @@
 import { toMerged } from 'es-toolkit';
-import { ExtensionCreateInstanceOptions } from '../types/extension';
+import { ExtensionCreateInstanceOptions } from '../../types/extension';
 import { createMainRendererAnimation } from './animation/factory';
 import { createMainRendererBoard } from './board/factory';
 import { createMainRendererCoordinates } from './coordinates/factory';

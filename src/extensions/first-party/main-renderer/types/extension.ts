@@ -1,5 +1,5 @@
-import { ExtensionInstanceMountOptions, ExtensionSlotSvgRoots } from '../../types/basic/mount';
-import { ExtensionDefinition, ExtensionInstance } from '../../types/extension';
+import { ExtensionInstanceMountOptions, ExtensionSlotSvgRoots } from '../../../types/basic/mount';
+import { ExtensionDefinition, ExtensionInstance } from '../../../types/extension';
 import { MainRendererConfigInput } from './input';
 
 export type MainRendererInitOptions = Partial<MainRendererConfigInput>;

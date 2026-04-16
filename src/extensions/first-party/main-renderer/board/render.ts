@@ -1,6 +1,10 @@
-import { clearElementChildren, createSvgElement, isLightSquare } from '../../../render/svg/helpers';
-import { Square, SQUARE_COUNT } from '../../../state/board/types/internal';
-import { ExtensionRenderContext } from '../../types/context/render';
+import {
+	clearElementChildren,
+	createSvgElement,
+	isLightSquare
+} from '../../../../render/svg/helpers';
+import { Square, SQUARE_COUNT } from '../../../../state/board/types/internal';
+import { ExtensionRenderContext } from '../../../types/context/render';
 import { DirtyLayer } from '../types/extension';
 import { MainRendererBoardInternal } from './types';
 

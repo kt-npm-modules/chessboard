@@ -1,8 +1,7 @@
-import { calculateAnimationPlan } from '../../../animation/planner';
-import { AnimationTrackExclude } from '../../../animation/types';
-import { piecePositionsEqual } from '../../../state/board/check';
-import type { ExtensionUpdateContext } from '../../types/context/update';
-import { isUpdateContextRenderable } from '../../types/context/update';
+import { calculateAnimationPlan } from '../../../../animation/planner';
+import { AnimationTrackExclude } from '../../../../animation/types';
+import { piecePositionsEqual } from '../../../../state/board/check';
+import { ExtensionUpdateContext, isUpdateContextRenderable } from '../../../types/context/update';
 import type { MainRendererAnimationInternal } from './types';
 
 const DEFAULT_ANIMATION_DURATION_MS = 180;

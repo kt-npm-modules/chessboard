@@ -1,15 +1,15 @@
-import { collectSuppressedSquares } from '../../../animation/planner';
+import { collectSuppressedSquares } from '../../../../animation/planner';
 import {
 	cleanAnimationPlan,
 	prepareAnimationPlan,
 	renderAnimationPlan
-} from '../../../animation/render/plan';
-import type { Square } from '../../../state/board/types/internal';
+} from '../../../../animation/render/plan';
+import type { Square } from '../../../../state/board/types/internal';
 import type {
 	ExtensionCleanAnimationContext,
 	ExtensionPrepareAnimationContext,
 	ExtensionRenderAnimationContext
-} from '../../types/context/animation';
+} from '../../../types/context/animation';
 import type { MainRendererAnimationInternal } from './types';
 
 const EMPTY_SQUARES: ReadonlySet<Square> = new Set();

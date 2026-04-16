@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { createMainRenderer } from '@mirasen/chessboard/unstable/extensions/main-renderer/factory.js';
+	import { createMainRenderer } from '@mirasen/chessboard/unstable/extensions/first-party/main-renderer/factory.js';
 	import { createRuntime } from '@mirasen/chessboard/unstable/runtime/factory/main.js';
 	import type { PiecePositionRecordString } from '@mirasen/chessboard/unstable/state/board/types/input.js';
 	import { onDestroy, onMount } from 'svelte';

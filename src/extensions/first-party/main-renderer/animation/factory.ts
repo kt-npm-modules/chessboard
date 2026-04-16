@@ -1,5 +1,5 @@
-import { cleanAnimationPlan } from '../../../animation/render/plan';
-import type { ExtensionRuntimeSurface } from '../../types/surface/main';
+import { cleanAnimationPlan } from '../../../../animation/render/plan';
+import type { ExtensionRuntimeSurface } from '../../../types/surface/main';
 import type { PieceUrls } from '../types/internal';
 import {
 	getAnimationSuppressedSquares,

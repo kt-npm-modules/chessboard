@@ -1,6 +1,6 @@
-import { Square } from '../../../state/board/types/internal';
-import { ExtensionCleanAnimationContext } from '../../types/context/animation';
-import { ExtensionUpdateContext } from '../../types/context/update';
+import { Square } from '../../../../state/board/types/internal';
+import { ExtensionCleanAnimationContext } from '../../../types/context/animation';
+import { ExtensionUpdateContext } from '../../../types/context/update';
 import { MainRendererPiecesInternal } from './types';
 
 export function calculateSuppressedSquares(

@@ -1,7 +1,11 @@
-import { clearElementChildren, createSvgElement, isLightSquare } from '../../../render/svg/helpers';
-import { squareOf } from '../../../state/board/coords';
-import { ColorCode, Square, SquareFile, SquareRank } from '../../../state/board/types/internal';
-import { ExtensionRenderContext } from '../../types/context/render';
+import {
+	clearElementChildren,
+	createSvgElement,
+	isLightSquare
+} from '../../../../render/svg/helpers';
+import { squareOf } from '../../../../state/board/coords';
+import { ColorCode, Square, SquareFile, SquareRank } from '../../../../state/board/types/internal';
+import { ExtensionRenderContext } from '../../../types/context/render';
 import { DirtyLayer } from '../types/extension';
 import { MainRendererCoordinatesInternal } from './types';
 

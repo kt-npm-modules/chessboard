@@ -1,5 +1,5 @@
-import { isFrameRenderable } from '../../types/basic/update';
-import { ExtensionUpdateContext, isUpdateContextRenderable } from '../../types/context/update';
+import { isFrameRenderable } from '../../../types/basic/update';
+import { ExtensionUpdateContext, isUpdateContextRenderable } from '../../../types/context/update';
 import { DirtyLayer } from '../types/extension';
 import { MainRendererBoardInternal } from './types';
 

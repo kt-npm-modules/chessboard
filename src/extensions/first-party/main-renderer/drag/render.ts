@@ -1,5 +1,5 @@
-import { createSvgElement, updateElementAttributes } from '../../../render/svg/helpers';
-import { ExtensionRenderTransientVisualsContext } from '../../types/context/transient-visuals';
+import { createSvgElement, updateElementAttributes } from '../../../../render/svg/helpers';
+import { ExtensionRenderTransientVisualsContext } from '../../../types/context/transient-visuals';
 import { MainRendererDragInternal } from './types';
 
 export function rendererDragRenderTransientVisuals(

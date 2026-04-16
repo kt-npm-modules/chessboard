@@ -1,8 +1,8 @@
-import { setsEqual } from '../../../helpers/util';
-import { piecePositionsEqual } from '../../../state/board/check';
-import { Square } from '../../../state/board/types/internal';
-import { ExtensionCleanAnimationContext } from '../../types/context/animation';
-import { ExtensionUpdateContext, isUpdateContextRenderable } from '../../types/context/update';
+import { setsEqual } from '../../../../helpers/util';
+import { piecePositionsEqual } from '../../../../state/board/check';
+import { Square } from '../../../../state/board/types/internal';
+import { ExtensionCleanAnimationContext } from '../../../types/context/animation';
+import { ExtensionUpdateContext, isUpdateContextRenderable } from '../../../types/context/update';
 import { DirtyLayer } from '../types/extension';
 import { calculateSuppressedSquares } from './suppress';
 import { MainRendererPiecesInternal } from './types';

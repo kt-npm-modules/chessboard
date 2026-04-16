@@ -1,5 +1,5 @@
-import { ExtensionRenderContext } from '../../types/context/render';
-import { ExtensionUpdateContext } from '../../types/context/update';
+import { ExtensionRenderContext } from '../../../types/context/render';
+import { ExtensionUpdateContext } from '../../../types/context/update';
 import { ConfigColorPair } from '../types/internal';
 
 export interface MainRendererBoardInternal {

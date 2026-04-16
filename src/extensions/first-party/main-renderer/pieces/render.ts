@@ -1,7 +1,7 @@
-import { createSvgElement, updateElementAttributes } from '../../../render/svg/helpers';
-import { isNonEmptyPieceCode } from '../../../state/board/check';
-import { Square, SQUARE_COUNT } from '../../../state/board/types/internal';
-import { ExtensionRenderContext } from '../../types/context/render';
+import { createSvgElement, updateElementAttributes } from '../../../../render/svg/helpers';
+import { isNonEmptyPieceCode } from '../../../../state/board/check';
+import { Square, SQUARE_COUNT } from '../../../../state/board/types/internal';
+import { ExtensionRenderContext } from '../../../types/context/render';
 import { DirtyLayer } from '../types/extension';
 import { MainRendererPiecesInternal } from './types';
 

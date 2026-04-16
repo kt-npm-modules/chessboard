@@ -1,4 +1,4 @@
-import { ExtensionRuntimeSurface } from '../../types/surface/main';
+import { ExtensionRuntimeSurface } from '../../../types/surface/main';
 import { MainRendererAnimation } from '../animation/types';
 import { MainRendererBoard } from '../board/types';
 import { MainRendererCoordinates } from '../coordinates/types';

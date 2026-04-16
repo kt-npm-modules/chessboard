@@ -1,4 +1,4 @@
-import type { PieceUrls } from '../../extensions/main-renderer/types/internal';
+import type { PieceUrls } from '../../extensions/first-party/main-renderer/types/internal';
 import type { RenderGeometry } from '../../layout/geometry/types';
 import type { AnimationPlan } from '../types';
 import { cleanFadeTrack, prepareFadeTrack, renderFadeTrack } from './fade';
