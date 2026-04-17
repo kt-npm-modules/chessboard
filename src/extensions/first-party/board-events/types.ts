@@ -13,9 +13,9 @@ export type BoardEventsDefinition = ExtensionDefinition<
 	BoardEventsPublic
 >;
 
-export type OnMoveCallback = (move: MoveOutput | null) => void;
+export type OnMoveCallback = (move: MoveOutput) => void;
 export interface BoardEventsPublic {
-	setOnMove(callback: OnMoveCallback | null): void;
+	setOnUIMove(callback: OnMoveCallback | null): void;
 }
 
 export type BoardEventsInstance = ExtensionInstance<
@@ -27,5 +27,5 @@ export type BoardEventsInstance = ExtensionInstance<
 export type BoardEventsSlotRoots = ExtensionSlotSvgRoots<typeof EXTENSION_SLOTS>;
 
 export interface BoardEventsInstanceInternal extends ExtensionInternal<ExtensionSlotsType> {
-	onMove: OnMoveCallback | null;
+	onUIMove: OnMoveCallback | null;
 }

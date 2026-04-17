@@ -4,7 +4,7 @@ import { ExtensionInternal, OpaqueColor } from '../common/types';
 
 export const EXTENSION_SLOTS = ['overPieces'] as const;
 export type ExtensionSlotsType = typeof EXTENSION_SLOTS;
-export const EXTENSION_ID = 'legal-moves' as const;
+export const EXTENSION_ID = 'legalMoves' as const;
 
 export interface LegalMovesConfig {
 	emptySquare: {

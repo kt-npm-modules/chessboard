@@ -101,7 +101,7 @@
 		runtime.setMovability({ mode: 'free' });
 		runtime.mount(boardEl);
 		const pubRecExtensions = runtime.getExtensionsPublicRecord();
-		pubRecExtensions.events.setOnMove((move) => {
+		pubRecExtensions.events.setOnUIMove((move) => {
 			console.log('Move played:', move);
 		});
 		refreshSnapshot();

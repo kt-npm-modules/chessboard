@@ -23,18 +23,18 @@ export function createBoardEvents(): BoardEventsDefinition {
 function createBoardEventsInternal(): BoardEventsInstanceInternal {
 	return {
 		...extensionCreateInternalBase<ExtensionSlotsType>(),
-		onMove: null
+		onUIMove: null
 	};
 }
 
 function extensionClean(state: BoardEventsInstanceInternal) {
-	state.onMove = null;
+	state.onUIMove = null;
 }
 
 function createBoardEventsInstancePublic(state: BoardEventsInstanceInternal): BoardEventsPublic {
 	return {
-		setOnMove(callback) {
-			state.onMove = callback;
+		setOnUIMove(callback) {
+			state.onUIMove = callback;
 		}
 	};
 }
@@ -50,7 +50,7 @@ function createBoardEventsInstance(): BoardEventsInstance {
 				context.mutation.hasMutation({ causes: ['state.change.setLastMove'] }) &&
 				context.currentFrame.state.change.lastMove
 			) {
-				internalState.onMove?.(denormalizeMove(context.currentFrame.state.change.lastMove));
+				internalState.onUIMove?.(denormalizeMove(context.currentFrame.state.change.lastMove));
 			}
 		},
 		getPublic() {

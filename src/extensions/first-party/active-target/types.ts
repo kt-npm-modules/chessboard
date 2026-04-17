@@ -4,7 +4,7 @@ import { ExtensionInternal, OpaqueColor } from '../common/types';
 
 export const EXTENSION_SLOTS = ['underPieces', 'overPieces'] as const;
 export type ExtensionSlotsType = typeof EXTENSION_SLOTS;
-export const EXTENSION_ID = 'active-target' as const;
+export const EXTENSION_ID = 'activeTarget' as const;
 
 export interface ActiveTargetConfig {
 	squareColor: OpaqueColor;

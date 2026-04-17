@@ -4,7 +4,7 @@ import { ExtensionInternal, OpaqueColor } from '../common/types';
 
 export const EXTENSION_SLOTS = ['underPieces'] as const;
 export type ExtensionSlotsType = typeof EXTENSION_SLOTS;
-export const EXTENSION_ID = 'selected-square' as const;
+export const EXTENSION_ID = 'selectedSquare' as const;
 
 export type SelectedSquareConfig = OpaqueColor;
 
