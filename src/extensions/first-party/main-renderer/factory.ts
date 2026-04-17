@@ -1,5 +1,11 @@
 import { toMerged } from 'es-toolkit';
 import { ExtensionCreateInstanceOptions } from '../../types/extension';
+import {
+	extensionCreateInternalBase,
+	extensionDestroy,
+	extensionMount,
+	extensionUnmount
+} from '../common/helpers';
 import { createMainRendererAnimation } from './animation/factory';
 import { createMainRendererBoard } from './board/factory';
 import { createMainRendererCoordinates } from './coordinates/factory';
@@ -9,6 +15,7 @@ import { createMainRendererPieces } from './pieces/factory';
 import {
 	EXTENSION_ID,
 	EXTENSION_SLOTS,
+	ExtensionSlotsType,
 	MainRendererDefinition,
 	MainRendererInitOptions,
 	MainRendererInstance
@@ -40,14 +47,22 @@ function createMainRendererInternal(
 	const drag = createMainRendererDrag(config.pieceUrls, options.runtimeSurface);
 	const animation = createMainRendererAnimation(config.pieceUrls, options.runtimeSurface);
 	return {
+		...extensionCreateInternalBase<ExtensionSlotsType>(),
 		board,
 		coordinates,
 		pieces,
 		drag,
 		animation,
-		slotRoots: null,
 		runtimeSurface: options.runtimeSurface
 	};
+}
+
+function extensionUnmountLocal(state: MainRendererInstanceInternal) {
+	// internalState.board.unmount();
+	// internalState.coordinates.unmount();
+	state.pieces.unmount();
+	state.drag.unmount();
+	state.animation.unmount();
 }
 
 function validateIsMounted(
@@ -67,7 +82,7 @@ function createMainRendererInstance(
 	return {
 		id: EXTENSION_ID,
 		mount(env) {
-			internalState.slotRoots = env.slotRoots;
+			extensionMount<ExtensionSlotsType>(internalState, env.slotRoots);
 		},
 		onUpdate(context) {
 			internalState.board.onUpdate(context);
@@ -103,11 +118,12 @@ function createMainRendererInstance(
 			internalState.animation.cleanAnimation(context);
 		},
 		unmount() {
-			// internalState.board.unmount();
-			// internalState.coordinates.unmount();
-			internalState.pieces.unmount();
-			internalState.drag.unmount();
-			internalState.animation.unmount();
+			extensionUnmountLocal(internalState);
+			extensionUnmount<ExtensionSlotsType>(internalState);
+		},
+		destroy() {
+			extensionUnmountLocal(internalState);
+			extensionDestroy<ExtensionSlotsType>(internalState);
 		}
 	};
 }

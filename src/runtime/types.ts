@@ -39,4 +39,6 @@ export interface Runtime extends ExtensionRuntimeSurfaceCommands {
 	mount(container: HTMLElement): void;
 	unmount(): void; // just unmount, can be remounted
 	destroy(): void; // unmount + cleanup internal state, observers, etc. cannot be reused anymore
+	// Extensions
+	getExtensionsPublicRecord(): Readonly<Record<string, unknown>>;
 }

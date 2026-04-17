@@ -6,10 +6,17 @@ import { fromPieceCode } from '../../../state/board/piece';
 import { MovabilityModeCode } from '../../../state/interaction/types/internal';
 import { isUpdateContextRenderable } from '../../types/context/update';
 import {
+	extensionCreateInternalBase,
+	extensionDestroy,
+	extensionMount,
+	extensionUnmount
+} from '../common/helpers';
+import {
 	DEFAULT_CONFIG,
 	DirtyLayer,
 	EXTENSION_ID,
 	EXTENSION_SLOTS,
+	ExtensionSlotsType,
 	LegalMovesConfig,
 	LegalMovesDefinition,
 	LegalMovesInitConfig,
@@ -30,10 +37,14 @@ export function createLegalMoves(config: LegalMovesInitConfig = {}): LegalMovesD
 
 function createLegalMovesInternal(config: LegalMovesConfig): LegalMovesInstanceInternal {
 	return {
-		slotRoots: null,
+		...extensionCreateInternalBase<ExtensionSlotsType>(),
 		svgCircles: [],
 		config
 	};
+}
+
+function extensionClean(state: LegalMovesInstanceInternal) {
+	state.svgCircles = [];
 }
 
 function createLegalMovesInstance(config: LegalMovesConfig): LegalMovesInstance {
@@ -41,7 +52,7 @@ function createLegalMovesInstance(config: LegalMovesConfig): LegalMovesInstance 
 	return {
 		id: EXTENSION_ID,
 		mount(env) {
-			internalState.slotRoots = env.slotRoots;
+			extensionMount<ExtensionSlotsType>(internalState, env.slotRoots);
 		},
 		onUpdate(context) {
 			const needsRender =
@@ -113,11 +124,12 @@ function createLegalMovesInstance(config: LegalMovesConfig): LegalMovesInstance 
 			}
 		},
 		unmount() {
-			for (const circle of internalState.svgCircles) {
-				circle.remove();
-			}
-			internalState.svgCircles = [];
-			internalState.slotRoots = null;
+			extensionUnmount<ExtensionSlotsType>(internalState);
+			extensionClean(internalState);
+		},
+		destroy() {
+			extensionDestroy<ExtensionSlotsType>(internalState);
+			extensionClean(internalState);
 		}
 	};
 }

@@ -17,15 +17,6 @@ export interface LayoutRefreshOptions {
 	orientation?: ColorCode;
 }
 
-/**
- * Layout is a purely derived state computed from container size and view state (state.view.*).
- *
- * RenderGeometry is also purely derived.
- *
- * Both Layout and RenderGeometry may keep duplicated derived fields
- * (for example orientation or boardSize) as denormalized render-facing snapshots.
- * These duplicated fields are for convenience only and are not the source of truth.
- */
 export interface Layout {
 	readonly boardSize: number | null;
 	readonly orientation: ColorCode | null;

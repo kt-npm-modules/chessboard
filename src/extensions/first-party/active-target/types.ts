@@ -1,9 +1,9 @@
 import { PartialDeep } from 'type-fest';
-import { ExtensionSlotSvgRoots } from '../../types/basic/mount';
 import { ExtensionDefinition, ExtensionInstance } from '../../types/extension';
-import { OpaqueColor } from '../common/types';
+import { ExtensionInternal, OpaqueColor } from '../common/types';
 
 export const EXTENSION_SLOTS = ['underPieces', 'overPieces'] as const;
+export type ExtensionSlotsType = typeof EXTENSION_SLOTS;
 export const EXTENSION_ID = 'active-target' as const;
 
 export interface ActiveTargetConfig {
@@ -42,10 +42,7 @@ export type ActiveTargetInstance = ExtensionInstance<
 	never
 >;
 
-export type ActiveTargetSlotRoots = ExtensionSlotSvgRoots<typeof EXTENSION_SLOTS>;
-
-export interface ActiveTargetInstanceInternal {
-	slotRoots: ActiveTargetSlotRoots | null;
+export interface ActiveTargetInstanceInternal extends ExtensionInternal<ExtensionSlotsType> {
 	svgRect: SVGRectElement | null;
 	svgCircle: SVGCircleElement | null;
 	readonly config: ActiveTargetConfig;

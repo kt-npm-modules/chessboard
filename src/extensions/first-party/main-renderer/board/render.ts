@@ -26,7 +26,6 @@ export function rendererBoardRender(
 		const r = geometry.squareRect(sq);
 		createSvgElement(layer, 'rect', {
 			'data-chessboard-id': `square-${sq}`,
-			// 'data-chessboard-square': denormalizeSquare(sq),
 			x: r.x.toString(),
 			y: r.y.toString(),
 			width: r.size.toString(),

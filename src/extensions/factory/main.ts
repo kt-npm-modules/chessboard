@@ -71,6 +71,17 @@ export function createExtensionSystem(options: ExtensionSystemInitOptions): Exte
 		get currentFrame() {
 			return internalState.currentFrame;
 		},
+		getPublicRecord() {
+			const publicRecord: Record<string, unknown> = {};
+			for (const [id, extRecord] of internalState.extensions.entries()) {
+				if ('getPublic' in extRecord.instance) {
+					// We know that if getPublic exists, then the instance has a public API, so this type assertion is safe
+					const instanceWithPublic = extRecord.instance;
+					publicRecord[id] = instanceWithPublic.getPublic();
+				}
+			}
+			return publicRecord;
+		},
 		onUpdate(request) {
 			extensionSystemUpdateState(internalState, request);
 		},
@@ -86,6 +97,7 @@ export function createExtensionSystem(options: ExtensionSystemInitOptions): Exte
 		onDestroy() {
 			// We assume that the onUnmout was already called by runtime, but let's still validate
 			for (const extensionRec of internalState.extensions.values()) {
+				extensionRec.instance.destroy();
 				const onUnmountCalled = [
 					extensionRec.invalidation.dirtyLayers === 0,
 					extensionRec.animation.getAll().length === 0

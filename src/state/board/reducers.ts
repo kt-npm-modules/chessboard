@@ -43,7 +43,7 @@ function buildMoveBase(state: BoardStateInternal, request: MoveRequestBase): Mov
 	return {
 		from,
 		to,
-		moved: moved
+		piece: moved
 	};
 }
 
@@ -54,14 +54,6 @@ function buildMove(state: BoardStateInternal, request: MoveRequest): Move {
 	const codeAtCapture = state.pieces[captureSq];
 	if (!isEmptyPieceCode(codeAtCapture)) {
 		captured = { piece: codeAtCapture, square: captureSq };
-	}
-
-	let promotedTo: PieceCode | undefined;
-	if (request.promotedTo) {
-		const moved = base.moved;
-		const pieceCoded = fromPieceCode(moved);
-		const newPieceCode = toPieceCode(request.promotedTo, pieceCoded.color);
-		promotedTo = newPieceCode;
 	}
 
 	let secondary: MoveBase | undefined;
@@ -82,14 +74,18 @@ function buildMove(state: BoardStateInternal, request: MoveRequest): Move {
 	return {
 		...base,
 		...(captured && { captured }),
-		...(promotedTo && { promotedTo }),
+		...(request.promotedTo && { promotedTo: request.promotedTo }),
 		...(secondary && { secondary })
 	};
 }
 
 export function boardMove(state: BoardStateInternal, request: MoveRequest): Move {
 	const move = buildMove(state, request);
-	state.pieces[move.to] = move.promotedTo ?? move.moved;
+	const moved = fromPieceCode(move.piece);
+	const newPieceCode: PieceCode = move.promotedTo
+		? toPieceCode(move.promotedTo, moved.color)
+		: move.piece;
+	state.pieces[move.to] = newPieceCode;
 	state.pieces[move.from] = PieceCode.Empty;
 
 	if (move.captured && move.captured.square !== move.to) {
@@ -97,7 +93,7 @@ export function boardMove(state: BoardStateInternal, request: MoveRequest): Move
 	}
 
 	if (move.secondary) {
-		state.pieces[move.secondary.to] = move.secondary.moved;
+		state.pieces[move.secondary.to] = move.secondary.piece;
 		state.pieces[move.secondary.from] = PieceCode.Empty;
 	}
 

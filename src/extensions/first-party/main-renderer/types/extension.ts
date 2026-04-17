@@ -1,14 +1,14 @@
-import { ExtensionInstanceMountOptions, ExtensionSlotSvgRoots } from '../../../types/basic/mount';
 import { ExtensionDefinition, ExtensionInstance } from '../../../types/extension';
 import { MainRendererConfigInput } from './input';
 
 export type MainRendererInitOptions = Partial<MainRendererConfigInput>;
 
 export const EXTENSION_SLOTS = ['board', 'coordinates', 'pieces', 'animation', 'drag'] as const;
+export type ExtensionSlotsType = typeof EXTENSION_SLOTS;
 export const EXTENSION_ID = 'main-renderer' as const;
 
-export type MainRendererMountOptions = ExtensionInstanceMountOptions<typeof EXTENSION_SLOTS>;
-export type MainRendererSlotRoots = ExtensionSlotSvgRoots<typeof EXTENSION_SLOTS>;
+// export type MainRendererMountOptions = ExtensionInstanceMountOptions<typeof EXTENSION_SLOTS>;
+// export type MainRendererSlotRoots = ExtensionSlotSvgRoots<typeof EXTENSION_SLOTS>;
 
 export type MainRendererDefinition = ExtensionDefinition<
 	typeof EXTENSION_ID,

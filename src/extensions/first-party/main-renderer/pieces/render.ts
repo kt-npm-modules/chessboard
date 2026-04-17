@@ -37,7 +37,6 @@ export function rendererPiecesRender(
 				state.pieceNodes.set(sq, {
 					root: createSvgElement(layer, 'image', {
 						'data-chessboard-id': `piece-${pieceCode}-${sq}`,
-						// 'data-chessboard-piece-key': denormalizePieceString(pieceCode),
 						href: url,
 						x: r.x.toString(),
 						y: r.y.toString(),

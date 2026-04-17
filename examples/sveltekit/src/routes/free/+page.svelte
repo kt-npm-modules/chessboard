@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { createActiveTarget } from '@mirasen/chessboard/unstable/extensions/first-party/active-target/factory.js';
+	import { createBoardEvents } from '@mirasen/chessboard/unstable/extensions/first-party/board-events/factory.js';
 	import { createLastMove } from '@mirasen/chessboard/unstable/extensions/first-party/last-move/factory.js';
 	import { createLegalMoves } from '@mirasen/chessboard/unstable/extensions/first-party/legal-moves/factory.js';
 	import { createMainRenderer } from '@mirasen/chessboard/unstable/extensions/first-party/main-renderer/factory.js';
@@ -93,11 +94,16 @@
 				createSelectedSquare(),
 				createLastMove(),
 				createActiveTarget(),
-				createLegalMoves()
+				createLegalMoves(),
+				createBoardEvents()
 			]
 		});
 		runtime.setMovability({ mode: 'free' });
 		runtime.mount(boardEl);
+		const pubRecExtensions = runtime.getExtensionsPublicRecord();
+		pubRecExtensions.events.setOnMove((move) => {
+			console.log('Move played:', move);
+		});
 		refreshSnapshot();
 
 		const intervalId = window.setInterval(refreshSnapshot, 100);

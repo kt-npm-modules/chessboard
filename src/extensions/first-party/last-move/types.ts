@@ -1,9 +1,9 @@
 import { PartialDeep } from 'type-fest';
-import { ExtensionSlotSvgRoots } from '../../types/basic/mount';
 import { ExtensionDefinition, ExtensionInstance } from '../../types/extension';
-import { OpaqueColor } from '../common/types';
+import { ExtensionInternal, OpaqueColor } from '../common/types';
 
 export const EXTENSION_SLOTS = ['underPieces'] as const;
+export type ExtensionSlotsType = typeof EXTENSION_SLOTS;
 export const EXTENSION_ID = 'last-move' as const;
 
 export type LastMoveConfig = OpaqueColor;
@@ -27,10 +27,7 @@ export type LastMoveInstance = ExtensionInstance<
 	never
 >;
 
-export type LastMoveSlotRoots = ExtensionSlotSvgRoots<typeof EXTENSION_SLOTS>;
-
-export interface LastMoveInstanceInternal {
-	slotRoots: LastMoveSlotRoots | null;
+export interface LastMoveInstanceInternal extends ExtensionInternal<ExtensionSlotsType> {
 	svgRectFrom: SVGRectElement | null;
 	svgRectTo: SVGRectElement | null;
 	readonly config: LastMoveConfig;

@@ -44,7 +44,6 @@ export function rendererCoordinatesRender(
 
 		const text = createSvgElement(layer, 'text', {
 			'data-chessboard-id': `coord-rank-${label}`,
-			// 'data-chessboard-square': denormalizeSquare(sq),
 			x: (r.x + offset).toString(),
 			y: (r.y + offset).toString(),
 			'font-size': fontSize.toString(),
@@ -74,7 +73,6 @@ export function rendererCoordinatesRender(
 
 		const text = createSvgElement(layer, 'text', {
 			'data-chessboard-id': `coord-file-${label}`,
-			// 'data-chessboard-square': denormalizeSquare(sq),
 			x: (r.x + r.size - offset).toString(),
 			y: (r.y + r.size - offset).toString(),
 			'font-size': fontSize.toString(),

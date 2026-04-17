@@ -1,24 +1,28 @@
 import { isValidSquare } from './check';
 import { fileOf, rankOf } from './coords';
+import { fromPieceCode } from './piece';
 import {
-	Color,
+	ColorShort,
 	FileChar,
-	Piece,
 	PieceString,
 	RankChar,
-	Role,
+	RolePromotionShort,
 	RoleShort,
 	SquareString
 } from './types/input';
 import {
 	ColorCode,
 	FILE_START,
+	Move,
+	MoveBase,
+	MoveCaptured,
 	NonEmptyPieceCode,
-	PieceCode,
 	RANK_START,
 	RoleCode,
+	RolePromotionCode,
 	Square
 } from './types/internal';
+import { MoveBaseOutput, MoveCapturedOutput, MoveOutput } from './types/output';
 
 export function denormalizeSquare(sq: Square): SquareString {
 	if (!isValidSquare(sq)) {
@@ -31,22 +35,14 @@ export function denormalizeSquare(sq: Square): SquareString {
 	return `${f}${r}`;
 }
 
-export function denormalizeRole(role: RoleCode): Role {
-	switch (role) {
-		case RoleCode.Pawn:
-			return 'pawn';
-		case RoleCode.King:
-			return 'king';
-		case RoleCode.Knight:
-			return 'knight';
-		case RoleCode.Bishop:
-			return 'bishop';
-		case RoleCode.Rook:
-			return 'rook';
-		case RoleCode.Queen:
-			return 'queen';
+export function denormalizeColorShort(color: ColorCode): ColorShort {
+	switch (color) {
+		case ColorCode.White:
+			return 'w';
+		case ColorCode.Black:
+			return 'b';
 		default:
-			throw new RangeError(`Invalid role code: ${role}`);
+			throw new RangeError(`Invalid color code: ${color}`);
 	}
 }
 
@@ -69,16 +65,42 @@ export function denormalizeRoleShort(role: RoleCode): RoleShort {
 	}
 }
 
-export function denormalizePiece(code: PieceCode): Piece | null {
-	if (code <= PieceCode.Empty) return null;
-	const color: Color = code >= ColorCode.Black ? 'black' : 'white';
-	const roleCode: RoleCode = color === 'black' ? code - ColorCode.Black : code;
-	return { color, role: denormalizeRole(roleCode) };
+export function denormalizeRolePromotionShort(role: RolePromotionCode): RolePromotionShort {
+	const roleShort = denormalizeRoleShort(role);
+	if (roleShort === 'K' || roleShort === 'P') {
+		throw new RangeError(`Invalid role for promotion: ${role}`);
+	}
+	return roleShort as RolePromotionShort;
 }
 
 export function denormalizePieceString(code: NonEmptyPieceCode): PieceString {
-	const colorPrefix = code >= ColorCode.Black ? 'b' : 'w';
-	const roleCode: RoleCode = colorPrefix === 'b' ? code - ColorCode.Black : code;
-	const roleStr = denormalizeRoleShort(roleCode);
+	const piece = fromPieceCode(code);
+	const colorPrefix = denormalizeColorShort(piece.color);
+	const roleStr = denormalizeRoleShort(piece.role);
 	return `${colorPrefix}${roleStr}`;
+}
+
+export function denormalizeMoveBase(move: MoveBase): MoveBaseOutput {
+	return {
+		from: denormalizeSquare(move.from),
+		to: denormalizeSquare(move.to),
+		piece: denormalizePieceString(move.piece)
+	};
+}
+
+export function denormalizeMoveCaptured(captured: MoveCaptured): MoveCapturedOutput {
+	return {
+		square: denormalizeSquare(captured.square),
+		piece: denormalizePieceString(captured.piece)
+	};
+}
+
+export function denormalizeMove(move: Move): MoveOutput {
+	const baseMove = denormalizeMoveBase(move);
+	return {
+		...baseMove,
+		...(move.promotedTo ? { promotedTo: denormalizeRolePromotionShort(move.promotedTo) } : {}),
+		...(move.captured ? { captured: denormalizeMoveCaptured(move.captured) } : {}),
+		...(move.secondary ? { secondary: denormalizeMoveBase(move.secondary) } : {})
+	};
 }

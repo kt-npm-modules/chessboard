@@ -11,15 +11,12 @@ import { ExtensionRenderTransientVisualsContext } from './context/transient-visu
 import { ExtensionUpdateContext } from './context/update';
 import { ExtensionRuntimeSurface } from './surface/main';
 
-export interface ExtensionInstance<
-	TId extends string,
-	TSlots extends readonly ExtensionSlotName[],
-	TPublic
-> {
+interface ExtensionInstanceBase<TId extends string, TSlots extends readonly ExtensionSlotName[]> {
 	readonly id: TId;
 	// Lifecycle
 	mount(env: ExtensionInstanceMountOptions<TSlots>): void;
 	unmount(): void;
+	destroy(): void;
 	// Render state cycle
 	onUpdate(context: ExtensionUpdateContext): void;
 	render?(context: ExtensionRenderContext): void;
@@ -32,9 +29,19 @@ export interface ExtensionInstance<
 	renderTransientVisuals?(context: ExtensionRenderTransientVisualsContext): void;
 	// Events
 	onEvent?(event: SceneEvent): void;
-	// Public API promoted to board.extensions.<extensionId>.API
-	getPublic?(): TPublic;
 }
+
+type ExtensionInstancePublicPart<TPublic> = [TPublic] extends [never]
+	? Record<never, never>
+	: {
+			getPublic(): TPublic;
+		};
+
+export type ExtensionInstance<
+	TId extends string,
+	TSlots extends readonly ExtensionSlotName[],
+	TPublic = never
+> = ExtensionInstanceBase<TId, TSlots> & ExtensionInstancePublicPart<TPublic>;
 
 export type AnyExtensionInstance = ExtensionInstance<string, readonly ExtensionSlotName[], unknown>;
 

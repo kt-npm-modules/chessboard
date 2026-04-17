@@ -130,8 +130,8 @@ export interface PieceCoded {
 
 export type MoveRequestBase = TMoveRequestBase<Square>;
 export type MoveRequest = TMoveRequest<Square, RolePromotionCode>;
-export type Move = TMove<Square, NonEmptyPieceCode, NonEmptyPieceCode>;
 export type MoveBase = TMoveBase<Square, NonEmptyPieceCode>;
+export type Move = TMove<Square, NonEmptyPieceCode, RolePromotionCode>;
 export type MoveCaptured = TMoveCaptured<Square, NonEmptyPieceCode>;
 
 export type MoveBaseSnapshot = ReadonlyDeep<MoveBase>;

@@ -177,6 +177,9 @@ export function createRuntime(options: RuntimeInitOptions): Runtime {
 			internalStatus = 'destroyed';
 			internalState = null;
 		},
-		...extensionSurface
+		...extensionSurface,
+		getExtensionsPublicRecord() {
+			return getInternalState().extensionSystem.getPublicRecord();
+		}
 	};
 }

@@ -4,7 +4,7 @@ function baseMovesEqual(moveA: MoveBaseSnapshot, moveB: MoveBaseSnapshot): boole
 	const diffs: boolean[] = [
 		moveA.from !== moveB.from,
 		moveA.to !== moveB.to,
-		moveA.moved !== moveB.moved
+		moveA.piece !== moveB.piece
 	];
 	return !diffs.some(Boolean);
 }

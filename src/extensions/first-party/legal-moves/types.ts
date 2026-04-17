@@ -1,9 +1,9 @@
 import { PartialDeep } from 'type-fest';
-import { ExtensionSlotSvgRoots } from '../../types/basic/mount';
 import { ExtensionDefinition, ExtensionInstance } from '../../types/extension';
-import { OpaqueColor } from '../common/types';
+import { ExtensionInternal, OpaqueColor } from '../common/types';
 
 export const EXTENSION_SLOTS = ['overPieces'] as const;
+export type ExtensionSlotsType = typeof EXTENSION_SLOTS;
 export const EXTENSION_ID = 'legal-moves' as const;
 
 export interface LegalMovesConfig {
@@ -50,10 +50,8 @@ export type LegalMovesInstance = ExtensionInstance<
 	never
 >;
 
-export type LegalMovesSlotRoots = ExtensionSlotSvgRoots<typeof EXTENSION_SLOTS>;
-
-export interface LegalMovesInstanceInternal {
-	slotRoots: LegalMovesSlotRoots | null;
+export interface LegalMovesInstanceInternal extends ExtensionInternal<ExtensionSlotsType> {
+	destroyed: boolean;
 	svgCircles: SVGCircleElement[];
 	readonly config: LegalMovesConfig;
 }

@@ -3,10 +3,17 @@ import { toMerged } from 'es-toolkit';
 import { createSvgElement, updateElementAttributes } from '../../../render/svg/helpers';
 import { isUpdateContextRenderable } from '../../types/context/update';
 import {
+	extensionCreateInternalBase,
+	extensionDestroy,
+	extensionMount,
+	extensionUnmount
+} from '../common/helpers';
+import {
 	DEFAULT_CONFIG,
 	DirtyLayer,
 	EXTENSION_ID,
 	EXTENSION_SLOTS,
+	ExtensionSlotsType,
 	SelectedSquareConfig,
 	SelectedSquareDefinition,
 	SelectedSquareInitConfig,
@@ -31,10 +38,14 @@ function createSelectedSquareInternal(
 	config: SelectedSquareConfig
 ): SelectedSquareInstanceInternal {
 	return {
-		slotRoots: null,
+		...extensionCreateInternalBase<ExtensionSlotsType>(),
 		svgRect: null,
 		config
 	};
+}
+
+function extensionClean(state: SelectedSquareInstanceInternal) {
+	state.svgRect = null;
 }
 
 function createSelectedSquareInstance(config: SelectedSquareConfig): SelectedSquareInstance {
@@ -42,7 +53,7 @@ function createSelectedSquareInstance(config: SelectedSquareConfig): SelectedSqu
 	return {
 		id: EXTENSION_ID,
 		mount(env) {
-			internalState.slotRoots = env.slotRoots;
+			extensionMount<ExtensionSlotsType>(internalState, env.slotRoots);
 		},
 		onUpdate(context) {
 			const needsRender =
@@ -94,9 +105,12 @@ function createSelectedSquareInstance(config: SelectedSquareConfig): SelectedSqu
 			}
 		},
 		unmount() {
-			internalState.svgRect?.remove();
-			internalState.svgRect = null;
-			internalState.slotRoots = null;
+			extensionUnmount<ExtensionSlotsType>(internalState);
+			extensionClean(internalState);
+		},
+		destroy() {
+			extensionDestroy<ExtensionSlotsType>(internalState);
+			extensionClean(internalState);
 		}
 	};
 }

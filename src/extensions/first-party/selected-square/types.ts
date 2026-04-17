@@ -1,9 +1,9 @@
 import { PartialDeep } from 'type-fest';
-import { ExtensionSlotSvgRoots } from '../../types/basic/mount';
 import { ExtensionDefinition, ExtensionInstance } from '../../types/extension';
-import { OpaqueColor } from '../common/types';
+import { ExtensionInternal, OpaqueColor } from '../common/types';
 
 export const EXTENSION_SLOTS = ['underPieces'] as const;
+export type ExtensionSlotsType = typeof EXTENSION_SLOTS;
 export const EXTENSION_ID = 'selected-square' as const;
 
 export type SelectedSquareConfig = OpaqueColor;
@@ -27,10 +27,7 @@ export type SelectedSquareInstance = ExtensionInstance<
 	never
 >;
 
-export type SelectedSquareSlotRoots = ExtensionSlotSvgRoots<typeof EXTENSION_SLOTS>;
-
-export interface SelectedSquareInstanceInternal {
-	slotRoots: SelectedSquareSlotRoots | null;
+export interface SelectedSquareInstanceInternal extends ExtensionInternal<ExtensionSlotsType> {
 	svgRect: SVGRectElement | null;
 	readonly config: SelectedSquareConfig;
 }

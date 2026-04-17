@@ -3,10 +3,17 @@ import { toMerged } from 'es-toolkit';
 import { createSvgElement, updateElementAttributes } from '../../../render/svg/helpers';
 import { isUpdateContextRenderable } from '../../types/context/update';
 import {
+	extensionCreateInternalBase,
+	extensionDestroy,
+	extensionMount,
+	extensionUnmount
+} from '../common/helpers';
+import {
 	DEFAULT_CONFIG,
 	DirtyLayer,
 	EXTENSION_ID,
 	EXTENSION_SLOTS,
+	ExtensionSlotsType,
 	LastMoveConfig,
 	LastMoveDefinition,
 	LastMoveInitConfig,
@@ -27,11 +34,16 @@ export function createLastMove(config: LastMoveInitConfig = {}): LastMoveDefinit
 
 function createLastMoveInternal(config: LastMoveConfig): LastMoveInstanceInternal {
 	return {
-		slotRoots: null,
+		...extensionCreateInternalBase<ExtensionSlotsType>(),
 		svgRectFrom: null,
 		svgRectTo: null,
 		config
 	};
+}
+
+function extensionClean(state: LastMoveInstanceInternal) {
+	state.svgRectFrom = null;
+	state.svgRectTo = null;
 }
 
 function createLastMoveInstance(config: LastMoveConfig): LastMoveInstance {
@@ -39,7 +51,7 @@ function createLastMoveInstance(config: LastMoveConfig): LastMoveInstance {
 	return {
 		id: EXTENSION_ID,
 		mount(env) {
-			internalState.slotRoots = env.slotRoots;
+			extensionMount<ExtensionSlotsType>(internalState, env.slotRoots);
 		},
 		onUpdate(context) {
 			const needsRender =
@@ -114,11 +126,12 @@ function createLastMoveInstance(config: LastMoveConfig): LastMoveInstance {
 			}
 		},
 		unmount() {
-			internalState.svgRectFrom?.remove();
-			internalState.svgRectTo?.remove();
-			internalState.svgRectFrom = null;
-			internalState.svgRectTo = null;
-			internalState.slotRoots = null;
+			extensionUnmount<ExtensionSlotsType>(internalState);
+			extensionClean(internalState);
+		},
+		destroy() {
+			extensionDestroy<ExtensionSlotsType>(internalState);
+			extensionClean(internalState);
 		}
 	};
 }

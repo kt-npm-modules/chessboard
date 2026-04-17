@@ -17,7 +17,7 @@ export interface TMoveCaptured<TSquare, TPiece> {
 export interface TMoveBase<TSquare, TPiece> {
 	from: TSquare;
 	to: TSquare;
-	moved: TPiece;
+	piece: TPiece;
 }
 
 export interface TMove<TSquare, TPiece, TPromotion> extends TMoveBase<TSquare, TPiece> {

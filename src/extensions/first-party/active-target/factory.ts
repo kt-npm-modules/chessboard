@@ -3,6 +3,12 @@ import { toMerged } from 'es-toolkit';
 import { createSvgElement, updateElementAttributes } from '../../../render/svg/helpers';
 import { isUpdateContextRenderable } from '../../types/context/update';
 import {
+	extensionCreateInternalBase,
+	extensionDestroy,
+	extensionMount,
+	extensionUnmount
+} from '../common/helpers';
+import {
 	ActiveTargetConfig,
 	ActiveTargetDefinition,
 	ActiveTargetInitConfig,
@@ -11,7 +17,8 @@ import {
 	DEFAULT_CONFIG,
 	DirtyLayer,
 	EXTENSION_ID,
-	EXTENSION_SLOTS
+	EXTENSION_SLOTS,
+	ExtensionSlotsType
 } from './types';
 
 export function createActiveTarget(config: ActiveTargetInitConfig = {}): ActiveTargetDefinition {
@@ -27,11 +34,16 @@ export function createActiveTarget(config: ActiveTargetInitConfig = {}): ActiveT
 
 function createActiveTargetInternal(config: ActiveTargetConfig): ActiveTargetInstanceInternal {
 	return {
-		slotRoots: null,
+		...extensionCreateInternalBase<ExtensionSlotsType>(),
 		svgRect: null,
 		svgCircle: null,
 		config
 	};
+}
+
+function extensionClean(state: ActiveTargetInstanceInternal) {
+	state.svgRect = null;
+	state.svgCircle = null;
 }
 
 function createActiveTargetInstance(config: ActiveTargetConfig): ActiveTargetInstance {
@@ -39,7 +51,7 @@ function createActiveTargetInstance(config: ActiveTargetConfig): ActiveTargetIns
 	return {
 		id: EXTENSION_ID,
 		mount(env) {
-			internalState.slotRoots = env.slotRoots;
+			extensionMount<ExtensionSlotsType>(internalState, env.slotRoots);
 		},
 		onUpdate(context) {
 			const needsRender =
@@ -110,11 +122,12 @@ function createActiveTargetInstance(config: ActiveTargetConfig): ActiveTargetIns
 			}
 		},
 		unmount() {
-			internalState.svgRect?.remove();
-			internalState.svgCircle?.remove();
-			internalState.svgRect = null;
-			internalState.svgCircle = null;
-			internalState.slotRoots = null;
+			extensionUnmount<ExtensionSlotsType>(internalState);
+			extensionClean(internalState);
+		},
+		destroy() {
+			extensionDestroy<ExtensionSlotsType>(internalState);
+			extensionClean(internalState);
 		}
 	};
 }
