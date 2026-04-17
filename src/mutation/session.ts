@@ -46,8 +46,11 @@ export function createReadonlyMutationSession<PayloadByCause extends Record<stri
 			return internalPayloads.get(cause) as PayloadByCause[typeof cause][] | undefined;
 		},
 
-		getAll() {
-			return new Map(internalPayloads);
+		getAll<TargetPayloadByCause extends PayloadByCause>() {
+			return new Map(internalPayloads) as ReadonlyMap<
+				MutationCause<TargetPayloadByCause>,
+				TargetPayloadByCause[MutationCause<TargetPayloadByCause>][] | undefined
+			>;
 		}
 	};
 }

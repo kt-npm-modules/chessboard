@@ -4,12 +4,9 @@ import { ExtensionRuntimeSurfaceCommands } from '../../extensions/types/surface/
 import { createLayout } from '../../layout/factory';
 import { createRenderSystem } from '../../render/factory';
 import { isNonEmptyPieceCode } from '../../state/board/check';
-import { BoardStateMutationSession } from '../../state/board/mutation';
 import { normalizeSquare } from '../../state/board/normalize';
 import { createRuntimeState } from '../../state/factory';
-import { InteractionStateMutationSession } from '../../state/interaction/mutation';
 import { InteractionStateSelected } from '../../state/interaction/types/main';
-import { ViewStateMutationSession } from '../../state/view/mutation';
 import { createInteractionController } from '../input/controller/factory';
 import { runtimeDestroy, runtimeMount, runtimeUnmount } from '../lifecycle';
 import { createRuntimeMutationPipeline } from '../mutation/factory';
@@ -51,47 +48,35 @@ function createExtensionRuntimeSurfaceCommands(
 		setPosition(input) {
 			const state = getInternalState();
 			const mutationSession = state.mutation.getSession();
-			const changed = state.state.board.setPosition(
-				input,
-				mutationSession as BoardStateMutationSession
-			);
+			const changed = state.state.board.setPosition(input, mutationSession);
 			runtimeRunMutationPipeline(state);
 			return changed;
 		},
 		setPiecePosition(input) {
 			const state = getInternalState();
 			const mutationSession = state.mutation.getSession();
-			const changed = state.state.board.setPiecePosition(
-				input,
-				mutationSession as BoardStateMutationSession
-			);
+			const changed = state.state.board.setPiecePosition(input, mutationSession);
 			runtimeRunMutationPipeline(state);
 			return changed;
 		},
 		setTurn(turn) {
 			const state = getInternalState();
 			const mutationSession = state.mutation.getSession();
-			const changed = state.state.board.setTurn(turn, mutationSession as BoardStateMutationSession);
+			const changed = state.state.board.setTurn(turn, mutationSession);
 			runtimeRunMutationPipeline(state);
 			return changed;
 		},
 		setOrientation(orientation) {
 			const state = getInternalState();
 			const mutationSession = state.mutation.getSession();
-			const changed = state.state.view.setOrientation(
-				orientation,
-				mutationSession as ViewStateMutationSession
-			);
+			const changed = state.state.view.setOrientation(orientation, mutationSession);
 			runtimeRunMutationPipeline(state);
 			return changed;
 		},
 		setMovability(movability) {
 			const state = getInternalState();
 			const mutationSession = state.mutation.getSession();
-			const changed = state.state.interaction.setMovability(
-				movability,
-				mutationSession as InteractionStateMutationSession
-			);
+			const changed = state.state.interaction.setMovability(movability, mutationSession);
 			runtimeRunMutationPipeline(state);
 			return changed;
 		},
@@ -110,7 +95,7 @@ function createExtensionRuntimeSurfaceCommands(
 			}
 			const changed = state.state.interaction.setSelected(
 				interactionStateSelected,
-				mutationSession as InteractionStateMutationSession
+				mutationSession
 			);
 			runtimeRunMutationPipeline(state);
 			return changed;
@@ -118,18 +103,14 @@ function createExtensionRuntimeSurfaceCommands(
 		clearActiveInteraction() {
 			const state = getInternalState();
 			const mutationSession = state.mutation.getSession();
-			const changed = state.state.interaction.clearActive(
-				mutationSession as InteractionStateMutationSession
-			);
+			const changed = state.state.interaction.clearActive(mutationSession);
 			runtimeRunMutationPipeline(state);
 			return changed;
 		},
 		clearInteraction() {
 			const state = getInternalState();
 			const mutationSession = state.mutation.getSession();
-			const changed = state.state.interaction.clear(
-				mutationSession as InteractionStateMutationSession
-			);
+			const changed = state.state.interaction.clear(mutationSession);
 			runtimeRunMutationPipeline(state);
 			return changed;
 		},

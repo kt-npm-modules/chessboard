@@ -1,6 +1,5 @@
 import { isEmptyPieceCode } from '../../state/board/check';
 import { selectedEqual } from '../../state/interaction/helpers';
-import { InteractionStateMutationSession } from '../../state/interaction/mutation';
 import { InteractionStateSelected } from '../../state/interaction/types/main';
 import { RuntimeMutationPipe } from './pipeline';
 
@@ -40,10 +39,8 @@ export const reconcileInteractionSelectionAfterBoardStateChange: RuntimeMutation
 
 	const notChanged = selectedEqual(currentSelected, wouldBeCurrentSelected);
 	if (notChanged) {
-		current.state.interaction.updateActiveDestinations(
-			mutationSession as InteractionStateMutationSession
-		);
+		current.state.interaction.updateActiveDestinations(mutationSession);
 		return;
 	}
-	current.state.interaction.clear(mutationSession as InteractionStateMutationSession);
+	current.state.interaction.clear(mutationSession);
 };

@@ -30,9 +30,9 @@ export interface ReadonlyMutationSession<PayloadByCause extends Record<string, u
 		cause: Cause
 	): PayloadByCause[Cause][] | undefined;
 
-	getAll(): ReadonlyMap<
-		MutationCause<PayloadByCause>,
-		PayloadByCause[MutationCause<PayloadByCause>][] | undefined
+	getAll<TargetPayloadByCause extends PayloadByCause>(): ReadonlyMap<
+		MutationCause<TargetPayloadByCause>,
+		TargetPayloadByCause[MutationCause<TargetPayloadByCause>][] | undefined
 	>;
 }
 

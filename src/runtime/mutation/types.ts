@@ -5,14 +5,16 @@ import { ChangeStateMutationPayloadByCause } from '../../state/change/mutation';
 import { InteractionStateMutationPayloadByCause } from '../../state/interaction/mutation';
 import { ViewStateMutationPayloadByCause } from '../../state/view/mutation';
 
+type RuntimeOwnMutationPayloadByCause = {
+	'runtime.interaction.dropTo': undefined;
+	'runtime.interaction.releaseTo': undefined;
+};
 export type RuntimeMutationPayloadByCause = BoardStateMutationPayloadByCause &
 	ChangeStateMutationPayloadByCause &
 	InteractionStateMutationPayloadByCause &
 	ViewStateMutationPayloadByCause &
-	LayoutMutationPayloadByCause & {
-		'runtime.interaction.dropTo': undefined;
-		'runtime.interaction.releaseTo': undefined;
-	};
+	LayoutMutationPayloadByCause &
+	RuntimeOwnMutationPayloadByCause;
 
 export type RuntimeMutationSession = MutationSession<RuntimeMutationPayloadByCause>;
 export type RuntimeReadonlyMutationSession = ReadonlyMutationSession<RuntimeMutationPayloadByCause>;

@@ -1,8 +1,6 @@
 import assert from '@ktarmyshov/assert';
 import { isEmptyPieceCode } from '../../state/board/check';
-import { BoardStateMutationSession } from '../../state/board/mutation';
 import { MoveRequest } from '../../state/board/types/internal';
-import { InteractionStateMutationSession } from '../../state/interaction/mutation';
 import { DragSession } from '../../state/interaction/types/internal';
 import { InteractionStateSelected } from '../../state/interaction/types/main';
 import { RuntimeInteractionSurface } from '../input/controller/types';
@@ -24,8 +22,7 @@ export function createRuntimeInteractionSurface(
 		},
 		startLiftedDrag(source, target): void {
 			const internalState = state();
-			const interactionMutationSession =
-				internalState.mutation.getSession() as InteractionStateMutationSession;
+			const interactionMutationSession = internalState.mutation.getSession();
 			const interaction = internalState.state.interaction;
 
 			const pieceCode = internalState.state.board.getPieceCodeAt(source);
@@ -45,10 +42,7 @@ export function createRuntimeInteractionSurface(
 				sourcePieceCode: interactionSource.pieceCode,
 				targetSquare: target
 			};
-			interaction.setDragSession(
-				dragSession,
-				interactionMutationSession as InteractionStateMutationSession
-			);
+			interaction.setDragSession(dragSession, interactionMutationSession);
 			runtimeRunMutationPipeline(internalState);
 		},
 		transientInput(input) {
@@ -83,13 +77,10 @@ export function createRuntimeInteractionSurface(
 				: { from: dragSession.sourceSquare, to: target };
 			// TODO: Deferred Move Input flow: Notify extensions, move.isDeferred
 			// TODO: Also dropTo and releaseTo have very similar logic, can we extract a common function/logic?
-			const move = internalState.state.board.move(
-				moveRequest,
-				mutationSession as unknown as BoardStateMutationSession
-			);
+			const move = internalState.state.board.move(moveRequest, mutationSession);
 			mutationSession.addMutation('runtime.interaction.dropTo', true);
 
-			interaction.clear(mutationSession as InteractionStateMutationSession);
+			interaction.clear(mutationSession);
 			runtimeRunMutationPipeline(internalState);
 			return move;
 		},
@@ -119,20 +110,16 @@ export function createRuntimeInteractionSurface(
 			const moveRequest: MoveRequest = destination
 				? convertDestinationToMoveInput(dragSession.sourceSquare, destination)
 				: { from: dragSession.sourceSquare, to: target };
-			const move = internalState.state.board.move(
-				moveRequest,
-				mutationSession as unknown as BoardStateMutationSession
-			);
+			const move = internalState.state.board.move(moveRequest, mutationSession);
 			mutationSession.addMutation('runtime.interaction.releaseTo', true);
 
-			interaction.clear(mutationSession as InteractionStateMutationSession);
+			interaction.clear(mutationSession);
 			runtimeRunMutationPipeline(internalState);
 			return move;
 		},
 		startReleaseTargetingDrag(source, target): void {
 			const internalState = state();
-			const mutationSession =
-				internalState.mutation.getSession() as InteractionStateMutationSession;
+			const mutationSession = internalState.mutation.getSession();
 			const interaction = internalState.state.interaction;
 
 			assert(interaction.selected !== null, 'startReleaseTargetingDrag requires a selected piece');
@@ -152,22 +139,19 @@ export function createRuntimeInteractionSurface(
 		},
 		cancelActiveInteraction() {
 			const internalState = state();
-			const mutationSession =
-				internalState.mutation.getSession() as InteractionStateMutationSession;
+			const mutationSession = internalState.mutation.getSession();
 			internalState.state.interaction.clearActive(mutationSession);
 			runtimeRunMutationPipeline(internalState);
 		},
 		cancelInteraction() {
 			const internalState = state();
-			const mutationSession =
-				internalState.mutation.getSession() as InteractionStateMutationSession;
+			const mutationSession = internalState.mutation.getSession();
 			internalState.state.interaction.clear(mutationSession);
 			runtimeRunMutationPipeline(internalState);
 		},
 		updateDragSessionCurrentTarget(target) {
 			const internalState = state();
-			const interactionMutationSession =
-				internalState.mutation.getSession() as InteractionStateMutationSession;
+			const interactionMutationSession = internalState.mutation.getSession();
 			const interaction = internalState.state.interaction;
 			const currentDragSession = interaction.dragSession;
 			assert(currentDragSession !== null, 'No active drag session to update');

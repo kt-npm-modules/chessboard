@@ -1,4 +1,3 @@
-import { LayoutMutationSession } from '../layout/mutation';
 import { runtimeValidateIsMounted } from './lifecycle';
 import { runtimeRunMutationPipeline } from './mutation/run';
 import { RuntimeInternal } from './types';
@@ -10,7 +9,7 @@ export function runtimeRefreshGeometry(state: RuntimeInternal): void {
 			orientation: state.state.view.orientation,
 			container: state.renderSystem.container
 		},
-		state.mutation.getSession() as LayoutMutationSession
+		state.mutation.getSession()
 	);
 	runtimeRunMutationPipeline(state);
 }

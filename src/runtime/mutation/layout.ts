@@ -1,4 +1,3 @@
-import { LayoutMutationSession } from '../../layout/mutation';
 import { RuntimeMutationPipe } from './pipeline';
 
 export const layoutRefreshGeometryPipe: RuntimeMutationPipe = (context, mutationSession) => {
@@ -8,7 +7,7 @@ export const layoutRefreshGeometryPipe: RuntimeMutationPipe = (context, mutation
 			{
 				orientation: current.state.view.orientation
 			},
-			mutationSession as LayoutMutationSession
+			mutationSession
 		);
 	}
 };
