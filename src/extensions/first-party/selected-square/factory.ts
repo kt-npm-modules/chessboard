@@ -1,38 +1,44 @@
 import assert from '@ktarmyshov/assert';
+import { toMerged } from 'es-toolkit';
 import { createSvgElement, updateElementAttributes } from '../../../render/svg/helpers';
 import { isUpdateContextRenderable } from '../../types/context/update';
 import {
+	DEFAULT_CONFIG,
 	DirtyLayer,
 	EXTENSION_ID,
 	EXTENSION_SLOTS,
+	SelectedSquareConfig,
 	SelectedSquareDefinition,
+	SelectedSquareInitConfig,
 	SelectedSquareInstance,
 	SelectedSquareInstanceInternal
 } from './types';
 
-export function createSelectedSquare(): SelectedSquareDefinition {
+export function createSelectedSquare(
+	config: SelectedSquareInitConfig = {}
+): SelectedSquareDefinition {
+	const mergedConfig = toMerged(DEFAULT_CONFIG, config) as SelectedSquareConfig;
 	return {
 		id: EXTENSION_ID,
 		slots: EXTENSION_SLOTS,
 		createInstance() {
-			return createSelectedSquareInstance();
+			return createSelectedSquareInstance(mergedConfig);
 		}
 	};
 }
 
-function createSelectedSquareInternal(): SelectedSquareInstanceInternal {
+function createSelectedSquareInternal(
+	config: SelectedSquareConfig
+): SelectedSquareInstanceInternal {
 	return {
 		slotRoots: null,
 		svgRect: null,
-		config: {
-			color: 'rgba(255, 255, 0)',
-			opacity: 0.4
-		}
+		config
 	};
 }
 
-function createSelectedSquareInstance(): SelectedSquareInstance {
-	const internalState = createSelectedSquareInternal();
+function createSelectedSquareInstance(config: SelectedSquareConfig): SelectedSquareInstance {
+	const internalState = createSelectedSquareInternal(config);
 	return {
 		id: EXTENSION_ID,
 		mount(env) {
@@ -63,27 +69,23 @@ function createSelectedSquareInstance(): SelectedSquareInstance {
 			}
 			const geometry = context.currentFrame.layout.geometry;
 			const r = geometry.squareRect(selectedSquare);
+			const rectAttributes = {
+				x: r.x.toString(),
+				y: r.y.toString(),
+				width: r.size.toString(),
+				height: r.size.toString(),
+				fill: internalState.config.color,
+				'fill-opacity': internalState.config.opacity.toString(),
+				'shape-rendering': 'crispEdges'
+			};
 			if (internalState.svgRect === null) {
 				assert(internalState.slotRoots, 'Slot roots should be available when render is called');
 				internalState.svgRect = createSvgElement(internalState.slotRoots.underPieces, 'rect', {
 					'data-chessboard-id': 'selected-square-highlight',
-					x: r.x.toString(),
-					y: r.y.toString(),
-					width: r.size.toString(),
-					height: r.size.toString(),
-					fill: internalState.config.color,
-					opacity: internalState.config.opacity.toString(),
-					'shape-rendering': 'crispEdges'
+					...rectAttributes
 				});
 			} else {
-				updateElementAttributes(internalState.svgRect, {
-					x: r.x.toString(),
-					y: r.y.toString(),
-					width: r.size.toString(),
-					height: r.size.toString(),
-					fill: internalState.config.color,
-					opacity: internalState.config.opacity.toString()
-				});
+				updateElementAttributes(internalState.svgRect, rectAttributes);
 			}
 		},
 		unmount() {

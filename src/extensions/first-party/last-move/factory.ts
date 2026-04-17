@@ -1,39 +1,41 @@
 import assert from '@ktarmyshov/assert';
+import { toMerged } from 'es-toolkit';
 import { createSvgElement, updateElementAttributes } from '../../../render/svg/helpers';
 import { isUpdateContextRenderable } from '../../types/context/update';
 import {
+	DEFAULT_CONFIG,
 	DirtyLayer,
 	EXTENSION_ID,
 	EXTENSION_SLOTS,
+	LastMoveConfig,
 	LastMoveDefinition,
+	LastMoveInitConfig,
 	LastMoveInstance,
 	LastMoveInstanceInternal
 } from './types';
 
-export function createLastMove(): LastMoveDefinition {
+export function createLastMove(config: LastMoveInitConfig = {}): LastMoveDefinition {
+	const mergedConfig = toMerged(DEFAULT_CONFIG, config) as LastMoveConfig;
 	return {
 		id: EXTENSION_ID,
 		slots: EXTENSION_SLOTS,
 		createInstance() {
-			return createLastMoveInstance();
+			return createLastMoveInstance(mergedConfig);
 		}
 	};
 }
 
-function createLastMoveInternal(): LastMoveInstanceInternal {
+function createLastMoveInternal(config: LastMoveConfig): LastMoveInstanceInternal {
 	return {
 		slotRoots: null,
 		svgRectFrom: null,
 		svgRectTo: null,
-		config: {
-			color: 'rgba(255, 255, 0)',
-			opacity: 0.4
-		}
+		config
 	};
 }
 
-function createLastMoveInstance(): LastMoveInstance {
-	const internalState = createLastMoveInternal();
+function createLastMoveInstance(config: LastMoveConfig): LastMoveInstance {
+	const internalState = createLastMoveInternal(config);
 	return {
 		id: EXTENSION_ID,
 		mount(env) {
@@ -68,49 +70,42 @@ function createLastMoveInstance(): LastMoveInstance {
 			const geometry = context.currentFrame.layout.geometry;
 			const rFrom = geometry.squareRect(fromSq);
 			const rTo = geometry.squareRect(toSq);
+			const rectFromAttributes = {
+				x: rFrom.x.toString(),
+				y: rFrom.y.toString(),
+				width: rFrom.size.toString(),
+				height: rFrom.size.toString(),
+				fill: internalState.config.color,
+				'fill-opacity': internalState.config.opacity.toString(),
+				'shape-rendering': 'crispEdges'
+			};
+			const rectToAttributes = {
+				x: rTo.x.toString(),
+				y: rTo.y.toString(),
+				width: rTo.size.toString(),
+				height: rTo.size.toString(),
+				fill: internalState.config.color,
+				'fill-opacity': internalState.config.opacity.toString(),
+				'shape-rendering': 'crispEdges'
+			};
+
 			if (internalState.svgRectFrom === null) {
 				assert(internalState.slotRoots, 'Slot roots should be available when render is called');
 				internalState.svgRectFrom = createSvgElement(internalState.slotRoots.underPieces, 'rect', {
 					'data-chessboard-id': 'last-move-square-from-highlight',
-					x: rFrom.x.toString(),
-					y: rFrom.y.toString(),
-					width: rFrom.size.toString(),
-					height: rFrom.size.toString(),
-					fill: internalState.config.color,
-					opacity: internalState.config.opacity.toString(),
-					'shape-rendering': 'crispEdges'
+					...rectFromAttributes
 				});
 				internalState.svgRectTo = createSvgElement(internalState.slotRoots.underPieces, 'rect', {
 					'data-chessboard-id': 'last-move-square-to-highlight',
-					x: rTo.x.toString(),
-					y: rTo.y.toString(),
-					width: rTo.size.toString(),
-					height: rTo.size.toString(),
-					fill: internalState.config.color,
-					opacity: internalState.config.opacity.toString(),
-					'shape-rendering': 'crispEdges'
+					...rectToAttributes
 				});
 			} else {
-				updateElementAttributes(internalState.svgRectFrom, {
-					x: rFrom.x.toString(),
-					y: rFrom.y.toString(),
-					width: rFrom.size.toString(),
-					height: rFrom.size.toString(),
-					fill: internalState.config.color,
-					opacity: internalState.config.opacity.toString()
-				});
+				updateElementAttributes(internalState.svgRectFrom, rectFromAttributes);
 				assert(
 					internalState.svgRectTo,
 					'svgRectTo should be available if svgRectFrom is available'
 				);
-				updateElementAttributes(internalState.svgRectTo, {
-					x: rTo.x.toString(),
-					y: rTo.y.toString(),
-					width: rTo.size.toString(),
-					height: rTo.size.toString(),
-					fill: internalState.config.color,
-					opacity: internalState.config.opacity.toString()
-				});
+				updateElementAttributes(internalState.svgRectTo, rectToAttributes);
 			}
 		},
 		unmount() {

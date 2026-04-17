@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { createActiveTarget } from '@mirasen/chessboard/unstable/extensions/first-party/active-target/factory.js';
 	import { createLastMove } from '@mirasen/chessboard/unstable/extensions/first-party/last-move/factory.js';
 	import { createMainRenderer } from '@mirasen/chessboard/unstable/extensions/first-party/main-renderer/factory.js';
 	import { createSelectedSquare } from '@mirasen/chessboard/unstable/extensions/first-party/selected-square/factory.js';
@@ -80,7 +81,12 @@
 	onMount(() => {
 		runtime = createRuntime({
 			doc: document,
-			extensions: [createMainRenderer({}), createSelectedSquare(), createLastMove()]
+			extensions: [
+				createMainRenderer({}),
+				createSelectedSquare(),
+				createLastMove(),
+				createActiveTarget()
+			]
 		});
 		runtime.setMovability({ mode: 'free' });
 		runtime.mount(boardEl);
