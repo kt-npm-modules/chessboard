@@ -7,6 +7,7 @@
 
 	const links = [
 		{ href: '/free', label: 'Free' },
+		{ href: '/promotion', label: 'Promotion' },
 		{ href: '/castle', label: 'Castle' }
 	] as const;
 </script>

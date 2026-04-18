@@ -1,5 +1,7 @@
+import { RuntimeReadonlyMutationSession } from '../../../runtime/mutation/types';
 import { MoveOutput } from '../../../state/board/types/output';
 import { ExtensionSlotSvgRoots } from '../../types/basic/mount';
+import { UpdateFrameSnapshot } from '../../types/basic/update';
 import { ExtensionDefinition, ExtensionInstance } from '../../types/extension';
 import { ExtensionInternal } from '../common/types';
 
@@ -13,9 +15,16 @@ export type BoardEventsDefinition = ExtensionDefinition<
 	BoardEventsPublic
 >;
 
-export type OnMoveCallback = (move: MoveOutput) => void;
+export type OnUIMoveCallback = (move: MoveOutput) => void;
+export interface OnRawUpdateContext {
+	readonly previousFrame: UpdateFrameSnapshot | null;
+	readonly mutation: RuntimeReadonlyMutationSession;
+	readonly currentFrame: UpdateFrameSnapshot;
+}
+export type OnRawUpdateCallback = (context: OnRawUpdateContext) => void;
 export interface BoardEventsPublic {
-	setOnUIMove(callback: OnMoveCallback | null): void;
+	setOnUIMove(callback: OnUIMoveCallback | null): void;
+	setOnRawUpdate(callback: OnRawUpdateCallback | null): void;
 }
 
 export type BoardEventsInstance = ExtensionInstance<
@@ -27,5 +36,6 @@ export type BoardEventsInstance = ExtensionInstance<
 export type BoardEventsSlotRoots = ExtensionSlotSvgRoots<typeof EXTENSION_SLOTS>;
 
 export interface BoardEventsInstanceInternal extends ExtensionInternal<ExtensionSlotsType> {
-	onUIMove: OnMoveCallback | null;
+	onUIMove: OnUIMoveCallback | null;
+	onRawUpdate: OnRawUpdateCallback | null;
 }

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import assert from '@ktarmyshov/assert';
 	import { createActiveTarget } from '@mirasen/chessboard/unstable/extensions/first-party/active-target/factory.js';
 	import { createBoardEvents } from '@mirasen/chessboard/unstable/extensions/first-party/board-events/factory.js';
 	import { createLastMove } from '@mirasen/chessboard/unstable/extensions/first-party/last-move/factory.js';
@@ -14,41 +15,7 @@
 	let snapshotText = $state('');
 
 	const START_POSITION: PiecePositionRecordString = {
-		a3: 'wP',
-		b2: 'wP',
-		c2: 'wP',
-		d2: 'wP',
-		e2: 'wP',
-		f2: 'wP',
-		g2: 'wP',
-		h2: 'wP',
-
-		a1: 'wR',
-		b1: 'wN',
-		c1: 'wB',
-		d1: 'wQ',
-		e1: 'wK',
-		f1: 'wB',
-		g1: 'wN',
-		h1: 'wR',
-
-		a7: 'bP',
-		b7: 'bP',
-		c7: 'bP',
-		d7: 'bP',
-		e7: 'bP',
-		f7: 'bP',
-		g7: 'bP',
-		h7: 'bP',
-
-		a8: 'bR',
-		b8: 'bN',
-		c8: 'bB',
-		d8: 'bQ',
-		e8: 'bK',
-		f8: 'bB',
-		g8: 'bN',
-		h8: 'bR'
+		a7: 'wP'
 	} as const;
 
 	function refreshSnapshot() {
@@ -70,7 +37,10 @@
 
 	function resetPosition() {
 		if (!runtime) return;
-		runtime.setPosition('start');
+		runtime.setPosition({
+			pieces: START_POSITION,
+			turn: 'w'
+		});
 		refreshSnapshot();
 	}
 
@@ -98,7 +68,13 @@
 				createBoardEvents()
 			]
 		});
-		runtime.setMovability({ mode: 'free' });
+		runtime.setMovability({
+			mode: 'strict',
+			destinations: (source) => {
+				assert(source === 'a7');
+				return [{ to: 'a8', promotedTo: ['Q', 'R', 'B', 'N'] }];
+			}
+		});
 		runtime.mount(boardEl);
 		const pubRecExtensions = runtime.getExtensionsPublicRecord();
 		pubRecExtensions.events.setOnRawUpdate((context) => {
