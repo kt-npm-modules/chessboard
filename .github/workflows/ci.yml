@@ -142,6 +142,7 @@ jobs:
     steps:
       - uses: kt-workflows/actions/npm-ci-check@main
         with:
+          install-script: npm ci && npm ci --prefix examples/sveltekit
           matrix-node-version: ${{ needs.config.outputs.matrix-node-version }}
           cache-reset: ${{ needs.config.outputs.cache-reset }}
 
@@ -156,6 +157,7 @@ jobs:
     steps:
       - uses: kt-workflows/actions/npm-ci-test@main
         with:
+          install-script: npm ci && npm ci --prefix examples/sveltekit
           # run tests with coverage for SonarCloud
           run-script: |
             npm run build
