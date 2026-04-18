@@ -1,5 +1,10 @@
 import { denormalizeMove } from '../../../state/board/denormalize';
-import { extensionCreateInternalBase, extensionDestroy, extensionUnmount } from '../common/helpers';
+import {
+	extensionCreateInternalBase,
+	extensionDestroy,
+	extensionMount,
+	extensionUnmount
+} from '../common/helpers';
 import {
 	BoardEventsDefinition,
 	BoardEventsInstance,
@@ -49,7 +54,9 @@ function createBoardEventsInstance(): BoardEventsInstance {
 	const publicInterface = createBoardEventsInstancePublic(internalState);
 	return {
 		id: EXTENSION_ID,
-		mount() {},
+		mount(env) {
+			extensionMount<ExtensionSlotsType>(internalState, env.slotRoots);
+		},
 		onUpdate(context) {
 			if (internalState.onRawUpdate) {
 				internalState.onRawUpdate({
