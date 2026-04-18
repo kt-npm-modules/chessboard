@@ -28,13 +28,15 @@
 	"exports": {
 		".": {
 			"types": "./dist/index.d.ts",
-			"import": "./dist/index.js",
-			"default": "./dist/index.js"
+			"import": "./dist/index.js"
+		},
+		"./extensions": {
+			"types": "./dist/extensions/index.d.ts",
+			"import": "./dist/extensions/index.js"
 		},
 		"./unstable/*.js": {
 			"types": "./dist/*.d.ts",
-			"import": "./dist/*.js",
-			"default": "./dist/*.js"
+			"import": "./dist/*.js"
 		}
 	},
 	"scripts": {

@@ -66,20 +66,10 @@ export type AnyExtensionDefinition = ExtensionDefinition<
 	unknown
 >;
 
-type ExtensionDefinitionId<T> =
+export type ExtensionDefinitionId<T> =
 	T extends ExtensionDefinition<infer TId, readonly ExtensionSlotName[], unknown> ? TId : never;
 
-type ExtensionDefinitionPublicApi<T> =
+export type ExtensionDefinitionPublicApi<T> =
 	T extends ExtensionDefinition<string, readonly ExtensionSlotName[], infer TPublicApi>
 		? TPublicApi
 		: never;
-
-type ExtensionDefinitionHasPublicApi<T> = [ExtensionDefinitionPublicApi<T>] extends [never]
-	? false
-	: true;
-
-export type ExtensionsPublicMap<TExtensions extends readonly AnyExtensionDefinition[]> = {
-	[TDef in TExtensions[number] as ExtensionDefinitionHasPublicApi<TDef> extends true
-		? ExtensionDefinitionId<TDef>
-		: never]: ExtensionDefinitionPublicApi<TDef>;
-};

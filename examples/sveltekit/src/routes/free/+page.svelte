@@ -1,16 +1,9 @@
 <script lang="ts">
-	import { createActiveTarget } from '@mirasen/chessboard/unstable/extensions/first-party/active-target/factory.js';
-	import { createBoardEvents } from '@mirasen/chessboard/unstable/extensions/first-party/board-events/factory.js';
-	import { createLastMove } from '@mirasen/chessboard/unstable/extensions/first-party/last-move/factory.js';
-	import { createLegalMoves } from '@mirasen/chessboard/unstable/extensions/first-party/legal-moves/factory.js';
-	import { createMainRenderer } from '@mirasen/chessboard/unstable/extensions/first-party/main-renderer/factory.js';
-	import { createSelectedSquare } from '@mirasen/chessboard/unstable/extensions/first-party/selected-square/factory.js';
-	import { createRuntime } from '@mirasen/chessboard/unstable/runtime/factory/main.js';
-	import type { PiecePositionRecordString } from '@mirasen/chessboard/unstable/state/board/types/input.js';
+	import { createBoard, type PiecePositionRecordString } from '@mirasen/chessboard';
 	import { onDestroy, onMount } from 'svelte';
 
 	let boardEl: HTMLDivElement;
-	let runtime: ReturnType<typeof createRuntime> | null = null;
+	let board: ReturnType<typeof createBoard> | null = null;
 	let snapshotText = $state('');
 
 	const START_POSITION: PiecePositionRecordString = {
@@ -52,31 +45,31 @@
 	} as const;
 
 	function refreshSnapshot() {
-		if (!runtime) return;
-		snapshotText = JSON.stringify(runtime.getSnapshot(), null, 2);
+		if (!board) return;
+		snapshotText = JSON.stringify(board.getSnapshot(), null, 2);
 	}
 
 	function setWhite() {
-		if (!runtime) return;
-		runtime.setOrientation('white');
+		if (!board) return;
+		board.setOrientation('white');
 		refreshSnapshot();
 	}
 
 	function setBlack() {
-		if (!runtime) return;
-		runtime.setOrientation('black');
+		if (!board) return;
+		board.setOrientation('black');
 		refreshSnapshot();
 	}
 
 	function resetPosition() {
-		if (!runtime) return;
-		runtime.setPosition('start');
+		if (!board) return;
+		board.setPosition('start');
 		refreshSnapshot();
 	}
 
 	function clearSelection() {
-		if (!runtime) return;
-		runtime.select(null);
+		if (!board) return;
+		board.select(null);
 		refreshSnapshot();
 	}
 
@@ -93,8 +86,8 @@
 	}
 
 	function randomMove() {
-		if (!runtime) return;
-		const snapshot = runtime.getSnapshot();
+		if (!board) return;
+		const snapshot = board.getSnapshot();
 		// find random piece on random square
 		let pieceCode = 0;
 		let fromSquare = '';
@@ -103,8 +96,11 @@
 			pieceCode = snapshot.state.board.pieces[square];
 			fromSquare = algebraic(square);
 		}
-		const toSquare = algebraic(Math.floor(Math.random() * 64));
-		runtime.move({
+		let toSquare = fromSquare;
+		while (toSquare === fromSquare) {
+			toSquare = algebraic(Math.floor(Math.random() * 64));
+		}
+		board.move({
 			from: fromSquare,
 			to: toSquare
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -114,30 +110,22 @@
 	}
 
 	onMount(() => {
-		runtime = createRuntime({
-			doc: document,
+		board = createBoard({
+			element: boardEl,
 			state: {
 				board: {
 					turn: 'b',
 					pieces: START_POSITION
+				},
+				interaction: {
+					movability: { mode: 'free' }
 				}
-			},
-			extensions: [
-				createMainRenderer({}),
-				createSelectedSquare(),
-				createLastMove(),
-				createActiveTarget(),
-				createLegalMoves(),
-				createBoardEvents()
-			]
+			}
 		});
-		runtime.setMovability({ mode: 'free' });
-		runtime.mount(boardEl);
-		const pubRecExtensions = runtime.getExtensionsPublicRecord();
-		pubRecExtensions.events.setOnRawUpdate((context) => {
+		board.extensions.events.setOnRawUpdate((context) => {
 			console.log('Raw update:', context);
 		});
-		pubRecExtensions.events.setOnUIMove((move) => {
+		board.extensions.events.setOnUIMove((move) => {
 			console.log('Move played:', move);
 		});
 		refreshSnapshot();
@@ -150,8 +138,7 @@
 	});
 
 	onDestroy(() => {
-		runtime?.unmount();
-		runtime = null;
+		board?.destroy();
 	});
 </script>
 

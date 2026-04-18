@@ -23,7 +23,7 @@ import {
 import { MainRendererInstanceInternal } from './types/instance';
 import { DEFAULT_MAIN_RENDERER_CONFIG, MainRendererConfig } from './types/internal';
 
-export function createMainRenderer(options: MainRendererInitOptions): MainRendererDefinition {
+export function createMainRenderer(options: MainRendererInitOptions = {}): MainRendererDefinition {
 	const config: MainRendererConfig = toMerged(
 		DEFAULT_MAIN_RENDERER_CONFIG,
 		normalizeMainRendererConfig(options)
