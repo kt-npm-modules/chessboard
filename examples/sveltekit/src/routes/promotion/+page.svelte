@@ -42,6 +42,15 @@
 		refreshSnapshot();
 	}
 
+	let autoPromoteToQueen = $state(false);
+
+	function toggleAutoPromotion() {
+		console.log('Toggling auto promotion', board?.extensions.autoPromote.toQueen);
+		if (!board) return;
+		board.extensions.autoPromote.toQueen = !board.extensions.autoPromote.toQueen;
+		autoPromoteToQueen = board.extensions.autoPromote.toQueen;
+	}
+
 	onMount(() => {
 		board = createBoard({
 			element: boardEl,
@@ -66,6 +75,7 @@
 		board.extensions.events.setOnUIMove((move) => {
 			console.log('Move played:', move);
 		});
+		autoPromoteToQueen = board.extensions.autoPromote.toQueen;
 		refreshSnapshot();
 
 		const intervalId = window.setInterval(refreshSnapshot, 100);
@@ -96,6 +106,9 @@
 			<button onclick={resetPosition}>Reset position</button>
 			<button onclick={clearSelection}>Clear selection</button>
 			<button onclick={refreshSnapshot}>Refresh snapshot</button>
+			<button onclick={toggleAutoPromotion}
+				>Toggle auto promotion: {autoPromoteToQueen ? 'On' : 'Off'}</button
+			>
 		</div>
 
 		<div class="board-wrap">

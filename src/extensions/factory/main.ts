@@ -128,7 +128,7 @@ export function createExtensionSystem(options: ExtensionSystemInitOptions): Exte
 		onDestroy() {
 			// We assume that the onUnmout was already called by runtime, but let's still validate
 			for (const extensionRec of internalState.extensions.values()) {
-				extensionRec.instance.destroy();
+				extensionRec.instance.destroy?.();
 				const onUnmountCalled = [
 					extensionRec.invalidation.dirtyLayers === 0,
 					extensionRec.animation.getAll().length === 0

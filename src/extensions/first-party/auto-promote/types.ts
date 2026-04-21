@@ -1,6 +1,5 @@
 import { ExtensionSlotSvgRoots } from '../../types/basic/mount.js';
 import { ExtensionDefinition, ExtensionInstance } from '../../types/extension.js';
-import { ExtensionInternal } from '../common/types.js';
 
 export const EXTENSION_SLOTS = [] as const;
 export type ExtensionSlotsType = typeof EXTENSION_SLOTS;
@@ -24,6 +23,6 @@ export type AutoPromoteInstance = ExtensionInstance<
 
 export type AutoPromoteSlotRoots = ExtensionSlotSvgRoots<typeof EXTENSION_SLOTS>;
 
-export interface AutoPromoteInstanceInternal extends ExtensionInternal<ExtensionSlotsType> {
+export interface AutoPromoteInstanceInternal {
 	toQueen: boolean;
 }

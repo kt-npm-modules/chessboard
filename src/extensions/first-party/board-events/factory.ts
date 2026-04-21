@@ -1,10 +1,5 @@
 import { denormalizeMove } from '../../../state/board/denormalize.js';
-import {
-	extensionCreateInternalBase,
-	extensionDestroy,
-	extensionMount,
-	extensionUnmount
-} from '../common/helpers.js';
+import { extensionCreateInternalBase } from '../common/helpers.js';
 import {
 	BoardEventsDefinition,
 	BoardEventsInstance,
@@ -33,11 +28,6 @@ function createBoardEventsInternal(): BoardEventsInstanceInternal {
 	};
 }
 
-function extensionClean(state: BoardEventsInstanceInternal) {
-	state.onUIMove = null;
-	state.onRawUpdate = null;
-}
-
 function createBoardEventsInstancePublic(state: BoardEventsInstanceInternal): BoardEventsPublic {
 	return {
 		setOnUIMove(callback) {
@@ -54,9 +44,6 @@ function createBoardEventsInstance(): BoardEventsInstance {
 	const publicInterface = createBoardEventsInstancePublic(internalState);
 	return {
 		id: EXTENSION_ID,
-		mount(env) {
-			extensionMount<ExtensionSlotsType>(internalState, env.slotRoots);
-		},
 		onUpdate(context) {
 			if (internalState.onRawUpdate) {
 				internalState.onRawUpdate({
@@ -74,14 +61,6 @@ function createBoardEventsInstance(): BoardEventsInstance {
 		},
 		getPublic() {
 			return publicInterface;
-		},
-		unmount() {
-			extensionUnmount<ExtensionSlotsType>(internalState);
-			extensionClean(internalState);
-		},
-		destroy() {
-			extensionDestroy<ExtensionSlotsType>(internalState);
-			extensionClean(internalState);
 		}
 	};
 }

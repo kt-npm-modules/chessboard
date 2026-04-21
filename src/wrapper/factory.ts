@@ -1,35 +1,9 @@
-import { createActiveTarget } from '../extensions/first-party/active-target/factory.js';
-import { createBoardEvents } from '../extensions/first-party/board-events/factory.js';
-import { createLastMove } from '../extensions/first-party/last-move/factory.js';
-import { createLegalMoves } from '../extensions/first-party/legal-moves/factory.js';
-import { createMainRenderer } from '../extensions/first-party/main-renderer/factory.js';
-import { createSelectedSquare } from '../extensions/first-party/selected-square/factory.js';
-import { AnyExtensionDefinition } from '../extensions/types/extension.js';
 import {
-	BuiltInExtensionId,
+	builtInExtensionFactoryMap,
 	DefaultBuiltinChessboardExtensions
 } from '../extensions/types/wrapper.js';
 import { createRuntime } from '../runtime/factory/main.js';
 import { Chessboard, ChessboardExtensionInput, ChessboardInitOptions } from './types.js';
-
-function createBuiltInExtensionDefinition(id: BuiltInExtensionId): AnyExtensionDefinition {
-	switch (id) {
-		case 'renderer':
-			return createMainRenderer();
-		case 'events':
-			return createBoardEvents();
-		case 'selectedSquare':
-			return createSelectedSquare();
-		case 'activeTarget':
-			return createActiveTarget();
-		case 'legalMoves':
-			return createLegalMoves();
-		case 'lastMove':
-			return createLastMove();
-		default:
-			throw new Error(`Unknown built-in extension id: ${id}`);
-	}
-}
 
 export function createBoard<
 	TExtensions extends readonly ChessboardExtensionInput[] = DefaultBuiltinChessboardExtensions
@@ -39,7 +13,7 @@ export function createBoard<
 	const extensions = extensionsInput.map((ext) => {
 		if (typeof ext === 'string') {
 			// built-in extension, convert to definition
-			return createBuiltInExtensionDefinition(ext);
+			return builtInExtensionFactoryMap[ext]();
 		}
 		// assume it's already a definition
 		return ext;

@@ -43,8 +43,8 @@ function createAutoPromoteInstance(): AutoPromoteInstance {
 	const publicInterface = createAutoPromoteInstancePublic(internalState);
 	return {
 		id: EXTENSION_ID,
-		mount() {},
 		onUIMoveRequest(context) {
+			if (!internalState.toQueen) return;
 			// Check if we can promote to queen
 			const pendingRequest = context.request;
 			const activeDestination = pendingRequest.destination;
@@ -58,8 +58,6 @@ function createAutoPromoteInstance(): AutoPromoteInstance {
 		},
 		getPublic() {
 			return publicInterface;
-		},
-		unmount() {},
-		destroy() {}
+		}
 	};
 }

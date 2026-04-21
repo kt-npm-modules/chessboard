@@ -17,9 +17,9 @@ import { ExtensionRuntimeSurface } from './surface/main.js';
 interface ExtensionInstanceBase<TId extends string, TSlots extends readonly ExtensionSlotName[]> {
 	readonly id: TId;
 	// Lifecycle
-	mount(env: ExtensionInstanceMountOptions<TSlots>): void;
-	unmount(): void;
-	destroy(): void;
+	mount?(env: ExtensionInstanceMountOptions<TSlots>): void;
+	unmount?(): void;
+	destroy?(): void;
 	// Render state cycle
 	onUpdate?(context: ExtensionUpdateContext): void;
 	onUIMoveRequest?(context: ExtensionPendingUIMoveRequestContext): void;
