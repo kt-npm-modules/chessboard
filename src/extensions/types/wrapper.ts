@@ -28,6 +28,18 @@ import {
 	SelectedSquareDefinition
 } from '../first-party/selected-square/types.js';
 
+export const BuiltinChessboardExtensions = [
+	EXTENSION_ID_RENDERER,
+	EXTENSION_ID_SELECTED_SQUARE,
+	EXTENSION_ID_LAST_MOVE,
+	EXTENSION_ID_ACTIVE_TARGET,
+	EXTENSION_ID_LEGAL_MOVES,
+	EXTENSION_ID_BOARD_EVENTS,
+	EXTENSION_ID_AUTO_PROMOTE
+] as const;
+export type BuiltinChessboardExtensions = typeof BuiltinChessboardExtensions;
+export type BuiltInExtensionId = BuiltinChessboardExtensions[number];
+
 export const DefaultBuiltinChessboardExtensions = [
 	EXTENSION_ID_RENDERER,
 	EXTENSION_ID_SELECTED_SQUARE,
@@ -37,12 +49,6 @@ export const DefaultBuiltinChessboardExtensions = [
 	EXTENSION_ID_BOARD_EVENTS,
 	EXTENSION_ID_AUTO_PROMOTE
 ] as const;
-
-export type BuiltInExtensionId = (typeof DefaultBuiltinChessboardExtensions)[number];
-
-/**
- * Default built-in extensions used when createBoard(...) receives no extensions option
- */
 export type DefaultBuiltinChessboardExtensions = typeof DefaultBuiltinChessboardExtensions;
 
 /**

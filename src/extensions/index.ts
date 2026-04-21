@@ -11,4 +11,4 @@ export type {
 	ExtensionDefinitionPublicApi
 } from './types/extension.js';
 
-export type { BuiltInExtensionId, DefaultBuiltinChessboardExtensions } from './types/wrapper.js';
+export type { BuiltinChessboardExtensions, BuiltInExtensionId } from './types/wrapper.js';
