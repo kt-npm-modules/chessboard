@@ -1,5 +1,5 @@
 import { createBoardState } from './board/factory.js';
-import { createChangeState } from './change/factory.js';
+import { createChangeState } from './change/factory/main.js';
 import { createInteractionState } from './interaction/factory.js';
 import type { RuntimeState, RuntimeStateInitOptions, RuntimeStateInternal } from './types.js';
 import { createViewState } from './view/factory.js';

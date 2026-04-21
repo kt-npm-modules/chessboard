@@ -14,7 +14,7 @@ import { Chessboard, ChessboardExtensionInput, ChessboardInitOptions } from './t
 
 function createBuiltInExtensionDefinition(id: BuiltInExtensionId): AnyExtensionDefinition {
 	switch (id) {
-		case 'mainRenderer':
+		case 'renderer':
 			return createMainRenderer();
 		case 'events':
 			return createBoardEvents();

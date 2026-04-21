@@ -1,4 +1,4 @@
-import { ExtensionUIMoveRequestContext } from './types/context/ui-move.js';
+import { ExtensionPendingUIMoveRequestContext } from './types/context/ui-move.js';
 import {
 	ExtensionUpdateContext,
 	ExtensionUpdateContextCommon,
@@ -28,14 +28,14 @@ export function extensionSystemUpdateState(
 			: {
 					...(contextCommon as ExtensionUpdateContextCommonUnmounted)
 				};
-		extension.instance.onUpdate(context);
+		extension.instance.onUpdate?.(context);
 	}
 	state.currentFrame = request.state;
 }
 
 export function extensionSystemUpdateUIMoveRequest(
 	state: ExtensionSystemInternal,
-	context: ExtensionUIMoveRequestContext
+	context: ExtensionPendingUIMoveRequestContext
 ): void {
 	for (const extension of state.extensions.values()) {
 		if (extension.instance.onUIMoveRequest) {

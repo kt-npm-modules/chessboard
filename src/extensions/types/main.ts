@@ -4,7 +4,7 @@ import { ExtensionInvalidationState } from '../invalidation/types.js';
 import { ExtensionAnimationControllerInternalSurface } from './basic/animation.js';
 import { UpdateFrameSnapshot } from './basic/update.js';
 import { ExtensionOnEventContext } from './context/events.js';
-import { ExtensionUIMoveRequestContext } from './context/ui-move.js';
+import { ExtensionPendingUIMoveRequestContext } from './context/ui-move.js';
 import { AnyExtensionDefinition, AnyExtensionInstance } from './extension.js';
 import { ExtensionRuntimeSurfaceCommandsInternalSurface } from './surface/commands.js';
 import { ExtensionRuntimeSurfaceEvents } from './surface/events.js';
@@ -46,7 +46,7 @@ export interface ExtensionSystem {
 	getPublicRecord(): Readonly<Record<string, unknown>>;
 	getSharedDataForRenderSystem(): ExtensionSystemSharedDataForRenderSystem;
 	onUpdate(request: ExtensionSystemUpdateRequest): void;
-	onUIMoveRequest(context: ExtensionUIMoveRequestContext): void;
+	onUIMoveRequest(context: ExtensionPendingUIMoveRequestContext): void;
 	onEvent(context: ExtensionOnEventContext): void;
 	completeDrag(session: DragSessionExtensionOwned): void;
 	onUnmount(): void;

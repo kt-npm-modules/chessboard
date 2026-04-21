@@ -10,7 +10,7 @@ import {
 import { ExtensionOnEventContext } from './context/events.js';
 import { ExtensionRenderContext } from './context/render.js';
 import { ExtensionRenderTransientVisualsContext } from './context/transient-visuals.js';
-import { ExtensionUIMoveRequestContext } from './context/ui-move.js';
+import { ExtensionPendingUIMoveRequestContext } from './context/ui-move.js';
 import { ExtensionUpdateContext } from './context/update.js';
 import { ExtensionRuntimeSurface } from './surface/main.js';
 
@@ -21,8 +21,8 @@ interface ExtensionInstanceBase<TId extends string, TSlots extends readonly Exte
 	unmount(): void;
 	destroy(): void;
 	// Render state cycle
-	onUpdate(context: ExtensionUpdateContext): void;
-	onUIMoveRequest?(context: ExtensionUIMoveRequestContext): void;
+	onUpdate?(context: ExtensionUpdateContext): void;
+	onUIMoveRequest?(context: ExtensionPendingUIMoveRequestContext): void;
 	onEvent?(event: ExtensionOnEventContext): void;
 	render?(context: ExtensionRenderContext): void;
 	// Animation

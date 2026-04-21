@@ -1,11 +1,11 @@
 import { cloneDeep } from 'es-toolkit/object';
-import { changeStateSetDeferredUIMoveRequestContext, changeStateSetLastMove } from './reducers.js';
-import type { ChangeState, ChangeStateInternal } from './types.js';
+import { changeStateSetDeferredUIMoveRequest, changeStateSetLastMove } from '../reducers.js';
+import { ChangeState, ChangeStateInternal } from '../types/main.js';
 
 function createChangeStateInternal(): ChangeStateInternal {
 	return {
 		lastMove: null,
-		deferredUIMoveRequestContext: null
+		deferredUIMoveRequest: null
 	};
 }
 
@@ -24,14 +24,13 @@ export function createChangeState(): ChangeState {
 		getSnapshot() {
 			return {
 				...cloneDeep(internalState),
-				deferredUIMoveRequestContext:
-					internalState.deferredUIMoveRequestContext?.getSnapshot() ?? null
+				deferredUIMoveRequest: internalState.deferredUIMoveRequest?.getSnapshot() ?? null
 			};
 		},
-		setDeferredUIMoveRequestContext(context, mutationSession) {
+		setDeferredUIMoveRequest(request, mutationSession) {
 			return mutationSession.addMutation(
-				'state.change.setDeferredUIMoveRequestContext',
-				changeStateSetDeferredUIMoveRequestContext(internalState, context)
+				'state.change.setDeferredUIMoveRequest',
+				changeStateSetDeferredUIMoveRequest(internalState, request)
 			);
 		}
 	};

@@ -1,8 +1,8 @@
 import { cloneDeep } from 'es-toolkit/object';
-import { ExtensionUIMoveRequestContext } from '../../extensions/types/context/ui-move.js';
 import type { MoveSnapshot } from '../board/types/internal.js';
-import { movesEqual, uiMoveRequestContextsEqual } from './helpers.js';
-import type { ChangeStateInternal } from './types.js';
+import { movesEqual, pendingUIMoveRequestsEqual } from './helpers.js';
+import { ChangeStateInternal } from './types/main.js';
+import { PendingUIMoveRequest } from './types/ui-move.js';
 
 export function changeStateSetLastMove(
 	state: ChangeStateInternal,
@@ -15,13 +15,13 @@ export function changeStateSetLastMove(
 	return true;
 }
 
-export function changeStateSetDeferredUIMoveRequestContext(
+export function changeStateSetDeferredUIMoveRequest(
 	state: ChangeStateInternal,
-	context: ExtensionUIMoveRequestContext
+	request: PendingUIMoveRequest | null
 ): boolean {
-	if (uiMoveRequestContextsEqual(state.deferredUIMoveRequestContext, context)) {
+	if (pendingUIMoveRequestsEqual(state.deferredUIMoveRequest, request)) {
 		return false; // No change
 	}
-	state.deferredUIMoveRequestContext = context;
+	state.deferredUIMoveRequest = request;
 	return true;
 }

@@ -1,4 +1,3 @@
-import { ExtensionUIMoveRequestContextSnapshot } from '../../extensions/types/context/ui-move.js';
 import { setsEqual } from '../../helpers/util.js';
 import type {
 	MoveBaseSnapshot,
@@ -7,6 +6,7 @@ import type {
 	MoveSnapshot
 } from '../board/types/internal.js';
 import { MoveDestinationSnapshot } from '../interaction/types/internal.js';
+import { PendingUIMoveRequestSnapshot } from './types/ui-move.js';
 
 function baseMovesEqual(moveA: MoveBaseSnapshot, moveB: MoveBaseSnapshot): boolean {
 	const diffs: boolean[] = [
@@ -96,9 +96,9 @@ export function moveDestinationsEqual(
 	);
 }
 
-export function uiMoveRequestContextsEqual(
-	contextA: ExtensionUIMoveRequestContextSnapshot | null,
-	contextB: ExtensionUIMoveRequestContextSnapshot | null
+export function pendingUIMoveRequestsEqual(
+	contextA: PendingUIMoveRequestSnapshot | null,
+	contextB: PendingUIMoveRequestSnapshot | null
 ): boolean {
 	if (contextA === null && contextB === null) {
 		return true;
