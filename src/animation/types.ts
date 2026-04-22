@@ -1,5 +1,8 @@
 import { ReadonlyDeep } from 'type-fest';
 import type { NonEmptyPieceCode, Square } from '../state/board/types/internal.js';
+import { BoardStateSnapshot } from '../state/board/types/main.js';
+import { ChangeStateSnapshot } from '../state/change/types/main.js';
+import { InteractionStateSnapshot } from '../state/interaction/types/main.js';
 
 export interface AnimationTrackMove {
 	id: number;
@@ -25,39 +28,27 @@ export interface AnimationTrackStatic {
 
 export type AnimationTrack = AnimationTrackMove | AnimationTrackFade | AnimationTrackStatic; // Extendable for other effects in the future
 
-export interface AnimationPlan {
-	sessionId: number;
-	tracks: AnimationTrack[];
-}
-
 export interface AnimationSession {
 	id: number;
-	tracks: AnimationTrack[];
+	plan: AnimationPlan;
 	startTime: number; // performance.now() when started
 	duration: number;
 }
 
 export type AnimationSessionSnapshot = ReadonlyDeep<AnimationSession>;
 
-export interface AnimationTrackMoveExclude {
-	fromSq: Square;
-	toSq: Square;
+export interface AnimationPlanningSnapshot {
+	readonly board: BoardStateSnapshot;
+	readonly change: ChangeStateSnapshot;
+	readonly interaction: InteractionStateSnapshot;
 }
 
-export interface AnimationTrackSquareExclude {
-	sq: Square;
+export interface AnimationPlanningInput {
+	previous: AnimationPlanningSnapshot;
+	current: AnimationPlanningSnapshot;
 }
 
-export type AnimationTrackExclude = AnimationTrackMoveExclude | AnimationTrackSquareExclude;
-
-export function isMoveExclude(e: AnimationTrackExclude): e is AnimationTrackMoveExclude {
-	return 'fromSq' in e && 'toSq' in e;
-}
-
-export function isSquareExclude(e: AnimationTrackExclude): e is AnimationTrackSquareExclude {
-	return 'sq' in e && !('fromSq' in e) && !('toSq' in e);
-}
-
-export interface CalculateAnimationTracksOptions {
-	exclude?: AnimationTrackExclude[];
+export interface AnimationPlan {
+	readonly tracks: readonly AnimationTrack[];
+	readonly suppressedSquares: ReadonlySet<Square>;
 }

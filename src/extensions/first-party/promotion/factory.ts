@@ -239,11 +239,11 @@ function createPromotionInstance(
 				context.rawEvent.type === 'pointerdown',
 				'Only pointerdown events should be subscribed to'
 			);
-			context.rawEvent.preventDefault(); // Prevent focus change and other side effects
 			const targetSquare = context.sceneEvent?.targetSquare ?? null;
 			if (targetSquare !== null) {
 				const roleCode = internalState.activePromotionSquares.get(targetSquare);
 				if (roleCode !== undefined) {
+					context.rawEvent.preventDefault(); // Prevent focus change and other side effects if it is our promotion square
 					internalState.runtimeSurface.commands.resolveDeferredUIMoveRequest({
 						promotedTo: roleCode
 					});

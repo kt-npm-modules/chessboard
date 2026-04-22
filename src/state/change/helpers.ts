@@ -6,6 +6,7 @@ import type {
 	MoveSnapshot
 } from '../board/types/internal.js';
 import { MoveDestinationSnapshot } from '../interaction/types/internal.js';
+import { ChangeStateSnapshot } from './types/main.js';
 import { PendingUIMoveRequestSnapshot } from './types/ui-move.js';
 
 function baseMovesEqual(moveA: MoveBaseSnapshot, moveB: MoveBaseSnapshot): boolean {
@@ -114,5 +115,21 @@ export function pendingUIMoveRequestsEqual(
 		moveDestinationsEqual(contextA.destination, contextB.destination) &&
 		contextA.canBeAutoResolved === contextB.canBeAutoResolved &&
 		moveRequestsEqual(contextA.resolvedMoveRequest, contextB.resolvedMoveRequest)
+	);
+}
+
+export function changeStatesEqual(
+	stateA: ChangeStateSnapshot | null,
+	stateB: ChangeStateSnapshot | null
+): boolean {
+	if (stateA === null && stateB === null) {
+		return true;
+	}
+	if (stateA === null || stateB === null) {
+		return false;
+	}
+	return (
+		pendingUIMoveRequestsEqual(stateA.deferredUIMoveRequest, stateB.deferredUIMoveRequest) &&
+		movesEqual(stateA.lastMove, stateB.lastMove)
 	);
 }

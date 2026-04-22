@@ -1,17 +1,12 @@
 <script lang="ts">
-	import { createBoard, type PiecePositionRecordString } from '@mirasen/chessboard';
+	import { createBoard } from '@mirasen/chessboard';
 	import { onDestroy, onMount } from 'svelte';
 
 	let boardEl: HTMLDivElement;
 	let board: ReturnType<typeof createBoard> | null = null;
 	let snapshotText = $state('');
 
-	const START_POSITION: PiecePositionRecordString = {
-		e2: 'wP',
-		f7: 'wP',
-		d7: 'bP',
-		c2: 'bP'
-	} as const;
+	// 1 - minimal example of chessboard runtime usage
 
 	function refreshSnapshot() {
 		if (!board) return;
@@ -32,10 +27,7 @@
 
 	function resetPosition() {
 		if (!board) return;
-		board.setPosition({
-			pieces: START_POSITION,
-			turn: 'w'
-		});
+		board.setPosition('start');
 		refreshSnapshot();
 	}
 
@@ -45,60 +37,63 @@
 		refreshSnapshot();
 	}
 
-	let autoPromoteToQueen = $state(false);
+	function fileOf(square: number) {
+		return 'abcdefgh'[square % 8];
+	}
 
-	function toggleAutoPromotion() {
-		console.log('Toggling auto promotion', board?.extensions.autoPromote.toQueen);
+	function rankOf(square: number) {
+		return Math.floor(square / 8) + 1;
+	}
+
+	function algebraic(square: number): string {
+		return `${fileOf(square)}${rankOf(square)}`;
+	}
+
+	function randomMove() {
 		if (!board) return;
-		board.extensions.autoPromote.toQueen = !board.extensions.autoPromote.toQueen;
-		autoPromoteToQueen = board.extensions.autoPromote.toQueen;
+		const snapshot = board.getSnapshot();
+		// find random piece on random square
+		let pieceCode = 0;
+		let fromSquare = '';
+		while (pieceCode <= 0) {
+			const square = Math.floor(Math.random() * 64);
+			pieceCode = snapshot.state.board.pieces[square];
+			fromSquare = algebraic(square);
+		}
+		let toSquare = fromSquare;
+		while (toSquare === fromSquare) {
+			toSquare = algebraic(Math.floor(Math.random() * 64));
+		}
+		board.move({
+			from: fromSquare,
+			to: toSquare
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		} as any);
+
+		refreshSnapshot();
 	}
 
 	onMount(() => {
 		board = createBoard({
-			element: boardEl,
-			state: {
-				board: {
-					turn: 'b',
-					pieces: START_POSITION
-				},
-				interaction: {
-					movability: {
-						mode: 'strict',
-						destinations: (source) => {
-							if (source === 'e2')
-								return [
-									{ to: 'e8', promotedTo: ['B', 'N'] },
-									{ to: 'd8', promotedTo: ['R', 'N', 'Q'] }
-								];
-							if (source === 'f7')
-								return [
-									{ to: 'f8', promotedTo: ['B', 'R', 'N', 'Q'] },
-									{ to: 'g8', promotedTo: ['B', 'R', 'N', 'Q'] }
-								];
-							if (source === 'd7')
-								return [
-									{ to: 'd1', promotedTo: ['B', 'N'] },
-									{ to: 'e1', promotedTo: ['R', 'N', 'Q'] }
-								];
-							if (source === 'c2')
-								return [
-									{ to: 'c1', promotedTo: ['B', 'R', 'N', 'Q'] },
-									{ to: 'b1', promotedTo: ['B', 'R', 'N', 'Q'] }
-								];
-							return undefined;
-						}
-					}
-				}
-			}
+			element: boardEl
 		});
-		board.extensions.events.setOnRawUpdate((context) => {
-			console.log('Raw update:', context);
+		board.setMovability({
+			mode: 'strict',
+			destinations: {
+				e2: [{ to: 'e3' }, { to: 'e4' }],
+				d7: [
+					{ to: 'c8', promotedTo: ['queen', 'rook', 'bishop', 'knight'] },
+					{ to: 'd8', promotedTo: ['queen', 'rook', 'bishop', 'knight'] }
+				],
+				g1: [{ to: 'f3' }, { to: 'h3' }]
+			}
 		});
 		board.extensions.events.setOnUIMove((move) => {
 			console.log('Move played:', move);
 		});
-		autoPromoteToQueen = board.extensions.autoPromote.toQueen;
+		board.extensions.events.setOnRawUpdate((context) => {
+			console.log('Raw update:', context);
+		});
 		refreshSnapshot();
 
 		const intervalId = window.setInterval(refreshSnapshot, 100);
@@ -129,9 +124,7 @@
 			<button onclick={resetPosition}>Reset position</button>
 			<button onclick={clearSelection}>Clear selection</button>
 			<button onclick={refreshSnapshot}>Refresh snapshot</button>
-			<button onclick={toggleAutoPromotion}
-				>Toggle auto promotion: {autoPromoteToQueen ? 'On' : 'Off'}</button
-			>
+			<button onclick={randomMove}>Random move</button>
 		</div>
 
 		<div class="board-wrap">

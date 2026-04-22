@@ -6,45 +6,48 @@
 
 # @mirasen/chessboard
 
-Framework-agnostic TypeScript chessboard library focused on clean architecture, explicit rendering ownership, and extension-driven features.
+A framework-agnostic TypeScript chessboard platform with real chess interaction built in and an extension-driven architecture.
 
-## Status
+## Why this exists
 
-**Early public release (`0.1.x`)**
+Most chessboards fall into one of two buckets:
 
-The core architecture is already usable, but the package is still pre-`1.0.0` and the API may evolve.
+- rendering primitives that leave core interaction UX to app code
+- tightly coupled monoliths that are hard to extend cleanly
 
-Current focus:
+`@mirasen/chessboard` aims for a better balance:
 
-- stable core runtime
-- extension-driven rendering and interaction
-- public wrapper / package API
-- early integration ergonomics
+- meaningful built-in chess interaction out of the box
+- first-party extensions for common board UX
+- explicit rendering and ownership boundaries
+- extension-driven growth without turning the board into glue hell
 
-Not finalized yet:
+This is not just a board renderer. It is a chessboard platform designed for real chess interaction.
 
-- promotion flow
-- some higher-level public APIs
-- broader test coverage
-- final `1.0.0` API guarantees
+## What you get out of the box
 
-## Goals
+The built-in first-party extension baseline currently includes both foundational runtime-facing extensions and user-facing board features.
 
-- framework-agnostic board core
-- explicit runtime / render / interaction boundaries
-- extension-first architecture
-- predictable rendering ownership
-- room for advanced features without core hacks
+- `renderer` — the first-party rendering extension that validates the same extension architecture used for board features
+- `events`
+- `selectedSquare`
+- `activeTarget`
+- `legalMoves`
+- `lastMove`
+- `promotion`
+- `autoPromote`
 
-## Current features
+That means the board already covers a meaningful baseline chess UX instead of stopping at “draw squares and pieces”.
 
-- board rendering
-- orientation support
-- selection and drag interaction
-- move targeting
-- move animation foundation
-- built-in visual extensions such as selected square, active target, legal moves, and last move
-- board events extension with `setOnUiMove(...)` and `setOnRawUpdate(...)`
+## Highlights
+
+- Real built-in chess interaction
+- Extension-driven architecture
+- First-party baseline extensions
+- Explicit SVG slot ownership
+- Clean separation between runtime, rendering, interaction, and animation
+- Promotion flow built into the board pipeline
+- Optional auto-promotion as a separate behavior extension
 
 ## Installation
 
@@ -52,45 +55,219 @@ Not finalized yet:
 npm install @mirasen/chessboard
 ```
 
-## Example
+## Usage
+
+### Minimal example
 
 ```ts
 import { createBoard } from '@mirasen/chessboard';
 
+const element = document.getElementById('board');
+
+if (!element) {
+	throw new Error('Missing board element');
+}
+
 const board = createBoard({
-	// API still evolving in 0.1.x
+	element
+});
+// Set free movability, default - disabled
+board.setMovability({
+	mode: 'free'
+});
+```
+
+### Explicit built-in interaction extensions
+
+```ts
+import { createBoard } from '@mirasen/chessboard';
+
+const element = document.getElementById('board');
+
+if (!element) {
+	throw new Error('Missing board element');
+}
+
+const board = createBoard({
+	element,
+	extensions: [
+		// Always add renderer first, otherwise nothing will be rendered
+		'renderer',
+		'selectedSquare',
+		'activeTarget',
+		'legalMoves',
+		'lastMove',
+		'events',
+		// Keep autoPromote before promotion, otherwise promotion may defer the move first
+		'autoPromote',
+		'promotion'
+	]
+});
+```
+
+### setOnUIMove
+
+```ts
+import { createBoard } from '@mirasen/chessboard';
+
+const element = document.getElementById('board');
+
+if (!element) {
+	throw new Error('Missing board element');
+}
+
+const board = createBoard({
+	element,
+	state: {
+		board: 'start',
+		interaction: {
+			movability: {
+				mode: 'free'
+			}
+		}
+	}
 });
 
-board.extensions.events.setOnUiMove((move) => {
+board.extensions.events.setOnUIMove((move) => {
 	console.log('UI move:', move);
 });
 ```
 
-## Artwork
+### setMovability - strict with explicit destinations
 
-### Chessnut piece set
+```ts
+import { createBoard } from '@mirasen/chessboard';
 
-This project uses the Chessnut chess piece set.
+const element = document.getElementById('board');
 
-This is the current default piece set used by the library.
+if (!element) {
+	throw new Error('Missing board element');
+}
 
-- Author: Alexis Luengas — https://github.com/LexLuengas
-- Source: https://github.com/LexLuengas/chessnut-pieces
-- License: Apache License 2.0 — https://github.com/LexLuengas/chessnut-pieces/blob/master/LICENSE.txt
+const board = createBoard({
+	element
+});
 
-For details, see:
+board.setMovability({
+	mode: 'strict',
+	destinations: {
+		e2: [{ to: 'e3' }, { to: 'e4' }],
+		d7: [
+			{ to: 'c8', promotedTo: ['queen', 'rook', 'bishop', 'knight'] },
+			{ to: 'd8', promotedTo: ['queen', 'rook', 'bishop', 'knight'] }
+		],
+		g1: [{ to: 'f3' }, { to: 'h3' }]
+	}
+});
+```
 
-- [./assets/pieces/chessnut/ATTRIBUTION.md](./assets/pieces/chessnut/ATTRIBUTION.md)
-- [./assets/pieces/chessnut/LICENSE.txt](./assets/pieces/chessnut/LICENSE.txt)
+### setMovability - strict with a resolver
 
-## Versioning note
+```ts
+import { createBoard } from '@mirasen/chessboard';
 
-`0.1.x` is an early public package release.
+const element = document.getElementById('board');
 
-It exists so the package can be installed, explored, integrated experimentally, and published publicly while the library continues moving toward a more complete `1.0.0`.
+if (!element) {
+	throw new Error('Missing board element');
+}
 
-Breaking changes are still possible before `1.0.0`.
+const board = createBoard({
+	element
+});
 
-## License
+board.setMovability({
+	mode: 'strict',
+	destinations: (source) => {
+		if (source === 'e2')
+			return [
+				{ to: 'e8', promotedTo: ['bishop', 'queen'] },
+				{ to: 'd8', promotedTo: ['rook', 'knight', 'queen'] }
+			];
+		if (source === 'f7')
+			return [
+				{ to: 'f8', promotedTo: ['bishop', 'rook', 'knight', 'queen'] },
+				{ to: 'g8', promotedTo: ['bishop', 'rook', 'knight', 'queen'] }
+			];
+		if (source === 'd7')
+			return [
+				{ to: 'd1', promotedTo: ['bishop', 'knight'] },
+				{ to: 'e1', promotedTo: ['rook', 'knight', 'queen'] }
+			];
+		if (source === 'c2')
+			return [
+				{ to: 'c1', promotedTo: ['bishop', 'rook', 'knight', 'queen'] },
+				{ to: 'b1', promotedTo: ['bishop', 'rook', 'knight', 'queen'] }
+			];
+		return undefined;
+	}
+});
+```
 
-MIT
+## Promotion and auto-promotion
+
+Promotion is handled inside the board interaction pipeline through a natural deferred move flow.
+
+That means the board does not need the awkward pattern of:
+
+- reject move
+- open external dialog
+- replay the move later
+
+Instead:
+
+- `promotion` provides the built-in promotion chooser UI
+- `autoPromote` provides behavior-only auto-promotion logic
+
+These are separate extensions on purpose:
+
+- `promotion` is UI
+- `autoPromote` is behavior
+
+This separation is a good example of the architecture: common chess UX can be built in without collapsing everything into one hardcoded board layer.
+
+## Architecture
+
+`@mirasen/chessboard` is built around explicit boundaries:
+
+- runtime owns board, interaction, and update semantics
+- renderer owns SVG structure and visual layers
+- animation owns transition planning and temporary visual occupancy
+- extensions render through declared slots instead of ad hoc DOM access
+
+The goal is to make common chess interaction powerful without making the system brittle.
+
+## Not just a primitive, not a monolith
+
+The project is intentionally positioned between two weak extremes:
+
+### Primitive-only board
+
+A board that only renders pieces and leaves everything else to app code often forces consumers to rebuild the same interaction UX repeatedly.
+
+### Hardcoded monolith
+
+A board that handles everything internally without clean boundaries becomes difficult to evolve, customize, or extend.
+
+`@mirasen/chessboard` aims for a middle path:
+
+- strong built-in baseline interaction
+- clean internal architecture
+- extension-driven feature growth
+
+## Status
+
+Release candidate for version `1.0.0`, focused on a strong built-in interaction baseline and extension-driven architecture.
+
+## Roadmap after RC
+
+After the first release candidate, the next steps are expected to include:
+
+- remaining test hardening
+- documentation expansion
+- more examples
+- further polish toward final `1.0.0`
+
+## Project direction
+
+This platform is being built as a foundation for richer chess learning and interaction workflows, but the board itself is designed to stand as a serious open-source UI platform in its own right.
