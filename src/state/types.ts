@@ -1,6 +1,6 @@
 import { PositionInput } from './board/types/input.js';
 import { BoardState, BoardStateSnapshot } from './board/types/main.js';
-import type { ChangeState, ChangeStateSnapshot } from './change/types.js';
+import type { ChangeState, ChangeStateSnapshot } from './change/types/main.js';
 import {
 	InteractionState,
 	InteractionStateInitOptions,

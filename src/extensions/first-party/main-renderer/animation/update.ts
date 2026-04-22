@@ -1,6 +1,6 @@
 import { calculateAnimationPlan } from '../../../../animation/planner.js';
-import { AnimationTrackExclude } from '../../../../animation/types.js';
 import { piecePositionsEqual } from '../../../../state/board/check.js';
+import { changeStatesEqual } from '../../../../state/change/helpers.js';
 import {
 	ExtensionUpdateContext,
 	isUpdateContextRenderable
@@ -15,46 +15,26 @@ export function rendererAnimationOnUpdate(
 ): void {
 	if (
 		!isUpdateContextRenderable(context) ||
-		!context.mutation.hasMutation({ prefixes: ['state.board.'] }) ||
+		!context.mutation.hasMutation({ prefixes: ['state.board.', 'state.change.'] }) ||
 		!context.previousFrame
 	) {
 		return;
 	}
 
-	const previousBoard = context.previousFrame.state.board;
-	const currentBoard = context.currentFrame.state.board;
-
-	if (piecePositionsEqual(previousBoard, currentBoard)) return;
-
-	// On DropTo exclude the move that user did from the animation plan
-	const exclude: AnimationTrackExclude[] = [];
 	if (
-		context.mutation.hasMutation({ causes: ['runtime.interaction.dropTo'] }) &&
-		context.currentFrame.state.change.lastMove
-	) {
-		exclude.push({
-			fromSq: context.currentFrame.state.change.lastMove.from,
-			toSq: context.currentFrame.state.change.lastMove.to
-		});
-		exclude.push({
-			sq: context.currentFrame.state.change.lastMove.from
-		});
-		exclude.push({
-			sq: context.currentFrame.state.change.lastMove.to
-		});
-	}
-	const plan = calculateAnimationPlan(
-		previousBoard,
-		currentBoard,
-		0 /* placeholder session id for draft plan */,
-		{
-			exclude
-		}
-	);
+		piecePositionsEqual(context.previousFrame.state.board, context.currentFrame.state.board) &&
+		changeStatesEqual(context.previousFrame.state.change, context.currentFrame.state.change)
+	)
+		return;
+
+	// Pass raw snapshots to the planner — it normalizes internally
+	const plan = calculateAnimationPlan({
+		previous: context.previousFrame.state,
+		current: context.currentFrame.state
+	});
 	if (plan.tracks.length === 0) return;
 	const session = state.runtimeSurface.animation.submit({
 		duration: DEFAULT_ANIMATION_DURATION_MS
 	});
-	plan.sessionId = session.id;
-	state.entries.set(plan.sessionId, { plan, nodes: null });
+	state.entries.set(session.id, { plan, nodes: null });
 }

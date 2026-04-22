@@ -1,23 +1,28 @@
 import assert from '@ktarmyshov/assert';
-import { ScenePointerEvent } from '../../../extensions/types/basic/events.js';
+import { ExtensionOnEventContext } from '../../../extensions/types/context/events.js';
 import { isEmptyPieceCode, isNonEmptyPieceCode } from '../../../state/board/check.js';
 import { fromPieceCode } from '../../../state/board/piece.js';
+import { isDragSessionCoreOwned } from '../../../state/interaction/helpers.js';
 import { MovabilityModeCode } from '../../../state/interaction/types/internal.js';
 import { canMoveTo } from './helpers.js';
 import { InteractionControllerInternal } from './types.js';
 
 export function handlePointerDown(
 	state: InteractionControllerInternal,
-	event: ScenePointerEvent
+	context: ExtensionOnEventContext
 ): void {
 	assert(
-		event.type === 'pointerdown',
+		context.rawEvent.type === 'pointerdown',
 		'handlePointerDown should only be called for pointerdown events'
 	);
-	if (event.button !== 0) {
+	const rawEvent = context.rawEvent as PointerEvent;
+	if (rawEvent.button !== 0) {
 		// Only handle left-click for now
 		return;
 	}
+
+	const sceneEvent = context.sceneEvent;
+	assert(sceneEvent, 'Scene event should be present for pointer events');
 
 	const interaction = state.surface.getInteractionStateSnapshot();
 	if (interaction.dragSession) {
@@ -25,33 +30,39 @@ export function handlePointerDown(
 		return;
 	}
 
-	if (event.target !== null) {
+	if (sceneEvent.targetSquare !== null) {
 		/**
 		 * If piece is already selected, and we have a valid target square event.target
 		 * AND it's a different square AND (it's empty OR (has an opponent piece AND is a legal move target))
 		 * THEN start a release-targeting drag session
 		 */
-		if (interaction.selected && event.target !== interaction.selected.square) {
+		if (interaction.selected && sceneEvent.targetSquare !== interaction.selected.square) {
 			const selectedPieceCode = interaction.selected.pieceCode;
 			assert(isNonEmptyPieceCode(selectedPieceCode), 'Selected piece code must be non-zero');
 
-			const targetPieceCode = state.surface.getPieceCodeAt(event.target);
+			const targetPieceCode = state.surface.getPieceCodeAt(sceneEvent.targetSquare);
 
 			if (isEmptyPieceCode(targetPieceCode)) {
-				state.surface.startReleaseTargetingDrag(interaction.selected.square, event.target);
+				state.surface.startReleaseTargetingDrag(
+					interaction.selected.square,
+					sceneEvent.targetSquare
+				);
 				return;
 			}
 
 			const isLegalMoveTarget =
 				interaction.movability.mode === MovabilityModeCode.Free ||
 				(interaction.movability.mode === MovabilityModeCode.Strict &&
-					interaction.activeDestinations.has(event.target));
+					interaction.activeDestinations.has(sceneEvent.targetSquare));
 
 			if (
 				fromPieceCode(targetPieceCode).color !== fromPieceCode(selectedPieceCode).color &&
 				isLegalMoveTarget
 			) {
-				state.surface.startReleaseTargetingDrag(interaction.selected.square, event.target);
+				state.surface.startReleaseTargetingDrag(
+					interaction.selected.square,
+					sceneEvent.targetSquare
+				);
 				return;
 			}
 		}
@@ -59,59 +70,69 @@ export function handlePointerDown(
 		 * If we are here, then it's not release-targeting.
 		 * So it's either a new lift or re-lift of the same piece. In either case, we can just start a lifted drag session if the target is valid.
 		 */
-		const pieceCode = state.surface.getPieceCodeAt(event.target);
+		const pieceCode = state.surface.getPieceCodeAt(sceneEvent.targetSquare);
 		if (!isEmptyPieceCode(pieceCode)) {
-			state.surface.startLiftedDrag(event.target, event.target);
+			state.surface.startLiftedDrag(sceneEvent.targetSquare, sceneEvent.targetSquare);
 		}
 	}
 }
 
 export function handlePointerMove(
 	state: InteractionControllerInternal,
-	event: ScenePointerEvent
+	context: ExtensionOnEventContext
 ): void {
 	assert(
-		event.type === 'pointermove',
+		context.rawEvent.type === 'pointermove',
 		'handlePointerMove should only be called for pointermove events'
 	);
 	const interaction = state.surface.getInteractionStateSnapshot();
 	if (interaction.dragSession) {
-		state.surface.updateDragSessionCurrentTarget(event.target);
+		state.surface.updateDragSessionCurrentTarget(context.sceneEvent?.targetSquare ?? null);
 	}
 }
 
 export function handlePointerUp(
 	state: InteractionControllerInternal,
-	event: ScenePointerEvent
+	context: ExtensionOnEventContext
 ): void {
-	assert(event.type === 'pointerup', 'handlePointerUp should only be called for pointerup events');
+	assert(
+		context.rawEvent.type === 'pointerup',
+		'handlePointerUp should only be called for pointerup events'
+	);
 	const interaction = state.surface.getInteractionStateSnapshot();
+	const dragSession = interaction.dragSession;
 
-	if (!interaction.dragSession) {
+	if (!dragSession) {
 		// No active drag session, so nothing to do on pointer up
+		return;
+	}
+
+	const sceneEvent = context.sceneEvent;
+	assert(sceneEvent, 'Scene event should be present for pointer events');
+
+	if (!isDragSessionCoreOwned(dragSession)) {
+		// For extension-owned drag sessions, we simply end the session without attempting to make a move,
+		// since the runtime doesn't have enough information about the semantics of the drag session.
+		state.surface.completeExtensionDrag(sceneEvent.targetSquare);
 		return;
 	}
 
 	// Check if the square is the same as the source square of the drag session.
 	// If it is, then we can end the drag session without making a move.
-	if (event.target === interaction.dragSession.sourceSquare) {
+	if (sceneEvent.targetSquare === dragSession.sourceSquare) {
 		state.surface.cancelActiveInteraction();
 		return;
 	}
 
 	// Check if the target square is a valid destination for the selected piece.
-	if (event.target !== null && canMoveTo(interaction, event.target)) {
-		if (interaction.dragSession.type === 'lifted-piece-drag') {
-			state.surface.dropTo(event.target);
-		} else {
-			state.surface.releaseTo(event.target);
-		}
+	if (sceneEvent.targetSquare !== null && canMoveTo(interaction, sceneEvent.targetSquare)) {
+		state.surface.completeCoreDragTo(sceneEvent.targetSquare);
 		return;
 	}
 
 	// Invalid target: piece returns to source for lifted drag (selection preserved),
 	// or selection is cleared for release targeting.
-	if (interaction.dragSession.type === 'lifted-piece-drag') {
+	if (dragSession.type === 'lifted-piece-drag') {
 		state.surface.cancelActiveInteraction();
 	} else {
 		state.surface.cancelInteraction();
@@ -120,10 +141,10 @@ export function handlePointerUp(
 
 export function handlePointerCancel(
 	state: InteractionControllerInternal,
-	event: ScenePointerEvent
+	context: ExtensionOnEventContext
 ): void {
 	assert(
-		event.type === 'pointercancel',
+		context.rawEvent.type === 'pointercancel',
 		'handlePointerCancel should only be called for pointercancel events'
 	);
 	const interaction = state.surface.getInteractionStateSnapshot();
@@ -135,18 +156,4 @@ export function handlePointerCancel(
 
 	// Cancel the active interaction on pointer cancel
 	state.surface.cancelActiveInteraction();
-}
-
-export function handlePointerLeave(
-	state: InteractionControllerInternal,
-	event: ScenePointerEvent
-): void {
-	assert(
-		event.type === 'pointerleave',
-		'handlePointerLeave should only be called for pointerleave events'
-	);
-	const interaction = state.surface.getInteractionStateSnapshot();
-	if (interaction.dragSession) {
-		state.surface.updateDragSessionCurrentTarget(event.target);
-	}
 }

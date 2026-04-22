@@ -1,24 +1,26 @@
-import { WritableDeep } from 'type-fest';
+import assert from '@ktarmyshov/assert';
 import { isNonEmptyPieceCode } from '../state/board/check.js';
 import { fileOf, rankOf } from '../state/board/coords.js';
 import {
-	NonEmptyPieceCode,
+	MoveSnapshot,
+	type NonEmptyPieceCode,
 	PieceCode,
-	Square,
+	type Square,
 	SQUARE_COUNT
 } from '../state/board/types/internal.js';
 import { BoardStateSnapshot } from '../state/board/types/main.js';
-import {
+import { ChangeStateSnapshot } from '../state/change/types/main.js';
+import type {
 	AnimationPlan,
-	AnimationTrack,
-	AnimationTrackExclude,
-	CalculateAnimationTracksOptions,
-	isMoveExclude,
-	isSquareExclude
+	AnimationPlanningInput,
+	AnimationPlanningSnapshot,
+	AnimationTrack
 } from './types.js';
 
+// ---------------------------------------------------------------------------
 // Precomputed squared distance: (dFile² + dRank²) for all square pairs.
-// Max value = 7² + 7² = 98, fits in Uint8. Index: a * 64 + b.
+// Max value = 7² + 7² = 98, fits in Uint8.  Index: a * 64 + b.
+// ---------------------------------------------------------------------------
 const SQUARE_DIST = new Uint8Array(SQUARE_COUNT * SQUARE_COUNT);
 for (let a = 0; a < SQUARE_COUNT; a++) {
 	for (let b = 0; b < SQUARE_COUNT; b++) {
@@ -28,7 +30,133 @@ for (let a = 0; a < SQUARE_COUNT; a++) {
 	}
 }
 
-export function collectSuppressedSquares(tracks: AnimationTrack[]): ReadonlySet<Square> {
+// ---------------------------------------------------------------------------
+// Internal helpers
+// ---------------------------------------------------------------------------
+
+/** Internal exclude spec used to suppress specific tracks during planning. */
+interface ExcludeSpec {
+	/** Suppressed move pairs: fromSq → Set<toSq>. */
+	readonly move: Map<Square, Set<Square>>;
+	/** Suppressed individual squares (no fade-in/out emitted for these). */
+	readonly square: Set<Square>;
+}
+
+const EMPTY_EXCLUDE: ExcludeSpec = {
+	move: new Map(),
+	square: new Set()
+};
+
+/**
+ * Detect whether a lifted-piece-drag was just completed (dropped).
+ *
+ * Condition:
+ * - previous snapshot had an active lifted-piece-drag session
+ * - current snapshot has no drag session
+ * - current snapshot has a lastMove
+ *
+ * Returns the lastMove when the condition holds, otherwise null.
+ */
+function detectLiftedPieceDrop(
+	previous: AnimationPlanningSnapshot,
+	current: AnimationPlanningSnapshot
+): MoveSnapshot | null {
+	const prevDrag = previous.interaction.dragSession;
+	if (!prevDrag || prevDrag.type !== 'lifted-piece-drag') return null;
+	if (current.interaction.dragSession !== null) return null;
+	return current.change.lastMove ?? null;
+}
+
+/**
+ * Build an ExcludeSpec that suppresses the move track and both endpoint
+ * fades for a given lastMove (used when a lifted-piece drop is detected).
+ */
+function buildExcludeForDrop(lastMove: MoveSnapshot): ExcludeSpec {
+	const moveMap = new Map<Square, Set<Square>>();
+	moveMap.set(lastMove.from, new Set([lastMove.to]));
+	const squareSet = new Set<Square>([lastMove.from, lastMove.to]);
+	return { move: moveMap, square: squareSet };
+}
+
+/**
+ * Normalize a snapshot by incorporating a pending deferredUIMoveRequest
+ * into the board and lastMove.  Currently limited to pawn moves.
+ *
+ * If there is no deferred request the snapshot is returned as-is.
+ */
+function buildEffectiveAnimationPlanningSnapshot(
+	state: AnimationPlanningSnapshot
+): AnimationPlanningSnapshot {
+	const request = state.change.deferredUIMoveRequest;
+	if (request === null) return state; // nothing to do
+	const newPieces = new Uint8Array(state.board.pieces);
+	const from = request.sourceSquare;
+	const to = request.destination.to;
+	const pieceCode = state.board.pieces[from];
+	assert(
+		pieceCode === PieceCode.WhitePawn || pieceCode === PieceCode.BlackPawn,
+		'Only pawn moves should be deferred UI move requests at this time'
+	);
+	newPieces[to] = pieceCode;
+	newPieces[from] = PieceCode.Empty;
+	const newBoard: BoardStateSnapshot = {
+		...state.board,
+		pieces: newPieces
+	};
+	const newLastMove: MoveSnapshot = {
+		from,
+		to,
+		piece: pieceCode
+	};
+	const newChange: ChangeStateSnapshot = {
+		deferredUIMoveRequest: null,
+		lastMove: newLastMove
+	};
+	return {
+		...state,
+		board: newBoard,
+		change: newChange
+	};
+}
+
+/**
+ * When a promotion was already auto-resolved/auto-promoted (no deferredUIMoveRequest but
+ * lastMove.promotedTo is set), the current board already contains the promoted
+ * piece (e.g. queen) on the target square.  For animation planning we
+ * temporarily replace it with the original piece (pawn) so that the greedy
+ * matching can build a proper move track from→to instead of separate fades.
+ *
+ * After the animation finishes the promoted piece will "snap" into view on
+ * the next render frame.
+ */
+function buildPromotionEffectiveCurrent(
+	state: AnimationPlanningSnapshot
+): AnimationPlanningSnapshot {
+	const lastMove = state.change.lastMove;
+	if (
+		state.change.deferredUIMoveRequest !== null ||
+		lastMove === null ||
+		lastMove.promotedTo === undefined
+	) {
+		return state; // not an auto-resolved/auto-promoted move — nothing to do
+	}
+	const newPieces = new Uint8Array(state.board.pieces);
+	newPieces[lastMove.to] = lastMove.piece;
+	const newBoard: BoardStateSnapshot = {
+		...state.board,
+		pieces: newPieces
+	};
+	return {
+		...state,
+		board: newBoard
+	};
+}
+
+/**
+ * Collect suppressed squares purely from the given tracks.
+ * For move tracks both endpoints are included; for fade/static the single square.
+ */
+function collectSuppressedSquaresFromTracks(tracks: readonly AnimationTrack[]): Set<Square> {
 	const result = new Set<Square>();
 	for (const track of tracks) {
 		if (track.effect === 'move') {
@@ -41,22 +169,28 @@ export function collectSuppressedSquares(tracks: AnimationTrack[]): ReadonlySet<
 	return result;
 }
 
-export function calculateAnimationTracks(
-	pos1: BoardStateSnapshot,
-	pos2: BoardStateSnapshot,
-	options?: CalculateAnimationTracksOptions
+/**
+ * Low-level track calculation.
+ *
+ * Compares two board snapshots (already derived / effective), applies the
+ * provided exclude spec, and returns the resulting animation tracks.
+ */
+function calculateTracks(
+	prevBoard: BoardStateSnapshot,
+	currBoard: BoardStateSnapshot,
+	exclude: ExcludeSpec
 ): AnimationTrack[] {
 	const tracks: AnimationTrack[] = [];
 	let nextId = 0;
 
-	// Step 1: collect changed squares into removed/added lists
+	// Step 1: collect changed squares into removed / added lists
 	type Entry = { pieceCode: NonEmptyPieceCode; sq: Square };
 	const removed: Entry[] = [];
 	const added: Entry[] = [];
 
 	for (let sq = 0; sq < SQUARE_COUNT; sq++) {
-		const c1 = pos1.pieces[sq] as PieceCode;
-		const c2 = pos2.pieces[sq] as PieceCode;
+		const c1 = prevBoard.pieces[sq] as PieceCode;
+		const c2 = currBoard.pieces[sq] as PieceCode;
 		if (c1 === c2) continue;
 		if (isNonEmptyPieceCode(c1)) removed.push({ pieceCode: c1, sq: sq as Square });
 		if (isNonEmptyPieceCode(c2)) added.push({ pieceCode: c2, sq: sq as Square });
@@ -65,31 +199,29 @@ export function calculateAnimationTracks(
 	// Step 2: greedy min-distance matching of same-code pairs → move tracks
 	const removedMatched = new Uint8Array(removed.length);
 	const addedMatched = new Uint8Array(added.length);
-	// toSq → code of the piece that moved there (used for static detection)
-	const movedToSqCode = new Map<number, number>();
 
 	const candidates: { dist: number; ri: number; ai: number }[] = [];
 	for (let ri = 0; ri < removed.length; ri++) {
 		for (let ai = 0; ai < added.length; ai++) {
 			if (removed[ri].pieceCode !== added[ai].pieceCode) continue;
-			candidates.push({ dist: SQUARE_DIST[removed[ri].sq * SQUARE_COUNT + added[ai].sq], ri, ai });
+			candidates.push({
+				dist: SQUARE_DIST[removed[ri].sq * SQUARE_COUNT + added[ai].sq],
+				ri,
+				ai
+			});
 		}
 	}
 	candidates.sort((a, b) => a.dist - b.dist);
 
-	const excl = options?.exclude;
-	const preparedExcl = prepareExclude(excl);
 	for (const { ri, ai } of candidates) {
 		if (removedMatched[ri] || addedMatched[ai]) continue;
 		removedMatched[ri] = 1;
 		addedMatched[ai] = 1;
-		movedToSqCode.set(added[ai].sq, removed[ri].pieceCode);
-		if (
-			excl &&
-			preparedExcl.move.has(removed[ri].sq) &&
-			preparedExcl.move.get(removed[ri].sq)!.has(added[ai].sq)
-		) {
-			// Suppress this move track but keep both squares matched so they don't become fades.
+		// Check if this move pair is excluded (e.g. lifted-piece drop)
+		const fromSet = exclude.move.get(removed[ri].sq);
+		if (fromSet && fromSet.has(added[ai].sq)) {
+			// Suppress the move track but keep both entries matched so they
+			// don't turn into fades.
 			continue;
 		}
 		tracks.push({
@@ -104,9 +236,7 @@ export function calculateAnimationTracks(
 	// Step 3: unmatched added → fade-in
 	for (let ai = 0; ai < added.length; ai++) {
 		if (addedMatched[ai]) continue;
-		if (preparedExcl.square.has(added[ai].sq)) {
-			continue;
-		}
+		if (exclude.square.has(added[ai].sq)) continue;
 		tracks.push({
 			id: nextId++,
 			pieceCode: added[ai].pieceCode,
@@ -115,49 +245,57 @@ export function calculateAnimationTracks(
 		});
 	}
 
-	// Step 4: unmatched removed → fade-out or static
+	// Step 4: unmatched removed → fade-out
 	for (let ri = 0; ri < removed.length; ri++) {
 		if (removedMatched[ri]) continue;
-		if (preparedExcl.square.has(removed[ri].sq)) {
-			continue;
-		}
-		const { pieceCode: code, sq } = removed[ri];
-		/*const movedCode = movedToSqCode.get(sq);
-		const isCapture =
-			movedCode !== undefined && fromPieceCode(code).color !== fromPieceCode(movedCode).color;*/
-		const pieceCode = code;
-		tracks.push({ id: nextId++, pieceCode, sq, effect: 'fade-out' });
+		if (exclude.square.has(removed[ri].sq)) continue;
+		tracks.push({
+			id: nextId++,
+			pieceCode: removed[ri].pieceCode,
+			sq: removed[ri].sq,
+			effect: 'fade-out'
+		});
 	}
 
 	return tracks;
 }
 
-export function calculateAnimationPlan(
-	pos1: BoardStateSnapshot,
-	pos2: BoardStateSnapshot,
-	sessionId: number,
-	options?: CalculateAnimationTracksOptions
-): AnimationPlan {
-	return { sessionId, tracks: calculateAnimationTracks(pos1, pos2, options) };
-}
+// ---------------------------------------------------------------------------
+// Public API — single orchestrator
+// ---------------------------------------------------------------------------
 
-interface PrepAnimationTrackExclude {
-	move: ReadonlyMap<Square, ReadonlySet<Square>>;
-	square: Set<Square>;
-}
+/**
+ * Plan animation tracks and suppressed squares for a state transition.
+ *
+ * This is the single entry point for animation planning.  It:
+ * 1. Normalizes both snapshots (incorporates deferredUIMoveRequest).
+ * 2. Detects lifted-piece-drag drop completion and builds an internal exclude.
+ * 3. Computes tracks via greedy min-distance matching.
+ * 4. Assembles the full suppressedSquares set (track-derived + excluded drop endpoints).
+ */
+export function calculateAnimationPlan(input: AnimationPlanningInput): AnimationPlan {
+	// 1) Normalize snapshots to account for deferredUIMoveRequest
+	const effectivePrevious = buildEffectiveAnimationPlanningSnapshot(input.previous);
+	const effectiveCurrent = buildEffectiveAnimationPlanningSnapshot(input.current);
 
-function prepareExclude(exclude?: AnimationTrackExclude[]): PrepAnimationTrackExclude {
-	const result: WritableDeep<PrepAnimationTrackExclude> = { move: new Map(), square: new Set() };
-	if (!exclude) return result;
-	for (const e of exclude) {
-		if (isMoveExclude(e)) {
-			if (!result.move.has(e.fromSq)) {
-				result.move.set(e.fromSq, new Set());
-			}
-			result.move.get(e.fromSq)!.add(e.toSq);
-		} else if (isSquareExclude(e)) {
-			result.square.add(e.sq);
-		}
+	// 2) Detect lifted-piece drop and prepare exclude spec
+	const droppedMove = detectLiftedPieceDrop(effectivePrevious, effectiveCurrent);
+	const exclude = droppedMove !== null ? buildExcludeForDrop(droppedMove) : EMPTY_EXCLUDE;
+
+	// 3) Normalize current for auto-resolved/auto-promoted move (pawn→queen on target square)
+	const planningCurrent = buildPromotionEffectiveCurrent(effectiveCurrent);
+
+	// 4) Calculate tracks
+	const tracks = calculateTracks(effectivePrevious.board, planningCurrent.board, exclude);
+
+	// 5) Build suppressedSquares: track-derived + excluded drop endpoints
+	const suppressed = collectSuppressedSquaresFromTracks(tracks);
+	if (droppedMove !== null) {
+		// The dropped move was intentionally suppressed (no move track emitted),
+		// but the base render must still hide both endpoints.
+		suppressed.add(droppedMove.from);
+		suppressed.add(droppedMove.to);
 	}
-	return result;
+
+	return { tracks, suppressedSquares: suppressed };
 }

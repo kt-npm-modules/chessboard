@@ -1,12 +1,11 @@
-import { ExtensionUIMoveRequestContext } from '../../extensions/types/context/ui-move.js';
-import { RolePromotionCode, Square } from '../../state/board/types/internal.js';
-import { MoveDestinationSnapshot } from '../../state/interaction/types/internal.js';
-import { UIMoveRequestContextInternal } from '../types/ui-move.js';
+import { RolePromotionCode, Square } from '../../board/types/internal.js';
+import { MoveDestinationSnapshot } from '../../interaction/types/internal.js';
+import { PendingUIMoveRequest, PendingUIMoveRequestInternal } from '../types/ui-move.js';
 
-function createMoveRequestContextInternal(
+function createPendingUIMoveRequestInternal(
 	sourceSquare: Square,
 	destination: MoveDestinationSnapshot
-): UIMoveRequestContextInternal {
+): PendingUIMoveRequestInternal {
 	return {
 		sourceSquare,
 		destination,
@@ -15,40 +14,40 @@ function createMoveRequestContextInternal(
 	};
 }
 
-function moveRequestContextCanBeAutoResolved(state: UIMoveRequestContextInternal): boolean {
+function pendingUIMoveRequestCanBeAutoResolved(state: PendingUIMoveRequestInternal): boolean {
 	return (
 		state.status === 'unresolved' &&
 		(state.destination.promotedTo === undefined || state.destination.promotedTo.length <= 1)
 	);
 }
 
-function assertCanBeDeferred(state: UIMoveRequestContextInternal): void {
+function assertCanBeDeferred(state: PendingUIMoveRequestInternal): void {
 	if (state.status !== 'unresolved') {
 		throw new Error('Only unresolved move requests can be deferred');
 	}
 }
 
-function assertCanBeResolved(state: UIMoveRequestContextInternal): void {
+function assertCanBeResolved(state: PendingUIMoveRequestInternal): void {
 	if (state.status === 'resolved') {
 		throw new Error('Move request is already resolved');
 	}
 }
 
 function assertCanBeAutoResolved(
-	state: UIMoveRequestContextInternal
-): asserts state is UIMoveRequestContextInternal & {
+	state: PendingUIMoveRequestInternal
+): asserts state is PendingUIMoveRequestInternal & {
 	destination: MoveDestinationSnapshot & {
 		promotedTo?: readonly [] | readonly [RolePromotionCode];
 	};
 } {
-	if (!moveRequestContextCanBeAutoResolved(state)) {
+	if (!pendingUIMoveRequestCanBeAutoResolved(state)) {
 		throw new Error(
 			'Move request cannot be auto-resolved. Either it is already resolved or deferred, or it requires a promotion choice.'
 		);
 	}
 }
 
-function moveRequestContextAutoResolve(state: UIMoveRequestContextInternal): void {
+function pendingUIMoveRequestAutoResolve(state: PendingUIMoveRequestInternal): void {
 	assertCanBeAutoResolved(state);
 
 	const promotedTo =
@@ -68,11 +67,11 @@ function moveRequestContextAutoResolve(state: UIMoveRequestContextInternal): voi
 	};
 }
 
-export function createUIMoveRequestContext(
+export function createPendingUIMoveRequest(
 	sourceSquare: Square,
 	destination: MoveDestinationSnapshot
-): ExtensionUIMoveRequestContext {
-	const internalState = createMoveRequestContextInternal(sourceSquare, destination);
+): PendingUIMoveRequest {
+	const internalState = createPendingUIMoveRequestInternal(sourceSquare, destination);
 	return {
 		get status() {
 			return internalState.status;
@@ -84,7 +83,7 @@ export function createUIMoveRequestContext(
 			return internalState.destination;
 		},
 		get canBeAutoResolved() {
-			return moveRequestContextCanBeAutoResolved(internalState);
+			return pendingUIMoveRequestCanBeAutoResolved(internalState);
 		},
 		get resolvedMoveRequest() {
 			return internalState.resolvedMoveRequest;
@@ -99,14 +98,14 @@ export function createUIMoveRequestContext(
 			internalState.resolvedMoveRequest = request;
 		},
 		autoresolve() {
-			moveRequestContextAutoResolve(internalState);
+			pendingUIMoveRequestAutoResolve(internalState);
 		},
 		getSnapshot() {
 			return {
 				status: internalState.status,
 				sourceSquare: internalState.sourceSquare,
 				destination: internalState.destination,
-				canBeAutoResolved: moveRequestContextCanBeAutoResolved(internalState),
+				canBeAutoResolved: pendingUIMoveRequestCanBeAutoResolved(internalState),
 				resolvedMoveRequest: internalState.resolvedMoveRequest
 			};
 		}

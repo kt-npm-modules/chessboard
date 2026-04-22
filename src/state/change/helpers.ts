@@ -1,4 +1,3 @@
-import { ExtensionUIMoveRequestContextSnapshot } from '../../extensions/types/context/ui-move.js';
 import { setsEqual } from '../../helpers/util.js';
 import type {
 	MoveBaseSnapshot,
@@ -7,6 +6,8 @@ import type {
 	MoveSnapshot
 } from '../board/types/internal.js';
 import { MoveDestinationSnapshot } from '../interaction/types/internal.js';
+import { ChangeStateSnapshot } from './types/main.js';
+import { PendingUIMoveRequestSnapshot } from './types/ui-move.js';
 
 function baseMovesEqual(moveA: MoveBaseSnapshot, moveB: MoveBaseSnapshot): boolean {
 	const diffs: boolean[] = [
@@ -96,9 +97,9 @@ export function moveDestinationsEqual(
 	);
 }
 
-export function uiMoveRequestContextsEqual(
-	contextA: ExtensionUIMoveRequestContextSnapshot | null,
-	contextB: ExtensionUIMoveRequestContextSnapshot | null
+export function pendingUIMoveRequestsEqual(
+	contextA: PendingUIMoveRequestSnapshot | null,
+	contextB: PendingUIMoveRequestSnapshot | null
 ): boolean {
 	if (contextA === null && contextB === null) {
 		return true;
@@ -114,5 +115,21 @@ export function uiMoveRequestContextsEqual(
 		moveDestinationsEqual(contextA.destination, contextB.destination) &&
 		contextA.canBeAutoResolved === contextB.canBeAutoResolved &&
 		moveRequestsEqual(contextA.resolvedMoveRequest, contextB.resolvedMoveRequest)
+	);
+}
+
+export function changeStatesEqual(
+	stateA: ChangeStateSnapshot | null,
+	stateB: ChangeStateSnapshot | null
+): boolean {
+	if (stateA === null && stateB === null) {
+		return true;
+	}
+	if (stateA === null || stateB === null) {
+		return false;
+	}
+	return (
+		pendingUIMoveRequestsEqual(stateA.deferredUIMoveRequest, stateB.deferredUIMoveRequest) &&
+		movesEqual(stateA.lastMove, stateB.lastMove)
 	);
 }

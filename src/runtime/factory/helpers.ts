@@ -1,17 +1,17 @@
 import assert from '@ktarmyshov/assert';
-import { ExtensionUIMoveRequestContext } from '../../extensions/types/context/ui-move.js';
 import { isEmptyPieceCode } from '../../state/board/check.js';
 import { Square } from '../../state/board/types/internal.js';
+import { createPendingUIMoveRequest } from '../../state/change/factory/ui-move.js';
+import { PendingUIMoveRequest } from '../../state/change/types/ui-move.js';
 import { canMoveTo } from '../input/controller/helpers.js';
 import { RuntimeInternal } from '../types/main.js';
-import { createUIMoveRequestContext } from './ui-move.js';
 
 function assertResolvedAfterAutoResolve(
-	state: ExtensionUIMoveRequestContext
-): asserts state is ExtensionUIMoveRequestContext & {
+	request: PendingUIMoveRequest
+): asserts request is PendingUIMoveRequest & {
 	status: 'resolved';
 } {
-	if (state.status !== 'resolved') {
+	if (request.status !== 'resolved') {
 		throw new Error('UI move request must be resolved after autoresolve');
 	}
 }
@@ -41,17 +41,17 @@ export function uiMoveCompleteTo(state: RuntimeInternal, target: Square): void {
 
 	// canMoveTo already confirmed we can move, but if 'FREE' movability it can be that there are no activeDestinations for the target square, so we need to handle that case as well
 	const destination = interaction.activeDestinations.get(target) ?? { to: target };
-	const moveRequestContext = createUIMoveRequestContext(dragSession.sourceSquare, destination);
-	state.extensionSystem.onUIMoveRequest(moveRequestContext);
-	if (moveRequestContext.status === 'deferred') {
-		state.state.change.setDeferredUIMoveRequestContext(moveRequestContext, mutationSession);
-	} else if (moveRequestContext.status === 'unresolved') {
+	const pendingUIMoveRequest = createPendingUIMoveRequest(dragSession.sourceSquare, destination);
+	state.extensionSystem.onUIMoveRequest({ request: pendingUIMoveRequest });
+	if (pendingUIMoveRequest.status === 'deferred') {
+		state.state.change.setDeferredUIMoveRequest(pendingUIMoveRequest, mutationSession);
+	} else if (pendingUIMoveRequest.status === 'unresolved') {
 		// Try to auto-resolve if possible (e.g. if there are no promotion choices to be made)
-		moveRequestContext.autoresolve();
-		assertResolvedAfterAutoResolve(moveRequestContext);
+		pendingUIMoveRequest.autoresolve();
+		assertResolvedAfterAutoResolve(pendingUIMoveRequest);
 	}
-	if (moveRequestContext.status === 'resolved') {
-		const moveRequest = moveRequestContext.resolvedMoveRequest;
+	if (pendingUIMoveRequest.status === 'resolved') {
+		const moveRequest = pendingUIMoveRequest.resolvedMoveRequest;
 		if (moveRequest !== null) {
 			state.state.board.move(moveRequest, mutationSession);
 		}

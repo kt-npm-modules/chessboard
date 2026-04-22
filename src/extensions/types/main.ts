@@ -1,11 +1,13 @@
 import { RuntimeReadonlyMutationSession } from '../../runtime/mutation/types.js';
+import { DragSessionExtensionOwned } from '../../state/interaction/types/internal.js';
 import { ExtensionInvalidationState } from '../invalidation/types.js';
 import { ExtensionAnimationControllerInternalSurface } from './basic/animation.js';
-import { SceneEventType } from './basic/events.js';
 import { UpdateFrameSnapshot } from './basic/update.js';
-import { ExtensionUIMoveRequestContext } from './context/ui-move.js';
+import { ExtensionOnEventContext } from './context/events.js';
+import { ExtensionPendingUIMoveRequestContext } from './context/ui-move.js';
 import { AnyExtensionDefinition, AnyExtensionInstance } from './extension.js';
-import { ExtensionRuntimeSurfaceCommands } from './surface/commands.js';
+import { ExtensionRuntimeSurfaceCommandsInternalSurface } from './surface/commands.js';
+import { ExtensionRuntimeSurfaceEvents } from './surface/events.js';
 
 export interface ExtensionSystemExtensionRecord {
 	readonly id: string;
@@ -16,14 +18,15 @@ export interface ExtensionSystemExtensionRecord {
 }
 
 export interface ExtensionSystemInitOptions {
-	extensionRuntimeSurfaceCommands: ExtensionRuntimeSurfaceCommands;
+	extensionRuntimeSurfaceCommands: ExtensionRuntimeSurfaceCommandsInternalSurface;
+	extensionRuntimeSurfaceEvents: ExtensionRuntimeSurfaceEvents;
 	extensions?: readonly AnyExtensionDefinition[];
 }
 
 export interface ExtensionSystemInternal {
 	readonly extensions: Map<string, ExtensionSystemExtensionRecord>;
 	readonly transientVisualsSubscribers: Set<string>;
-	readonly eventSubscribers: Map<string, Set<SceneEventType>>;
+	readonly eventSubscribers: Map<string, Set<string>>;
 	currentFrame: UpdateFrameSnapshot | null;
 }
 
@@ -43,7 +46,9 @@ export interface ExtensionSystem {
 	getPublicRecord(): Readonly<Record<string, unknown>>;
 	getSharedDataForRenderSystem(): ExtensionSystemSharedDataForRenderSystem;
 	onUpdate(request: ExtensionSystemUpdateRequest): void;
-	onUIMoveRequest(context: ExtensionUIMoveRequestContext): void;
+	onUIMoveRequest(context: ExtensionPendingUIMoveRequestContext): void;
+	onEvent(context: ExtensionOnEventContext): void;
+	completeDrag(session: DragSessionExtensionOwned): void;
 	onUnmount(): void;
 	onDestroy(): void;
 }

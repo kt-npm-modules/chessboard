@@ -1,4 +1,4 @@
-import { SceneEvent } from './basic/events.js';
+import { ExtensionDragSessionSnapshot } from './basic/interaction.js';
 import { ExtensionInstanceMountOptions, ExtensionSlotName } from './basic/mount.js';
 import {
 	ExtensionAnimationFinishedContext,
@@ -6,31 +6,34 @@ import {
 	ExtensionPrepareAnimationContext,
 	ExtensionRenderAnimationContext
 } from './context/animation.js';
+import { ExtensionOnEventContext } from './context/events.js';
 import { ExtensionRenderContext } from './context/render.js';
 import { ExtensionRenderTransientVisualsContext } from './context/transient-visuals.js';
-import { ExtensionUIMoveRequestContext } from './context/ui-move.js';
+import { ExtensionPendingUIMoveRequestContext } from './context/ui-move.js';
 import { ExtensionUpdateContext } from './context/update.js';
 import { ExtensionRuntimeSurface } from './surface/main.js';
 
 interface ExtensionInstanceBase<TId extends string, TSlots extends readonly ExtensionSlotName[]> {
 	readonly id: TId;
 	// Lifecycle
-	mount(env: ExtensionInstanceMountOptions<TSlots>): void;
-	unmount(): void;
-	destroy(): void;
+	mount?(env: ExtensionInstanceMountOptions<TSlots>): void;
+	unmount?(): void;
+	destroy?(): void;
 	// Render state cycle
-	onUpdate(context: ExtensionUpdateContext): void;
-	onUIMoveRequest?(context: ExtensionUIMoveRequestContext): void;
+	onUpdate?(context: ExtensionUpdateContext): void;
 	render?(context: ExtensionRenderContext): void;
 	// Animation
 	prepareAnimation?(context: ExtensionPrepareAnimationContext): void;
 	renderAnimation?(context: ExtensionRenderAnimationContext): void;
 	onAnimationFinished?(context: ExtensionAnimationFinishedContext): void;
 	cleanAnimation?(context: ExtensionCleanAnimationContext): void;
+	// Interaction
+	completeDrag?(session: ExtensionDragSessionSnapshot): void;
 	// Transient Visuals
 	renderTransientVisuals?(context: ExtensionRenderTransientVisualsContext): void;
 	// Events
-	onEvent?(event: SceneEvent): void;
+	onUIMoveRequest?(context: ExtensionPendingUIMoveRequestContext): void;
+	onEvent?(context: ExtensionOnEventContext): void;
 }
 
 type ExtensionInstancePublicPart<TPublic> = [TPublic] extends [never]

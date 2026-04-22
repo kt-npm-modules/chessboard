@@ -1,13 +1,14 @@
 import assert from '@ktarmyshov/assert';
 import { createExtensionSystem } from '../../extensions/factory/main.js';
 import { assertFrameRenderable, UpdateFrameSnapshot } from '../../extensions/types/basic/update.js';
-import { ExtensionRuntimeSurfaceCommands } from '../../extensions/types/surface/commands.js';
+import type { ExtensionRuntimeSurfaceCommandsInternalSurface } from '../../extensions/types/surface/commands.js';
 import { createLayout } from '../../layout/factory.js';
 import { createRenderSystem } from '../../render/factory.js';
 import { isNonEmptyPieceCode } from '../../state/board/check.js';
 import { normalizeSquare } from '../../state/board/normalize.js';
+import type { MoveRequest } from '../../state/board/types/internal.js';
 import { createRuntimeState } from '../../state/factory.js';
-import { InteractionStateSelected } from '../../state/interaction/types/main.js';
+import type { InteractionStateSelected } from '../../state/interaction/types/main.js';
 import { createInteractionController } from '../input/controller/factory.js';
 import { runtimeDestroy, runtimeMount, runtimeUnmount } from '../lifecycle.js';
 import { createRuntimeMutationPipeline } from '../mutation/factory.js';
@@ -19,6 +20,7 @@ import type {
 	RuntimeInternal,
 	RuntimeStatus
 } from '../types/main.js';
+import { createExtensionRuntimeSurfaceEvents } from './events.js';
 import { createRuntimeInteractionSurface } from './input.js';
 
 function createRuntimeInternal(options: RuntimeInitOptionsInternal): RuntimeInternal {
@@ -41,9 +43,9 @@ function createRuntimeInternal(options: RuntimeInitOptionsInternal): RuntimeInte
 	};
 }
 
-function createExtensionRuntimeSurfaceCommands(
+function createExtensionRuntimeSurfaceCommandsInternalSurface(
 	getInternalState: () => RuntimeInternal
-): ExtensionRuntimeSurfaceCommands {
+): ExtensionRuntimeSurfaceCommandsInternalSurface {
 	return {
 		setPosition(input) {
 			const state = getInternalState();
@@ -119,6 +121,13 @@ function createExtensionRuntimeSurfaceCommands(
 			runtimeRunMutationPipeline(state);
 			return changed;
 		},
+		startDrag(session) {
+			const state = getInternalState();
+			const mutationSession = state.mutation.getSession();
+			const changed = state.state.interaction.setDragSession(session, mutationSession);
+			runtimeRunMutationPipeline(state);
+			return changed;
+		},
 		clearActiveInteraction() {
 			const state = getInternalState();
 			const mutationSession = state.mutation.getSession();
@@ -130,6 +139,36 @@ function createExtensionRuntimeSurfaceCommands(
 			const state = getInternalState();
 			const mutationSession = state.mutation.getSession();
 			const changed = state.state.interaction.clear(mutationSession);
+			runtimeRunMutationPipeline(state);
+			return changed;
+		},
+		resolveDeferredUIMoveRequest(details) {
+			const state = getInternalState();
+			const deferredRequest = state.state.change.deferredUIMoveRequest;
+			assert(deferredRequest, 'No deferred UI move request to resolve');
+			const { sourceSquare, destination } = deferredRequest;
+			const moveRequest: MoveRequest = {
+				from: sourceSquare,
+				to: destination.to,
+				...(destination.capturedSquare !== undefined && {
+					capturedSquare: destination.capturedSquare
+				}),
+				...(destination.secondary !== undefined && { secondary: destination.secondary }),
+				promotedTo: details.promotedTo
+			};
+			const mutationSession = state.mutation.getSession();
+			const move = state.state.board.move(moveRequest, mutationSession);
+			state.state.change.setDeferredUIMoveRequest(null, mutationSession);
+			mutationSession.addMutation('runtime.interaction.resolveDeferredUIMoveRequest', true);
+			runtimeRunMutationPipeline(state);
+			return move;
+		},
+		cancelDeferredUIMoveRequest() {
+			const state = getInternalState();
+			assert(state.state.change.deferredUIMoveRequest, 'No deferred UI move request to cancel');
+			const mutationSession = state.mutation.getSession();
+			const changed = state.state.change.setDeferredUIMoveRequest(null, mutationSession);
+			mutationSession.addMutation('runtime.interaction.cancelDeferredUIMoveRequest', changed);
 			runtimeRunMutationPipeline(state);
 			return changed;
 		},
@@ -157,12 +196,15 @@ export function createRuntime(options: RuntimeInitOptions): Runtime {
 	}
 
 	// Create RuntimeExtensionSurface to pass to the extension system for initialization of extension instances
-	const extensionSurface = createExtensionRuntimeSurfaceCommands(getInternalState);
+	const extensionSurfaceCommands =
+		createExtensionRuntimeSurfaceCommandsInternalSurface(getInternalState);
+	const extensionSurfaceEvents = createExtensionRuntimeSurfaceEvents(getInternalState);
 
 	// Now construct the internal state
 	const optionsInternal: RuntimeInitOptionsInternal = {
 		...options,
-		extensionRuntimeSurfaceCommands: extensionSurface,
+		extensionRuntimeSurfaceCommands: extensionSurfaceCommands,
+		extensionRuntimeSurfaceEvents: extensionSurfaceEvents,
 		getInternalState
 	};
 	internalState = createRuntimeInternal(optionsInternal);
@@ -196,7 +238,7 @@ export function createRuntime(options: RuntimeInitOptions): Runtime {
 			internalStatus = 'destroyed';
 			internalState = null;
 		},
-		...extensionSurface,
+		...extensionSurfaceCommands,
 		getExtensionsPublicRecord() {
 			return getInternalState().extensionSystem.getPublicRecord();
 		}

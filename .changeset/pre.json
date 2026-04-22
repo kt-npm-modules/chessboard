@@ -1,0 +1,8 @@
+{
+	"mode": "pre",
+	"tag": "rc",
+	"initialVersions": {
+		"@mirasen/chessboard": "0.1.1"
+	},
+	"changesets": []
+}

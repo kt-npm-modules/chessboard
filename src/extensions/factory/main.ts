@@ -1,3 +1,4 @@
+import assert from '@ktarmyshov/assert';
 import { createExtensionAnimationController } from '../animation/factory.js';
 import { createExtensionInvalidationState } from '../invalidation/factory.js';
 import {
@@ -16,6 +17,9 @@ function createExtensionSystemInternal(
 	const extensions = new Map<string, ExtensionSystemExtensionRecord>();
 	const extensionsArray = options.extensions ?? [];
 	for (const extensionDef of extensionsArray) {
+		if (extensionDef.id === 'core') {
+			throw new Error('Extension id "core" is reserved and cannot be used by extensions');
+		}
 		if (extensions.has(extensionDef.id)) {
 			throw new Error(`Duplicate extension id found: ${extensionDef.id}`);
 		}
@@ -23,6 +27,7 @@ function createExtensionSystemInternal(
 			runtimeSurface: createExtensionRuntimeSurface(
 				getInternalState,
 				options.extensionRuntimeSurfaceCommands,
+				options.extensionRuntimeSurfaceEvents,
 				extensionDef
 			)
 		});
@@ -88,6 +93,29 @@ export function createExtensionSystem(options: ExtensionSystemInitOptions): Exte
 		onUIMoveRequest(context) {
 			extensionSystemUpdateUIMoveRequest(internalState, context);
 		},
+		onEvent(context) {
+			const subscribers = internalState.eventSubscribers.get(context.rawEvent.type);
+			if (subscribers) {
+				for (const extensionId of subscribers) {
+					const extensionRec = internalState.extensions.get(extensionId);
+					if (extensionRec) {
+						extensionRec.instance.onEvent?.(context);
+					}
+				}
+			}
+		},
+		completeDrag(session) {
+			const extensionRec = internalState.extensions.get(session.owner);
+			assert(
+				extensionRec,
+				`Extension record not found for completing drag session with owner ${session.owner}`
+			);
+			assert(
+				extensionRec.instance.completeDrag,
+				`Extension instance does not have a completeDrag handler for completing drag session with owner ${session.owner}`
+			);
+			extensionRec.instance.completeDrag(session);
+		},
 		onUnmount() {
 			internalState.transientVisualsSubscribers.clear();
 			internalState.eventSubscribers.clear();
@@ -100,7 +128,7 @@ export function createExtensionSystem(options: ExtensionSystemInitOptions): Exte
 		onDestroy() {
 			// We assume that the onUnmout was already called by runtime, but let's still validate
 			for (const extensionRec of internalState.extensions.values()) {
-				extensionRec.instance.destroy();
+				extensionRec.instance.destroy?.();
 				const onUnmountCalled = [
 					extensionRec.invalidation.dirtyLayers === 0,
 					extensionRec.animation.getAll().length === 0

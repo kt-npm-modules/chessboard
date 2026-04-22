@@ -13,14 +13,14 @@ export function renderMount(state: RenderSystemInternal, element: HTMLElement): 
 		const slotRoots = extensionRec.render.slots as ExtensionSlotSvgRoots<
 			readonly ExtensionSlotName[]
 		>;
-		extensionRec.extension.instance.mount({ slotRoots });
+		extensionRec.extension.instance.mount?.({ slotRoots });
 	}
 }
 
 export function renderUnmount(state: RenderSystemInternal): void {
 	validateIsMounted(state);
 	for (const extensionRec of state.extensions.values()) {
-		extensionRec.extension.instance.unmount();
+		extensionRec.extension.instance.unmount?.();
 		// clear the slot roots
 		for (const slotRoot of Object.values(extensionRec.render.slots)) {
 			clearElementChildren(slotRoot);

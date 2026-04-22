@@ -5,7 +5,7 @@ export type MainRendererInitOptions = Partial<MainRendererConfigInput>;
 
 export const EXTENSION_SLOTS = ['board', 'coordinates', 'pieces', 'animation', 'drag'] as const;
 export type ExtensionSlotsType = typeof EXTENSION_SLOTS;
-export const EXTENSION_ID = 'main-renderer' as const;
+export const EXTENSION_ID = 'renderer' as const;
 
 // export type MainRendererMountOptions = ExtensionInstanceMountOptions<typeof EXTENSION_SLOTS>;
 // export type MainRendererSlotRoots = ExtensionSlotSvgRoots<typeof EXTENSION_SLOTS>;

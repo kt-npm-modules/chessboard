@@ -3,7 +3,6 @@ import { MoveOutput } from '../../../state/board/types/output.js';
 import { ExtensionSlotSvgRoots } from '../../types/basic/mount.js';
 import { UpdateFrameSnapshot } from '../../types/basic/update.js';
 import { ExtensionDefinition, ExtensionInstance } from '../../types/extension.js';
-import { ExtensionInternal } from '../common/types.js';
 
 export const EXTENSION_SLOTS = [] as const;
 export type ExtensionSlotsType = typeof EXTENSION_SLOTS;
@@ -35,7 +34,7 @@ export type BoardEventsInstance = ExtensionInstance<
 
 export type BoardEventsSlotRoots = ExtensionSlotSvgRoots<typeof EXTENSION_SLOTS>;
 
-export interface BoardEventsInstanceInternal extends ExtensionInternal<ExtensionSlotsType> {
+export interface BoardEventsInstanceInternal {
 	onUIMove: OnUIMoveCallback | null;
 	onRawUpdate: OnRawUpdateCallback | null;
 }

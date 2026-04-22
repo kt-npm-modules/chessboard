@@ -1,4 +1,3 @@
-import { collectSuppressedSquares } from '../../../../animation/planner.js';
 import {
 	cleanAnimationPlan,
 	prepareAnimationPlan,
@@ -69,7 +68,7 @@ export function getAnimationSuppressedSquares(
 	for (const session of sessions) {
 		const entry = state.entries.get(session.id);
 		if (!entry) continue;
-		for (const sq of collectSuppressedSquares(entry.plan.tracks)) {
+		for (const sq of entry.plan.suppressedSquares) {
 			result.add(sq);
 		}
 	}
