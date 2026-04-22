@@ -1,6 +1,6 @@
 {
 	"name": "@mirasen/chessboard",
-	"description": "Mirasen Chessboard — open-source chessboard UI library.",
+	"description": "Framework-agnostic TypeScript chessboard platform with real chess interaction built in.",
 	"version": "0.1.1",
 	"license": "MIT",
 	"author": {
@@ -10,10 +10,14 @@
 	"keywords": [
 		"mirasen",
 		"chessboard",
-		"chess-ui",
 		"chess",
+		"chess-ui",
+		"chessboard-ui",
+		"typescript",
+		"framework-agnostic",
 		"svg",
-		"typescript"
+		"extensions",
+		"chessboard-platform"
 	],
 	"homepage": "https://mirasen.io/chessboard",
 	"repository": {
