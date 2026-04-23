@@ -239,7 +239,7 @@ const board = createBoard({
 	element
 });
 
-board.autoPromote.toQueen = true;
+board.extensions.autoPromote.toQueen = true;
 ```
 
 ## Architecture
