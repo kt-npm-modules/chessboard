@@ -1,5 +1,7 @@
 [![NPM Version](https://img.shields.io/npm/v/%40mirasen%2Fchessboard)](https://www.npmjs.com/package/@mirasen/chessboard)
 [![CI](https://github.com/mirasen-io/chessboard/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/mirasen-io/chessboard/actions/workflows/ci.yml)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=mirasen-io_chessboard&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=mirasen-io_chessboard)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=mirasen-io_chessboard&metric=coverage)](https://sonarcloud.io/summary/new_code?id=mirasen-io_chessboard)
 [![License](https://img.shields.io/npm/l/@mirasen/chessboard)](./LICENSE)
 
 # @mirasen/chessboard
@@ -52,6 +54,15 @@ That means the board already covers a meaningful baseline chess UX instead of st
 ```bash
 npm install @mirasen/chessboard
 ```
+
+## Live examples
+
+Interactive examples are available on the Mirasen website:
+
+- [Examples overview](https://mirasen.io/chessboard/examples/)
+- [Minimal interactive example](https://mirasen.io/chessboard/examples/minimal.html)
+- [Legal moves example](https://mirasen.io/chessboard/examples/legal-moves.html)
+- [Promotion example](https://mirasen.io/chessboard/examples/promotion.html)
 
 ## Usage
 

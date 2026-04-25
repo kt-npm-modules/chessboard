@@ -27,6 +27,7 @@ export function createInteractionController(
 		onEvent(context) {
 			internalState.surface.onEvent(context);
 			if (context.rawEvent.defaultPrevented) {
+				transmitTransientInput(internalState, context);
 				return; // The event has been handled by the surface (extensions)
 			}
 			switch (context.rawEvent.type) {
@@ -44,6 +45,10 @@ export function createInteractionController(
 					break;
 			}
 			transmitTransientInput(internalState, context);
+			if (!context.rawEvent.defaultPrevented && context.rawEvent.cancelable) {
+				// Suppress native browser behavior for board-handled events.
+				context.rawEvent.preventDefault();
+			}
 		}
 	};
 }
