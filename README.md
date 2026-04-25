@@ -1,7 +1,5 @@
 [![NPM Version](https://img.shields.io/npm/v/%40mirasen%2Fchessboard)](https://www.npmjs.com/package/@mirasen/chessboard)
 [![CI](https://github.com/mirasen-io/chessboard/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/mirasen-io/chessboard/actions/workflows/ci.yml)
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=mirasen-io_chessboard&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=mirasen-io_chessboard)
-[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=mirasen-io_chessboard&metric=coverage)](https://sonarcloud.io/summary/new_code?id=mirasen-io_chessboard)
 [![License](https://img.shields.io/npm/l/@mirasen/chessboard)](./LICENSE)
 
 # @mirasen/chessboard
@@ -77,10 +75,21 @@ board.setMovability({
 });
 ```
 
-### Explicit built-in interaction extensions
+### Explicit extensions
 
 ```ts
-import { createBoard } from '@mirasen/chessboard';
+import { createBoard, type Chessboard, type ChessboardExtensionInput } from '@mirasen/chessboard';
+
+const extensionList = [
+	// Always add renderer first, otherwise nothing will be rendered
+	'renderer',
+	'lastMove',
+	// Keep autoPromote before promotion, otherwise promotion may defer the move first
+	'autoPromote',
+	'promotion'
+	// customExtensionDefinition
+] as const satisfies readonly ChessboardExtensionInput[];
+let board: Chessboard<typeof extensionList> | null = null;
 
 const element = document.getElementById('board');
 
@@ -88,20 +97,9 @@ if (!element) {
 	throw new Error('Missing board element');
 }
 
-const board = createBoard({
+board = createBoard({
 	element,
-	extensions: [
-		// Always add renderer first, otherwise nothing will be rendered
-		'renderer',
-		'selectedSquare',
-		'activeTarget',
-		'legalMoves',
-		'lastMove',
-		'events',
-		// Keep autoPromote before promotion, otherwise promotion may defer the move first
-		'autoPromote',
-		'promotion'
-	]
+	extensions: extensionList
 });
 ```
 
@@ -226,6 +224,22 @@ These are separate extensions on purpose:
 
 This separation is a good example of the architecture: common chess UX can be built in without collapsing everything into one hardcoded board layer.
 
+```ts
+import { createBoard } from '@mirasen/chessboard';
+
+const element = document.getElementById('board');
+
+if (!element) {
+	throw new Error('Missing board element');
+}
+
+const board = createBoard({
+	element
+});
+
+board.extensions.autoPromote.toQueen = true;
+```
+
 ## Architecture
 
 `@mirasen/chessboard` is built around explicit boundaries:
@@ -255,19 +269,23 @@ A board that handles everything internally without clean boundaries becomes diff
 - clean internal architecture
 - extension-driven feature growth
 
-## Status
-
-Release candidate for version `1.0.0`, focused on a strong built-in interaction baseline and extension-driven architecture.
-
-## Roadmap after RC
-
-After the first release candidate, the next steps are expected to include:
-
-- remaining test hardening
-- documentation expansion
-- more examples
-- further polish toward final `1.0.0`
-
 ## Project direction
 
 This platform is being built as a foundation for richer chess learning and interaction workflows, but the board itself is designed to stand as a serious open-source UI platform in its own right.
+
+## Artwork
+
+### Chessnut piece set
+
+This project uses the Chessnut chess piece set.
+
+This is the current default piece set used by the library.
+
+- Author: Alexis Luengas — https://github.com/LexLuengas
+- Source: https://github.com/LexLuengas/chessnut-pieces
+- License: Apache License 2.0 — https://github.com/LexLuengas/chessnut-pieces/blob/master/LICENSE.txt
+
+For details, see:
+
+- [./assets/pieces/chessnut/ATTRIBUTION.md](./assets/pieces/chessnut/ATTRIBUTION.md)
+- [./assets/pieces/chessnut/LICENSE.txt](./assets/pieces/chessnut/LICENSE.txt)

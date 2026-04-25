@@ -38,7 +38,11 @@
 			"types": "./dist/extensions/index.d.ts",
 			"import": "./dist/extensions/index.js"
 		},
-		"./unstable/*.js": {
+		"./extensions/build": {
+			"types": "./dist/extensions/build/index.d.ts",
+			"import": "./dist/extensions/build/index.js"
+		},
+		"./unstable/*": {
 			"types": "./dist/*.d.ts",
 			"import": "./dist/*.js"
 		}
@@ -52,10 +56,8 @@
 		"lint": "prettier --check . && eslint .",
 		"check": "tsc --skipLibCheck --noEmit",
 		"check:test": "tsc --project tsconfig-test.json --skipLibCheck --noEmit",
-		"test": "echo 'No tests for now...'",
-		"test-backup": "npm run check:test && vitest run --run",
-		"coverage": "echo 'No tests for now...'",
-		"coverage-backup": "vitest run --coverage",
+		"test": "npm run check:test && vitest run --run",
+		"coverage": "vitest run --coverage",
 		"changeset:version": "changeset version && npm install && npm run format && git add --all",
 		"changeset:publish": "changeset publish"
 	},
@@ -91,7 +93,7 @@
 		"vitest": "^4.0.18"
 	},
 	"engines": {
-		"node": ">=22"
+		"node": ">=20"
 	},
 	"dependencies": {
 		"@echecs/fen": "^2.1.0",
