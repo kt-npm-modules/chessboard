@@ -269,19 +269,6 @@ A board that handles everything internally without clean boundaries becomes diff
 - clean internal architecture
 - extension-driven feature growth
 
-## Status
-
-Release candidate for version `1.0.0`, focused on a strong built-in interaction baseline and extension-driven architecture.
-
-## Roadmap after RC
-
-After the first release candidate, the next steps are expected to include:
-
-- remaining test hardening
-- documentation expansion
-- more examples
-- further polish toward final `1.0.0`
-
 ## Project direction
 
 This platform is being built as a foundation for richer chess learning and interaction workflows, but the board itself is designed to stand as a serious open-source UI platform in its own right.
