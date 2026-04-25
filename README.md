@@ -55,6 +55,15 @@ That means the board already covers a meaningful baseline chess UX instead of st
 npm install @mirasen/chessboard
 ```
 
+## Live examples
+
+Interactive examples are available on the Mirasen website:
+
+- [Examples overview](https://mirasen.io/chessboard/examples/)
+- [Minimal interactive example](https://mirasen.io/chessboard/examples/minimal.html)
+- [Legal moves example](https://mirasen.io/chessboard/examples/legal-moves.html)
+- [Promotion example](https://mirasen.io/chessboard/examples/promotion.html)
+
 ## Usage
 
 ### Minimal example
