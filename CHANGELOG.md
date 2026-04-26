@@ -1,5 +1,11 @@
 # @mirasen/chessboard
 
+## 1.0.4
+
+### Patch Changes
+
+- f586eea: Update README integration examples and export move-related public types.
+
 ## 1.0.3
 
 ### Patch Changes
