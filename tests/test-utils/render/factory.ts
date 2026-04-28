@@ -1,4 +1,5 @@
 import { vi } from 'vitest';
+import { createExtensionAnimationController } from '../../../src/extensions/animation/factory.js';
 import type { ExtensionInvalidationState } from '../../../src/extensions/invalidation/types.js';
 import type { ExtensionSlotName } from '../../../src/extensions/types/basic/mount.js';
 import type { RenderFrameSnapshot } from '../../../src/extensions/types/basic/render.js';
@@ -35,9 +36,7 @@ function createFakeInvalidation(): ExtensionInvalidationState {
 }
 
 function createFakeAnimationController() {
-	return {
-		sessions: new Map()
-	};
+	return createExtensionAnimationController();
 }
 
 export function createFakeExtensionRecord(
@@ -50,7 +49,11 @@ export function createFakeExtensionRecord(
 		destroy: vi.fn(),
 		onUpdate: vi.fn(),
 		render: vi.fn(),
-		renderTransientVisuals: vi.fn()
+		renderTransientVisuals: vi.fn(),
+		prepareAnimation: vi.fn(),
+		renderAnimation: vi.fn(),
+		onAnimationFinished: vi.fn(),
+		cleanAnimation: vi.fn()
 	} as unknown as AnyExtensionInstance;
 
 	const definition: AnyExtensionDefinition = {
@@ -64,8 +67,7 @@ export function createFakeExtensionRecord(
 		definition,
 		instance,
 		invalidation: createFakeInvalidation(),
-		animation:
-			createFakeAnimationController() as unknown as ExtensionSystemExtensionRecord['animation']
+		animation: createFakeAnimationController()
 	};
 }
 
