@@ -39,6 +39,10 @@ The default first-party extension baseline includes rendering, events, selection
 
 That means the board already covers a meaningful baseline chess UX instead of stopping at “draw squares and pieces”.
 
+### Built-in chessboard behavior
+
+Mirasen Chessboard provides a complete modern interaction and visual baseline out of the box: selection, deselection, reselection, drag-to-move, release targeting, legal destinations, promotion, auto-promotion, and state-diff animation. Moves are resolved on release rather than committed immediately on press, giving users a more forgiving interaction flow. Because animation is driven by board-state transitions, pieces can move, appear, disappear, promote, or return smoothly without app-level glue code.
+
 ## Highlights
 
 - Real built-in chess interaction
