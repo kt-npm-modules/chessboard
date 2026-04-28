@@ -27,7 +27,7 @@ export function createInputAdapter(options: InputAdapterInitOptions): InputAdapt
 		},
 		unsubscribeEvent(type) {
 			assert(
-				NEED_EVENT_TYPES.has(type),
+				!NEED_EVENT_TYPES.has(type),
 				`Unsubscribe for event type ${type} is not supported. This is required event type for the board to function properly.`
 			);
 			internalState.container.removeEventListener(type, onEventHander);
