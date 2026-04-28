@@ -49,7 +49,8 @@ export function createFakeExtensionRecord(
 		unmount: vi.fn(),
 		destroy: vi.fn(),
 		onUpdate: vi.fn(),
-		render: vi.fn()
+		render: vi.fn(),
+		renderTransientVisuals: vi.fn()
 	} as unknown as AnyExtensionInstance;
 
 	const definition: AnyExtensionDefinition = {
@@ -127,6 +128,7 @@ export function createFakeRenderFrame(opts: FakeRenderFrameOptions = {}): Render
 export interface FakeRenderInternalOptions {
 	extensions?: FakeExtensionOptions[];
 	mounted?: boolean;
+	transientVisualsSubscribers?: string[];
 }
 
 export function createFakeRenderInternal(
@@ -159,7 +161,7 @@ export function createFakeRenderInternal(
 		svgRoots,
 		scheduler: { schedule: vi.fn(), flushNow: vi.fn(), cancel: vi.fn() },
 		extensions,
-		transientVisualsSubscribers: new Set()
+		transientVisualsSubscribers: new Set(opts.transientVisualsSubscribers ?? [])
 	};
 
 	return state;
