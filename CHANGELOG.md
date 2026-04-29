@@ -1,5 +1,16 @@
 # @mirasen/chessboard
 
+## 1.1.0
+
+### Minor Changes
+
+- 3956358: Add a stable chess.js adapter with pure move conversion helpers.
+
+### Patch Changes
+
+- 3956358: Fix lifted-drag animation suppression for compound moves.
+- 3956358: Fix `onUIMove` so it only fires for committed UI moves.
+
 ## 1.0.7
 
 ### Patch Changes
