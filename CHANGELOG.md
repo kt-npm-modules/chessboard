@@ -1,5 +1,12 @@
 # @mirasen/chessboard
 
+## 1.0.7
+
+### Patch Changes
+
+- 92c3a69: Fix promotion animation planning when cancelling deferred promotion moves after a previous promotion.
+- 92c3a69: Fix piece suppression updates during deferred move animations.
+
 ## 1.0.6
 
 ### Patch Changes
