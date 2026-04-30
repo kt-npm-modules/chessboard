@@ -25,7 +25,7 @@ export const DEFAULT_CONFIG: LegalMovesConfig = {
 			opacity: 0.14
 		},
 		radiusRatio: 0.165
-	}, // semi-transparent black
+	},
 	captureTarget: {
 		color: {
 			color: 'rgb(0, 0, 0)',
