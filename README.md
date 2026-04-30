@@ -8,6 +8,12 @@
 
 A framework-agnostic TypeScript chessboard platform with real chess interaction built in and an extension-driven architecture.
 
+## Try it live
+
+- [Play a chess.js game](https://mirasen.io/chessboard/examples/chessjs.html)
+- [Try the promotion flow](https://mirasen.io/chessboard/examples/promotion.html)
+- [Try the minimal example](https://mirasen.io/chessboard/examples/minimal.html)
+
 ## Why this exists
 
 Most chessboards fall into one of two buckets:
@@ -67,15 +73,6 @@ Rules and legality still belong to your game layer. Use the built-in `chess.js` 
 ```bash
 npm install @mirasen/chessboard
 ```
-
-## Live examples
-
-Interactive examples are available on the Mirasen website:
-
-- [Examples overview](https://mirasen.io/chessboard/examples/)
-- [Minimal interactive example](https://mirasen.io/chessboard/examples/minimal.html)
-- [Promotion example](https://mirasen.io/chessboard/examples/promotion.html)
-- [chess.js game example](https://mirasen.io/chessboard/examples/chessjs.html)
 
 ## Usage
 
