@@ -287,6 +287,8 @@ The goal is to make common chess interaction powerful without making the system 
 
 ## Not just a primitive, not a monolith
 
+The project is intentionally positioned between two weak extremes:
+
 ### Primitive-only board
 
 A board that only renders pieces and leaves everything else to app code often forces consumers to rebuild the same interaction UX repeatedly.
@@ -295,9 +297,15 @@ A board that only renders pieces and leaves everything else to app code often fo
 
 A board that handles everything internally without clean boundaries becomes difficult to evolve, customize, or extend.
 
-`@mirasen/chessboard` aims for a middle path: strong built-in baseline interaction, clean internal architecture, and extension-driven feature growth.
+`@mirasen/chessboard` aims for a middle path:
 
-**Opt out, not build up.** Common chessboard behavior is included by default: rendering, interaction, selection, legal target feedback, promotion, and animation. You start from a working interaction baseline and remove or replace extensions only when you want less or need something different.
+- strong built-in baseline interaction
+- clean internal architecture
+- extension-driven feature growth
+
+### Opt out, not build up
+
+Common chessboard behavior is included by default: rendering, interaction, selection, legal target feedback, promotion, and animation. You start from a working interaction baseline and remove or replace extensions only when you want less or need something different.
 
 ## Project direction
 
@@ -317,7 +325,7 @@ This is the current default piece set used by the library.
 
 For details, see:
 
-- [./assets/pieces/chessnut/ATTRIBUTION.md](./assets/pieces/chessnut/ATTRIBUTION.md)
+- [./assets/pieces/chessnut/ATTRIBUTION.md](./assets/pieces/chessnut/LICENSE.txt)
 - [./assets/pieces/chessnut/LICENSE.txt](./assets/pieces/chessnut/LICENSE.txt)
 
 ```
