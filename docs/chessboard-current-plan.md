@@ -1,87 +1,40 @@
 # Chessboard current plan
 
-## Current status
+## Status
 
-The project has already crossed the `1.0.0-rc.0` checkpoint.
+The planned `@mirasen/chessboard` v1 architecture test rebuild is complete.
 
-Already in place:
+The previous active plan was to delete obsolete tests and rebuild the test suite subsystem by subsystem:
 
-- framework-agnostic package and public package path
-- extension-driven architecture
-- built-in first-party extension baseline
-- renderer as a first-party extension
-- events
-- selected square
-- active target
-- legal moves
-- last move
-- promotion
-- auto-promote
-- deferred UI move flow for promotion
-- move animation pipeline refactor
-- promotion / auto-promote animation semantics cleanup
-- updated README
-- updated package positioning/copy
-- updated website copy
-- updated GitHub repo / org profile copy
+1. state
+2. layout
+3. animation
+4. runtime
+5. render
+6. extensions
+7. wrapper
 
-Not in place yet:
+That work is complete.
 
-- a real new test suite for the current architecture
-- final hardening toward full `v1.0.0`
+## Current planning state
 
-## Target
+There is no active v1 test-rebuild plan at this time.
 
-Full release `v1.0.0`
+The package has a current architecture-aligned test suite with broad coverage across the core subsystems, render pipeline, runtime, first-party extensions, main renderer, and wrapper.
 
-## Next phase
+Remaining uncovered lines are accepted coverage tails unless they correspond to a real bug, regression, or future feature task.
 
-Delete obsolete old tests, create a clean new test tree, and rebuild tests from scratch subsystem by subsystem.
+## Next work
 
-## Test subsystems order
+Future work should start from a new focused task frame rather than continuing the old test-rebuild plan.
 
-1. `state/board`
-2. `state/change`
-3. `state/view`
-4. `state/interaction`
-5. `layout`
-6. `animation`
-7. `runtime`
-8. `render`
-9. `extensions`
-10. `wrapper`
+Possible future task categories:
 
-## Test structure
+- release polish
+- package/API sanity checks
+- documentation polish
+- example/app smoke checks
+- adapter work
+- post-v1 feature planning
 
-- `tests/state`
-- `tests/layout`
-- `tests/animation`
-- `tests/runtime`
-- `tests/render`
-- `tests/extensions`
-- `tests/wrapper`
-- `tests/test-utils`
-
-## Test-utils structure - example
-
-- `tests/test-utils/state/board`
-- `tests/test-utils/state/board/mock`
-- `tests/test-utils/state/change`
-- `tests/test-utils/state/change/mock`
-- `tests/test-utils/state/view`
-- `tests/test-utils/state/view/mock`
-- `tests/test-utils/state/interaction`
-- `tests/test-utils/state/interaction/mock`
-
-## Rules
-
-- reusable mocks, builders, and helpers go into `tests/test-utils`
-- spec files stay focused
-- old tests are treated as obsolete and should be deleted before the new pass starts
-
-## Immediate next step
-
-1. Delete obsolete tests - COMPLETE
-2. Create the new `tests/` skeleton - COMPLETE
-3. Create the new `tests/test-utils/` skeleton - COMPLETE
-4. Start with the `state/*` subsystems
+Do not treat the old subsystem rebuild order as active work.
