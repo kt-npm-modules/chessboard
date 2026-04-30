@@ -287,7 +287,9 @@ The goal is to make common chess interaction powerful without making the system 
 
 ## Not just a primitive, not a monolith
 
-The project is intentionally positioned between two weak extremes:
+`@mirasen/chessboard` is designed around an **opt out, not build up** model.
+
+Common chessboard behavior is included by default: rendering, interaction, selection, legal target feedback, promotion, and animation. You start from a working interaction baseline and remove or replace extensions only when you want less or need something different.
 
 ### Primitive-only board
 
