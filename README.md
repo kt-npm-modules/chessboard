@@ -297,11 +297,15 @@ A board that only renders pieces and leaves everything else to app code often fo
 
 A board that handles everything internally without clean boundaries becomes difficult to evolve, customize, or extend.
 
+### Opt out, not build up
+
 `@mirasen/chessboard` aims for a middle path:
 
 - strong built-in baseline interaction
 - clean internal architecture
 - extension-driven feature growth
+
+Common chessboard behavior is included by default: rendering, interaction, selection, legal target feedback, promotion, and animation. You start from a working interaction baseline and remove or replace extensions only when you want less or need something different.
 
 ## Project direction
 
@@ -323,7 +327,3 @@ For details, see:
 
 - [./assets/pieces/chessnut/ATTRIBUTION.md](./assets/pieces/chessnut/ATTRIBUTION.md)
 - [./assets/pieces/chessnut/LICENSE.txt](./assets/pieces/chessnut/LICENSE.txt)
-
-```
-
-```
