@@ -97,6 +97,8 @@ export interface PiecesUpdateContextOptions {
 	previousFrame?: boolean;
 	sceneSize?: number;
 	orientation?: ColorCode;
+	dragSession?: object | null;
+	deferredUIMoveRequest?: object | null;
 }
 
 /**
@@ -125,9 +127,9 @@ export function createPiecesUpdateContext(opts: PiecesUpdateContextOptions = {})
 			selected: null,
 			movability: { mode: 0 },
 			activeDestinations: new Map(),
-			dragSession: null
+			dragSession: opts.dragSession ?? null
 		},
-		change: { lastMove: null, deferredUIMoveRequest: null }
+		change: { lastMove: null, deferredUIMoveRequest: opts.deferredUIMoveRequest ?? null }
 	} as unknown as RuntimeStateSnapshot;
 
 	const currentFrame = isMounted
@@ -195,6 +197,63 @@ export function createPiecesUpdateContext(opts: PiecesUpdateContextOptions = {})
 		},
 		currentFrame,
 		invalidation: { dirtyLayers: 0, markDirty, clearDirty: vi.fn(), clear: vi.fn() }
+	} as never;
+
+	return { context, markDirty };
+}
+
+// ─── Clean animation context (for suppression refresh) ────────────────────────
+
+export interface PiecesCleanAnimationContextOptions {
+	dirtyLayers?: number;
+	orientation?: ColorCode;
+	sceneSize?: number;
+	pieces?: Uint8Array;
+	dragSession?: object | null;
+	deferredUIMoveRequest?: object | null;
+}
+
+/**
+ * Builds a minimal ExtensionCleanAnimationContext for pieces suppression refresh tests.
+ * Returns { context, markDirty }.
+ */
+export function createPiecesCleanAnimationContext(opts: PiecesCleanAnimationContextOptions = {}) {
+	const markDirty = vi.fn();
+	const size = opts.sceneSize ?? 400;
+	const orientation = opts.orientation ?? ColorCode.White;
+	const geometry = createRenderGeometry({ width: size, height: size }, orientation);
+	const pieces = opts.pieces ?? new Uint8Array(SQUARE_COUNT);
+
+	const context = {
+		currentFrame: {
+			state: {
+				board: { pieces, turn: ColorCode.White, positionEpoch: 0 },
+				view: {},
+				interaction: {
+					selected: null,
+					movability: { mode: 0 },
+					activeDestinations: new Map(),
+					dragSession: opts.dragSession ?? null
+				},
+				change: {
+					lastMove: null,
+					deferredUIMoveRequest: opts.deferredUIMoveRequest ?? null
+				}
+			} as unknown as RuntimeStateSnapshot,
+			layout: {
+				sceneSize: { width: size, height: size },
+				orientation,
+				geometry,
+				layoutEpoch: 1
+			}
+		},
+		invalidation: {
+			dirtyLayers: opts.dirtyLayers ?? DirtyLayer.Pieces,
+			markDirty,
+			clearDirty: vi.fn(),
+			clear: vi.fn()
+		},
+		finishedSessions: []
 	} as never;
 
 	return { context, markDirty };
