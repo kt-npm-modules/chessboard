@@ -23,7 +23,8 @@ import {
 	isSquareString,
 	isValidSquare,
 	isWhitePieceCode,
-	piecePositionsEqual
+	piecePositionsEqual,
+	positionsEqual
 } from '../../../src/state/board/check.js';
 import { normalizeSquare } from '../../../src/state/board/normalize.js';
 import {
@@ -271,11 +272,12 @@ describe('piecePositionsEqual', () => {
 		expect(piecePositionsEqual(a, b)).toBe(true);
 	});
 
-	it('returns false for different epoch even with same pieces', () => {
+	it('returns true for same pieces even when positionEpoch differs', () => {
 		const pieces = new Uint8Array(SQUARE_COUNT);
+		pieces[0] = PieceCode.WhiteRook;
 		const a = makeSnapshot({ pieces, positionEpoch: 1 });
 		const b = makeSnapshot({ pieces: new Uint8Array(pieces), positionEpoch: 2 });
-		expect(piecePositionsEqual(a, b)).toBe(false);
+		expect(piecePositionsEqual(a, b)).toBe(true);
 	});
 
 	it('returns false for same epoch but different pieces', () => {
@@ -285,5 +287,41 @@ describe('piecePositionsEqual', () => {
 		const a = makeSnapshot({ pieces: piecesA, positionEpoch: 0 });
 		const b = makeSnapshot({ pieces: piecesB, positionEpoch: 0 });
 		expect(piecePositionsEqual(a, b)).toBe(false);
+	});
+});
+
+describe('positionsEqual', () => {
+	it('returns true for same pieces and same turn even if positionEpoch differs', () => {
+		const pieces = new Uint8Array(SQUARE_COUNT);
+		pieces[0] = PieceCode.WhiteKing;
+		const a = makeSnapshot({ pieces, turn: ColorCode.White, positionEpoch: 3 });
+		const b = makeSnapshot({
+			pieces: new Uint8Array(pieces),
+			turn: ColorCode.White,
+			positionEpoch: 7
+		});
+		expect(positionsEqual(a, b)).toBe(true);
+	});
+
+	it('returns false for same pieces but different turn', () => {
+		const pieces = new Uint8Array(SQUARE_COUNT);
+		pieces[0] = PieceCode.WhiteKing;
+		const a = makeSnapshot({ pieces, turn: ColorCode.White, positionEpoch: 0 });
+		const b = makeSnapshot({
+			pieces: new Uint8Array(pieces),
+			turn: ColorCode.Black,
+			positionEpoch: 0
+		});
+		expect(positionsEqual(a, b)).toBe(false);
+	});
+
+	it('returns false for different pieces but same turn', () => {
+		const piecesA = new Uint8Array(SQUARE_COUNT);
+		piecesA[0] = PieceCode.WhiteKing;
+		const piecesB = new Uint8Array(SQUARE_COUNT);
+		piecesB[0] = PieceCode.BlackKing;
+		const a = makeSnapshot({ pieces: piecesA, turn: ColorCode.White });
+		const b = makeSnapshot({ pieces: piecesB, turn: ColorCode.White });
+		expect(positionsEqual(a, b)).toBe(false);
 	});
 });

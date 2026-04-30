@@ -19,6 +19,8 @@ import {
 	MoveRequest,
 	NonEmptyPieceCode,
 	PieceCode,
+	PiecePositionSnapshot,
+	PositionSnapshot,
 	RoleCode,
 	RolePromotionCode,
 	Square,
@@ -26,7 +28,7 @@ import {
 	SquareFile,
 	SquareRank
 } from './types/internal.js';
-import { BoardStateSnapshot } from './types/main.js';
+import type { BoardStateSnapshot } from './types/main.js';
 
 export function isWhitePieceCode(code: NonEmptyPieceCode): boolean {
 	return code > PieceCode.Empty && code < ColorCode.Black;
@@ -48,12 +50,20 @@ export function isNonEmptyPieceCode(code: PieceCode): code is NonEmptyPieceCode 
 	return code !== PieceCode.Empty;
 }
 
-export function piecePositionsEqual(pos1: BoardStateSnapshot, pos2: BoardStateSnapshot): boolean {
-	if (pos1.positionEpoch !== pos2.positionEpoch) return false;
+export function piecePositionsEqual(
+	pos1: PiecePositionSnapshot,
+	pos2: PiecePositionSnapshot
+): boolean {
+	if (pos1.pieces.length !== pos2.pieces.length) return false;
 	for (let i = 0; i < pos1.pieces.length; i++) {
 		if (pos1.pieces[i] !== pos2.pieces[i]) return false;
 	}
 	return true;
+}
+
+export function positionsEqual(pos1: PositionSnapshot, pos2: PositionSnapshot): boolean {
+	if (pos1.turn !== pos2.turn) return false;
+	return piecePositionsEqual(pos1, pos2);
 }
 
 export function isRank(n: number): n is SquareRank {

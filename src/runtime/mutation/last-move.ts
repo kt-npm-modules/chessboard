@@ -15,7 +15,7 @@ export const clearLastMoveOnBoardSetPosition: RuntimeMutationPipe = (context, mu
 	const { current } = context;
 	if (
 		!mutationSession.hasMutation({
-			causes: ['state.board.setPosition', 'state.board.setPiecePosition']
+			causes: ['state.board.setPosition', 'state.board.setPiecePosition', 'state.board.setTurn']
 		})
 	) {
 		return;

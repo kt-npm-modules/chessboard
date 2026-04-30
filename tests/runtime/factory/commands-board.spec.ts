@@ -15,10 +15,11 @@ describe('runtime board commands', () => {
 			expect(result).toBe(true);
 		});
 
-		it('returns true even when setting same position (always replaces)', () => {
+		it('returns false when setting same position (idempotent no-op)', () => {
 			const runtime = createTestRuntime();
+			// Default is start position with white turn; setting same should be no-op
 			const result = runtime.setPosition('start');
-			expect(result).toBe(true);
+			expect(result).toBe(false);
 		});
 
 		it('snapshot reflects new position after setPosition', () => {
@@ -42,15 +43,72 @@ describe('runtime board commands', () => {
 			expect(epochAfter).toBeGreaterThan(epochBefore);
 		});
 
-		it('clears lastMove after setPosition', () => {
+		it('clears lastMove after setPosition with a different position', () => {
 			const runtime = createTestRuntime();
 			// Make a move to set lastMove
 			runtime.move({ from: 'e2', to: 'e4' });
 			expect(runtime.getSnapshot().state.change.lastMove).not.toBeNull();
 
-			// setPosition should clear it
+			// setPosition with a genuinely different position should clear it
 			runtime.setPosition('start');
 			expect(runtime.getSnapshot().state.change.lastMove).toBeNull();
+		});
+
+		it('setPosition with equivalent post-move position is no-op and preserves lastMove', () => {
+			const runtime = createTestRuntime();
+			// Make a real move
+			runtime.move({ from: 'e2', to: 'e4' });
+			const snapshotAfterMove = runtime.getSnapshot();
+			expect(snapshotAfterMove.state.change.lastMove).not.toBeNull();
+			const lastMoveBefore = snapshotAfterMove.state.change.lastMove;
+
+			// Build the equivalent position: start position with pawn moved e2→e4, black turn
+			// This is the same board state the runtime already has after the move
+			const result = runtime.setPosition({
+				pieces: {
+					a1: 'wR',
+					b1: 'wN',
+					c1: 'wB',
+					d1: 'wQ',
+					e1: 'wK',
+					f1: 'wB',
+					g1: 'wN',
+					h1: 'wR',
+					a2: 'wP',
+					b2: 'wP',
+					c2: 'wP',
+					d2: 'wP',
+					// e2 is now empty (pawn moved)
+					f2: 'wP',
+					g2: 'wP',
+					h2: 'wP',
+					e4: 'wP', // pawn is here now
+					a7: 'bP',
+					b7: 'bP',
+					c7: 'bP',
+					d7: 'bP',
+					e7: 'bP',
+					f7: 'bP',
+					g7: 'bP',
+					h7: 'bP',
+					a8: 'bR',
+					b8: 'bN',
+					c8: 'bB',
+					d8: 'bQ',
+					e8: 'bK',
+					f8: 'bB',
+					g8: 'bN',
+					h8: 'bR'
+				},
+				turn: 'black'
+			});
+
+			// Should be no-op because position is semantically identical
+			expect(result).toBe(false);
+
+			// lastMove must still be present and unchanged
+			const snapshotAfter = runtime.getSnapshot();
+			expect(snapshotAfter.state.change.lastMove).toEqual(lastMoveBefore);
 		});
 	});
 
@@ -79,7 +137,7 @@ describe('runtime board commands', () => {
 			expect(runtime.getSnapshot().state.board.turn).toBe(turnBefore);
 		});
 
-		it('clears lastMove after setPiecePosition', () => {
+		it('clears lastMove after setPiecePosition with different pieces', () => {
 			const runtime = createTestRuntime();
 			runtime.move({ from: 'e2', to: 'e4' });
 			expect(runtime.getSnapshot().state.change.lastMove).not.toBeNull();
@@ -107,6 +165,18 @@ describe('runtime board commands', () => {
 			const runtime = createTestRuntime();
 			runtime.setTurn('black');
 			expect(runtime.getSnapshot().state.board.turn).toBe(8); // ColorCode.Black
+		});
+
+		it('clears lastMove when turn changes', () => {
+			const runtime = createTestRuntime();
+			// Make a move to set lastMove (turn becomes black)
+			runtime.move({ from: 'e2', to: 'e4' });
+			expect(runtime.getSnapshot().state.change.lastMove).not.toBeNull();
+
+			// Change turn back to white — should clear lastMove
+			const result = runtime.setTurn('white');
+			expect(result).toBe(true);
+			expect(runtime.getSnapshot().state.change.lastMove).toBeNull();
 		});
 	});
 

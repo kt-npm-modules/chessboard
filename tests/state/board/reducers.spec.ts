@@ -1,17 +1,22 @@
 import { describe, expect, it } from 'vitest';
 import { normalizeSquare } from '../../../src/state/board/normalize.js';
 import { boardParsePosition } from '../../../src/state/board/position.js';
-import { boardMove, boardSetPosition, boardSetTurn } from '../../../src/state/board/reducers.js';
+import {
+	boardMove,
+	boardSetPiecePosition,
+	boardSetPosition,
+	boardSetTurn
+} from '../../../src/state/board/reducers.js';
 import { ColorCode, PieceCode, RoleCode } from '../../../src/state/board/types/internal.js';
 import { createTestBoardInternalState } from '../../test-utils/state/board/internal-state.js';
 
-describe('boardSetPosition', () => {
+describe('boardSetPiecePosition', () => {
 	it('replaces pieces array, increments epoch, and returns true', () => {
 		const state = createTestBoardInternalState();
 		const startPosition = boardParsePosition('start');
 		const originalEpoch = state.positionEpoch;
 
-		const result = boardSetPosition(state, startPosition.pieces);
+		const result = boardSetPiecePosition(state, startPosition.pieces);
 
 		expect(result).toBe(true);
 		expect(state.positionEpoch).toBe(originalEpoch + 1);
@@ -19,25 +24,98 @@ describe('boardSetPosition', () => {
 		expect(state.pieces).not.toBe(startPosition.pieces);
 		expect(state.pieces[normalizeSquare('e1')]).toBe(PieceCode.WhiteKing);
 	});
+
+	it('returns false and does not increment epoch for equivalent piece placement', () => {
+		const state = createTestBoardInternalState({
+			pieces: [
+				[normalizeSquare('e1'), PieceCode.WhiteKing],
+				[normalizeSquare('e8'), PieceCode.BlackKing]
+			],
+			positionEpoch: 2
+		});
+		// Build same pieces array
+		const samePieces = new Uint8Array(state.pieces);
+
+		const result = boardSetPiecePosition(state, samePieces);
+
+		expect(result).toBe(false);
+		expect(state.positionEpoch).toBe(2);
+	});
+});
+
+describe('boardSetPosition', () => {
+	it('returns true and increments epoch for a different position', () => {
+		const state = createTestBoardInternalState({
+			pieces: [[normalizeSquare('e1'), PieceCode.WhiteKing]],
+			turn: ColorCode.White
+		});
+		const originalEpoch = state.positionEpoch;
+		const newPosition = boardParsePosition({ pieces: { a1: 'wR' }, turn: 'black' });
+
+		const result = boardSetPosition(state, newPosition);
+
+		expect(result).toBe(true);
+		expect(state.positionEpoch).toBe(originalEpoch + 1);
+		expect(state.pieces[normalizeSquare('a1')]).toBe(PieceCode.WhiteRook);
+		expect(state.turn).toBe(ColorCode.Black);
+	});
+
+	it('returns false and does not increment epoch for equivalent position (no-op)', () => {
+		const state = createTestBoardInternalState({
+			pieces: [[normalizeSquare('e1'), PieceCode.WhiteKing]],
+			turn: ColorCode.White,
+			positionEpoch: 5
+		});
+		// Build the same position
+		const samePosition = {
+			pieces: new Uint8Array(state.pieces),
+			turn: ColorCode.White as const
+		};
+
+		const result = boardSetPosition(state, samePosition);
+
+		expect(result).toBe(false);
+		expect(state.positionEpoch).toBe(5);
+	});
+
+	it('returns true when pieces are same but turn differs', () => {
+		const state = createTestBoardInternalState({
+			pieces: [[normalizeSquare('e1'), PieceCode.WhiteKing]],
+			turn: ColorCode.White,
+			positionEpoch: 3
+		});
+		const positionWithDifferentTurn = {
+			pieces: new Uint8Array(state.pieces),
+			turn: ColorCode.Black as const
+		};
+
+		const result = boardSetPosition(state, positionWithDifferentTurn);
+
+		expect(result).toBe(true);
+		expect(state.positionEpoch).toBe(4);
+		expect(state.turn).toBe(ColorCode.Black);
+	});
 });
 
 describe('boardSetTurn', () => {
-	it('returns true when turn changes', () => {
-		const state = createTestBoardInternalState({ turn: ColorCode.White });
+	it('returns true, updates turn, and increments positionEpoch when turn changes', () => {
+		const state = createTestBoardInternalState({ turn: ColorCode.White, positionEpoch: 2 });
 
 		const result = boardSetTurn(state, ColorCode.Black);
 
 		expect(result).toBe(true);
 		expect(state.turn).toBe(ColorCode.Black);
+		expect(state.positionEpoch).toBe(3);
 	});
 
-	it('returns false when turn is already the requested value', () => {
-		const state = createTestBoardInternalState({ turn: ColorCode.White });
+	it('returns false and does not increment positionEpoch when turn is already the requested value', () => {
+		const state = createTestBoardInternalState({ turn: ColorCode.White, positionEpoch: 4 });
 
 		const result = boardSetTurn(state, ColorCode.White);
 
 		expect(result).toBe(false);
 		expect(state.turn).toBe(ColorCode.White);
+		expect(state.positionEpoch).toBe(4);
 	});
 });
 

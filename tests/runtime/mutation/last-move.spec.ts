@@ -75,7 +75,22 @@ describe('clearLastMoveOnBoardSetPosition', () => {
 		expect(context.current.state.change.lastMove).toBeNull();
 	});
 
-	it('no-op when neither setPosition nor setPiecePosition mutation present', () => {
+	it('clears lastMove when state.board.setTurn mutation present', () => {
+		const context = createMockPipeContext();
+		const setupSession = createSession();
+		const move = makeMoveSnapshot();
+		context.current.state.change.setLastMove(move, setupSession);
+		expect(context.current.state.change.lastMove).not.toBeNull();
+
+		const session = createSession();
+		session.addMutation('state.board.setTurn', true);
+
+		clearLastMoveOnBoardSetPosition(context, session);
+
+		expect(context.current.state.change.lastMove).toBeNull();
+	});
+
+	it('no-op when neither setPosition nor setPiecePosition nor setTurn mutation present', () => {
 		const context = createMockPipeContext();
 		const setupSession = createSession();
 		const move = makeMoveSnapshot();
