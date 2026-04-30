@@ -2,8 +2,6 @@
 
 ## Project
 
-## Project
-
 `@mirasen/chessboard` is a TypeScript chessboard library focused on clean architecture, predictable rendering, explicit contracts, and future extension support.
 
 ## Instructions
@@ -154,6 +152,25 @@ Respect the existing architecture.
 - Verify both runtime behavior and cleanup behavior where relevant.
 - Avoid brittle tests that depend on incidental implementation details.
 - Do not delete tests unless they are truly invalid and the reason is stated explicitly.
+- Prefer behavior-focused tests over coverage-chasing.
+- Do not chase 100% coverage for defensive branches, type artifacts, or unreachable fallback paths unless the branch represents meaningful behavior.
+- If remaining uncovered lines are accepted coverage tails, leave them alone unless tied to a real bug, regression, or future feature task.
+
+### Test suite organization rules
+
+- Keep test files focused and reasonably small; as a working guideline, prefer about 200-250 lines maximum per spec file.
+- If a test area grows beyond that, split by behavior using scope-specific file names such as `render-basic.spec.ts`, `render-reconcile.spec.ts`, `update-dirtying.spec.ts`, or `lifecycle-unmount.spec.ts`.
+- Do not create large catch-all spec files.
+- Do not keep reusable local `_helpers.ts` files beside specs when the helper belongs in `tests/test-utils`.
+- `tests/test-utils` should mirror the relevant `src` structure for subsystem-specific helpers.
+- Generic DOM/SVG helpers belong under generic test-utils paths such as `tests/test-utils/dom/`.
+- Subsystem-specific helpers belong under matching subsystem paths such as `tests/test-utils/extensions/first-party/main-renderer/`.
+- Keep casts and mock-shape compromises localized inside test-utils helpers when possible.
+- Avoid scattering `as never`, broad casts, or hand-built context mocks through spec files.
+- Prefer public or observable behavior in specs.
+- Use direct exported internal functions only when they are intentionally exported and the test remains narrower and clearer than going through a larger integration surface.
+- Do not broaden test-utils into generic frameworks unless multiple test areas clearly need the same abstraction.
+- Do not duplicate helper logic across specs; extract small generic primitives or subsystem-specific helpers where reuse is clear.
 
 ### Performance and behavior
 
