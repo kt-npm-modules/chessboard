@@ -66,12 +66,14 @@ export function makeSnapshot(
 		board?: BoardStateSnapshot;
 		change?: ChangeStateSnapshot;
 		interaction?: InteractionStateSnapshot;
+		lastMoveSource?: AnimationPlanningSnapshot['lastMoveSource'];
 	} = {}
 ): AnimationPlanningSnapshot {
 	return {
 		board: overrides.board ?? makeBoardSnapshot(),
 		change: overrides.change ?? makeChangeSnapshot(),
-		interaction: overrides.interaction ?? makeInteractionSnapshot()
+		interaction: overrides.interaction ?? makeInteractionSnapshot(),
+		lastMoveSource: overrides.lastMoveSource ?? 'state'
 	};
 }
 

@@ -185,7 +185,7 @@ jobs:
           fetch-depth: 0 # fetch all history for accurate SonarCloud analysis
 
       - name: Download all coverage artifacts to repo root
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           pattern: 'coverage-*'
           path: .
