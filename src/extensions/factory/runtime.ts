@@ -75,7 +75,7 @@ function createExtensionRuntimeSurfaceEvents(
 			}
 			const sizeBeforeAdd = subscribers.size;
 			subscribers.add(extensionDef.id);
-			if (subscribers.size !== sizeBeforeAdd) {
+			if (sizeBeforeAdd === 0) {
 				runtimeSurfaceEvents.subscribeEvent(type);
 			}
 		},

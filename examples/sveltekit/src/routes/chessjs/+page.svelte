@@ -11,7 +11,7 @@
 	let boardEl: HTMLDivElement;
 	let board: ReturnType<typeof createBoard> | null = null;
 	const playerColor = 'w';
-	const computerTimeoutDuration = 3000; // milliseconds
+	const computerTimeoutDuration = 1000; // milliseconds
 	let chess = new Chess();
 	let status = $state('Your move');
 	let computerTimeout: ReturnType<typeof setTimeout> | null = null;
