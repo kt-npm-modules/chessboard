@@ -50,7 +50,7 @@ describe('createExtensionRuntimeSurface – events', () => {
 			expect(rawEvents.subscribeEvent).toHaveBeenCalledWith('pointerdown');
 		});
 
-		it('calls raw subscribeEvent each time even if already subscribed', () => {
+		it('does not call raw subscribeEvent again when same extension is already subscribed', () => {
 			const record = createFakeExtensionRecord('my-ext', { hasOnEvent: true });
 			const internalState = createInternalState([record]);
 			const rawCommands = createMockCommandsSurface();
@@ -67,7 +67,7 @@ describe('createExtensionRuntimeSurface – events', () => {
 			surface.events.subscribeEvent('pointerdown' as never);
 			surface.events.subscribeEvent('pointerdown' as never);
 
-			expect(rawEvents.subscribeEvent).toHaveBeenCalledTimes(2);
+			expect(rawEvents.subscribeEvent).toHaveBeenCalledTimes(1);
 			expect(internalState.eventSubscribers.get('pointerdown')!.size).toBe(1);
 		});
 
