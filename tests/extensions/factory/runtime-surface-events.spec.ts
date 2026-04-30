@@ -31,7 +31,7 @@ describe('createExtensionRuntimeSurface – events', () => {
 			expect(subscribers!.has('my-ext')).toBe(true);
 		});
 
-		it('delegates to raw runtime events surface subscribeEvent', () => {
+		it('delegates to raw runtime events surface subscribeEvent on first subscriber', () => {
 			const record = createFakeExtensionRecord('my-ext', { hasOnEvent: true });
 			const internalState = createInternalState([record]);
 			const rawCommands = createMockCommandsSurface();
@@ -48,9 +48,10 @@ describe('createExtensionRuntimeSurface – events', () => {
 			surface.events.subscribeEvent('pointerdown' as never);
 
 			expect(rawEvents.subscribeEvent).toHaveBeenCalledWith('pointerdown');
+			expect(rawEvents.subscribeEvent).toHaveBeenCalledTimes(1);
 		});
 
-		it('calls raw subscribeEvent each time even if already subscribed', () => {
+		it('does not call raw subscribeEvent again when same extension subscribes twice', () => {
 			const record = createFakeExtensionRecord('my-ext', { hasOnEvent: true });
 			const internalState = createInternalState([record]);
 			const rawCommands = createMockCommandsSurface();
@@ -67,8 +68,37 @@ describe('createExtensionRuntimeSurface – events', () => {
 			surface.events.subscribeEvent('pointerdown' as never);
 			surface.events.subscribeEvent('pointerdown' as never);
 
-			expect(rawEvents.subscribeEvent).toHaveBeenCalledTimes(2);
+			expect(rawEvents.subscribeEvent).toHaveBeenCalledTimes(1);
 			expect(internalState.eventSubscribers.get('pointerdown')!.size).toBe(1);
+		});
+
+		it('does not call raw subscribeEvent again when a second extension subscribes to the same event type', () => {
+			const recA = createFakeExtensionRecord('ext-a', { hasOnEvent: true });
+			const recB = createFakeExtensionRecord('ext-b', { hasOnEvent: true });
+			const internalState = createInternalState([recA, recB]);
+			const rawCommands = createMockCommandsSurface();
+			const rawEvents = createMockEventsSurface();
+			const extDefA = createFakeExtensionDef('ext-a');
+			const extDefB = createFakeExtensionDef('ext-b');
+
+			const surfaceA = createExtensionRuntimeSurface(
+				() => internalState,
+				rawCommands,
+				rawEvents,
+				extDefA
+			);
+			const surfaceB = createExtensionRuntimeSurface(
+				() => internalState,
+				rawCommands,
+				rawEvents,
+				extDefB
+			);
+
+			surfaceA.events.subscribeEvent('pointerdown' as never);
+			surfaceB.events.subscribeEvent('pointerdown' as never);
+
+			expect(rawEvents.subscribeEvent).toHaveBeenCalledTimes(1);
+			expect(internalState.eventSubscribers.get('pointerdown')!.size).toBe(2);
 		});
 
 		it('throws if extension record is missing', () => {
@@ -126,7 +156,7 @@ describe('createExtensionRuntimeSurface – events', () => {
 			expect(internalState.eventSubscribers.has('pointerdown')).toBe(false);
 		});
 
-		it('delegates to raw unsubscribeEvent only when last subscriber is removed', () => {
+		it('calls raw unsubscribeEvent only when last subscriber is removed', () => {
 			const recA = createFakeExtensionRecord('ext-a', { hasOnEvent: true });
 			const recB = createFakeExtensionRecord('ext-b', { hasOnEvent: true });
 			const internalState = createInternalState([recA, recB]);
@@ -153,10 +183,13 @@ describe('createExtensionRuntimeSurface – events', () => {
 
 			surfaceA.events.unsubscribeEvent('pointerdown' as never);
 			expect(rawEvents.unsubscribeEvent).not.toHaveBeenCalled();
+			expect(internalState.eventSubscribers.get('pointerdown')!.size).toBe(1);
 			expect(internalState.eventSubscribers.get('pointerdown')!.has('ext-b')).toBe(true);
 
 			surfaceB.events.unsubscribeEvent('pointerdown' as never);
 			expect(rawEvents.unsubscribeEvent).toHaveBeenCalledWith('pointerdown');
+			expect(rawEvents.unsubscribeEvent).toHaveBeenCalledTimes(1);
+			expect(internalState.eventSubscribers.has('pointerdown')).toBe(false);
 		});
 
 		it('no-ops when extension was not subscribed for that event type', () => {

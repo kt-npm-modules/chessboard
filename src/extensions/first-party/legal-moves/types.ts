@@ -24,15 +24,15 @@ export const DEFAULT_CONFIG: LegalMovesConfig = {
 			color: 'rgb(0, 0, 0)',
 			opacity: 0.14
 		},
-		radiusRatio: 0.125
-	}, // semi-transparent black
+		radiusRatio: 0.165
+	},
 	captureTarget: {
 		color: {
 			color: 'rgb(0, 0, 0)',
 			opacity: 0.14
 		},
-		radiusRatio: 0.45,
-		strokeWidthRatio: 0.1
+		radiusRatio: 0.445,
+		strokeWidthRatio: 0.11
 	}
 };
 

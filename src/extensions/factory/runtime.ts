@@ -73,8 +73,11 @@ function createExtensionRuntimeSurfaceEvents(
 				subscribers = new Set<string>();
 				internalState.eventSubscribers.set(type, subscribers);
 			}
+			const sizeBeforeAdd = subscribers.size;
 			subscribers.add(extensionDef.id);
-			runtimeSurfaceEvents.subscribeEvent(type);
+			if (sizeBeforeAdd === 0) {
+				runtimeSurfaceEvents.subscribeEvent(type);
+			}
 		},
 		unsubscribeEvent(type) {
 			const internalState = getInternalState();
