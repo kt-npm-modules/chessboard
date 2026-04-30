@@ -140,7 +140,9 @@ export type MoveSnapshot = ReadonlyDeep<Move>;
 export const FILE_START = 'a'.charCodeAt(0);
 export const RANK_START = '1'.charCodeAt(0);
 
-export type ParsedPosition = {
-	pieces: Uint8Array;
-	turn: ColorCode;
-};
+export interface PiecePositionSnapshot {
+	readonly pieces: Readonly<Uint8Array>;
+}
+export interface PositionSnapshot extends PiecePositionSnapshot {
+	readonly turn: ColorCode;
+}

@@ -1,5 +1,5 @@
 import { FenString } from '../types/input.js';
-import { ColorCode, ParsedPosition, PieceCode, SQUARE_COUNT } from '../types/internal.js';
+import { ColorCode, PieceCode, PositionSnapshot, SQUARE_COUNT } from '../types/internal.js';
 
 /**
  * Direct FEN character → PieceCode lookup.
@@ -88,13 +88,13 @@ function parseTurn(turn: string): ColorCode {
 }
 
 /**
- * Parse a FEN string into a {@link ParsedPosition}.
+ * Parse a FEN string into a {@link PositionSnapshot}.
  *
  * Only the first two FEN fields (piece placement + active color) are required
  * for a board-only representation. The remaining fields (castling, en-passant,
  * half-move clock, full-move number) are accepted but ignored.
  */
-export function parseFen(fen: FenString): ParsedPosition {
+export function parseFen(fen: FenString): PositionSnapshot {
 	const parts = fen
 		.replace(/^\uFEFF/, '')
 		.trim()

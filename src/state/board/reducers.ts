@@ -1,4 +1,4 @@
-import { isEmptyPieceCode } from './check.js';
+import { isEmptyPieceCode, piecePositionsEqual, positionsEqual } from './check.js';
 import { denormalizeSquare } from './denormalize.js';
 import { fromPieceCode, toPieceCode } from './piece.js';
 import {
@@ -8,25 +8,31 @@ import {
 	MoveCaptured,
 	MoveRequest,
 	MoveRequestBase,
-	PieceCode
+	PieceCode,
+	PositionSnapshot
 } from './types/internal.js';
 import { BoardStateInternal } from './types/main.js';
 
-export function boardSetPosition(state: BoardStateInternal, pieces: Uint8Array): boolean {
+export function boardSetPiecePosition(state: BoardStateInternal, pieces: Uint8Array): boolean {
+	if (piecePositionsEqual(state, { pieces })) return false; // no-op
 	state.pieces = new Uint8Array(pieces);
 
-	// Increment position epoch to prevent false animation across position resets
 	state.positionEpoch++;
-
 	return true;
 }
 
-/**
- * Set active color turn.
- */
 export function boardSetTurn(state: BoardStateInternal, turn: ColorCode): boolean {
 	if (state.turn === turn) return false; // no-op
 	state.turn = turn;
+	state.positionEpoch++;
+	return true;
+}
+
+export function boardSetPosition(state: BoardStateInternal, position: PositionSnapshot): boolean {
+	if (positionsEqual(state, position)) return false; // no-op
+	state.pieces = new Uint8Array(position.pieces);
+	state.turn = position.turn;
+	state.positionEpoch++;
 	return true;
 }
 

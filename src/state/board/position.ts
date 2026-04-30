@@ -10,7 +10,7 @@ import {
 	PositionInputObject,
 	SquareString
 } from './types/input.js';
-import { ColorCode, ParsedPosition, SQUARE_COUNT } from './types/internal.js';
+import { ColorCode, PositionSnapshot, SQUARE_COUNT } from './types/internal.js';
 
 const START_POSITION_RECORD_STRING: PiecePositionRecordString = {
 	a1: 'wR',
@@ -78,11 +78,11 @@ function isPositionInputObject(input: PositionInput): input is PositionInputObje
 	return typeof input === 'object' && input !== null && !Array.isArray(input);
 }
 
-function boardParsePositionInputFen(input: FenString): ParsedPosition {
+function boardParsePositionInputFen(input: FenString): PositionSnapshot {
 	return parseFen(input);
 }
 
-export function boardParsePosition(input: PositionInput): ParsedPosition {
+export function boardParsePosition(input: PositionInput): PositionSnapshot {
 	if (input === 'start') {
 		return {
 			pieces: START_POSITION_ARRAY,

@@ -2,7 +2,7 @@ import { cloneDeep } from 'es-toolkit/object';
 import { isNormalizedMoveRequest } from './check.js';
 import { normalizeColor, normalizeMoveRequest } from './normalize.js';
 import { boardParsePiecePositionInput, boardParsePosition } from './position.js';
-import { boardMove, boardSetPosition, boardSetTurn } from './reducers.js';
+import { boardMove, boardSetPiecePosition, boardSetPosition, boardSetTurn } from './reducers.js';
 import { PositionInput } from './types/input.js';
 import { BoardState, BoardStateInternal } from './types/main.js';
 
@@ -21,15 +21,16 @@ export function createBoardState(position?: PositionInput): BoardState {
 	return {
 		setPosition(input, mutationSession) {
 			const position = boardParsePosition(input);
-			let changed = boardSetPosition(internalState, position.pieces);
-			changed = boardSetTurn(internalState, position.turn) || changed;
-			return mutationSession.addMutation('state.board.setPosition', changed);
+			return mutationSession.addMutation(
+				'state.board.setPosition',
+				boardSetPosition(internalState, position)
+			);
 		},
 		setPiecePosition(input, mutationSession) {
 			const pieces = boardParsePiecePositionInput(input);
 			return mutationSession.addMutation(
 				'state.board.setPiecePosition',
-				boardSetPosition(internalState, pieces)
+				boardSetPiecePosition(internalState, pieces)
 			);
 		},
 		setTurn(turn, mutationSession) {

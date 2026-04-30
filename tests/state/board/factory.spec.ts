@@ -67,6 +67,30 @@ describe('createBoardState', () => {
 		expect(snapshot.positionEpoch).toBe(1);
 	});
 
+	it('setPosition with equivalent position returns false and records no mutation', () => {
+		const board = createBoardState(); // start position, white turn
+		const session = createBoardMutationSession();
+
+		// Set to the same start position with white turn
+		const changed = board.setPosition({ pieces: 'start', turn: 'white' }, session);
+
+		expect(changed).toBe(false);
+		expect(session.hasMutation({ causes: ['state.board.setPosition'] })).toBe(false);
+		expect(board.getSnapshot().positionEpoch).toBe(0);
+	});
+
+	it('setPiecePosition with equivalent piece placement returns false and records no mutation', () => {
+		const board = createBoardState(); // start position
+		const session = createBoardMutationSession();
+
+		// Set to the same start pieces
+		const changed = board.setPiecePosition('start', session);
+
+		expect(changed).toBe(false);
+		expect(session.hasMutation({ causes: ['state.board.setPiecePosition'] })).toBe(false);
+		expect(board.getSnapshot().positionEpoch).toBe(0);
+	});
+
 	it('setTurn updates turn and no-op returns false', () => {
 		const board = createBoardState();
 
