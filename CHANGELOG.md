@@ -1,5 +1,11 @@
 # @mirasen/chessboard
 
+## 1.1.2
+
+### Patch Changes
+
+- 6c108b6: Export public input types for wrapper packages.
+
 ## 1.1.1
 
 ### Patch Changes
