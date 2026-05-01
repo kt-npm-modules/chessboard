@@ -22,5 +22,5 @@ export interface WatermarkInstanceInternal extends ExtensionInternalBase<Extensi
 }
 
 export const enum DirtyLayer {
-	Watermark = 1 // 1 << 0,
+	Watermark = 1 << 0
 }

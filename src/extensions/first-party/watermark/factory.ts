@@ -60,7 +60,7 @@ function createWatermarkInstance(): WatermarkInstance {
 					causes: ['layout.refreshGeometry']
 				}) && isUpdateContextRenderable(context);
 			if (!needsRender) {
-				return; // no-op
+				return;
 			}
 			context.invalidation.markDirty(DirtyLayer.Watermark);
 		},
