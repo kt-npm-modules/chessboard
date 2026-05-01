@@ -275,6 +275,12 @@ board = createBoard({
 });
 ```
 
+### Default visual identity
+
+The default first-party extension baseline includes a subtle Mirasen board watermark.
+
+If you want full control over the visual baseline, use an explicit extension list and omit the `watermark` extension.
+
 ## Architecture
 
 `@mirasen/chessboard` is built around explicit boundaries:
