@@ -1,4 +1,4 @@
-import type { Chess, Move, PieceSymbol } from 'chess.js';
+import type { Move, PieceSymbol } from 'chess.js';
 import type {
 	MoveRequestInput,
 	RolePromotionShort,
@@ -9,7 +9,11 @@ import type { MoveDestinationInput } from '../../state/interaction/types/input.j
 
 type ChessJsPromotion = Exclude<PieceSymbol, 'p' | 'k'>;
 
-type ChessJsMoveInput = Exclude<Parameters<Chess['move']>[0], string | null>;
+export type ChessJsMoveInput = {
+	from: string;
+	to: string;
+	promotion?: string;
+};
 
 const BOARD_TO_CHESSJS: Record<RolePromotionShort, ChessJsPromotion> = {
 	Q: 'q',
