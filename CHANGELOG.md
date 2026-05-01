@@ -1,5 +1,11 @@
 # @mirasen/chessboard
 
+## 1.1.5
+
+### Patch Changes
+
+- 1256271: Add a subtle default Mirasen board watermark.
+
 ## 1.1.4
 
 ### Patch Changes
