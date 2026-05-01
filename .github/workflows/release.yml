@@ -42,4 +42,4 @@ jobs:
           private-key: ${{ secrets.WORKFLOW_APP_PRIVATE_KEY }}
           matrix-node-version: ${{ vars.MATRIX_NODE_VERSION }}
           # cache-reset: true
-          npm-token: ${{ secrets.NPM_TOKEN }} # uncomment if not trusted publishing
+          npm-token: ${{ secrets.NPM_TOKEN }}
