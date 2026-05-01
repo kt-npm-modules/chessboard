@@ -1,5 +1,14 @@
 # @mirasen/chessboard
 
+## 1.1.1
+
+### Patch Changes
+
+- 8b3781c: dependabot: directory '/', update @ktarmyshov/assert
+- 8b3781c: dependabot: directory '/', update es-toolkit
+- 8b3781c: dependabot: directory '/', update typescript-eslint
+- c877d35: dependabot: directory '/', update jsdom
+
 ## 1.1.0
 
 ### Minor Changes
