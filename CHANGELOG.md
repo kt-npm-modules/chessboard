@@ -1,5 +1,11 @@
 # @mirasen/chessboard
 
+## 1.1.3
+
+### Patch Changes
+
+- dc95241: Use an explicit ChessJsMoveInput type for chess.js adapter output.
+
 ## 1.1.2
 
 ### Patch Changes
