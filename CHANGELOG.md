@@ -1,5 +1,11 @@
 # @mirasen/chessboard
 
+## 1.1.4
+
+### Patch Changes
+
+- 86d630d: Link to the React chessboard package from the README.
+
 ## 1.1.3
 
 ### Patch Changes
