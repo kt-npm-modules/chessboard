@@ -1,5 +1,14 @@
 # @mirasen/chessboard
 
+## 1.1.6
+
+### Patch Changes
+
+- 4ec620b: dependabot: directory '/', update @sveltejs/kit
+- 4ec620b: dependabot: directory '/', update eslint
+- 4ec620b: dependabot: directory '/', update globals
+- 4ec620b: dependabot: directory '/', update svelte-check
+
 ## 1.1.5
 
 ### Patch Changes
