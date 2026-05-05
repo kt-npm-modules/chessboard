@@ -34,3 +34,47 @@ export const ALL_SCENE_POINTER_EVENT_TYPES: ReadonlySet<string> = new Set([
 ]);
 
 export type SceneEvent = ScenePointerEvent;
+
+export type RuntimeInteractionActionStartLiftedDrag = {
+	type: 'startLiftedDrag';
+	source: Square;
+	target: Square;
+};
+
+export type RuntimeInteractionActionStartReleaseTargetingDrag = {
+	type: 'startReleaseTargetingDrag';
+	source: Square;
+	target: Square;
+};
+
+export type RuntimeInteractionActionCompleteCoreDrag = {
+	type: 'completeCoreDragTo';
+	target: Square;
+};
+
+export type RuntimeInteractionActionCompleteExtensionDrag = {
+	type: 'completeExtensionDrag';
+	target: Square | null;
+};
+
+export type RuntimeInteractionActionUpdateDragSessionCurrentTarget = {
+	type: 'updateDragSessionCurrentTarget';
+	target: Square | null;
+};
+
+export type RuntimeInteractionActionCancelActiveInteraction = {
+	type: 'cancelActiveInteraction';
+};
+
+export type RuntimeInteractionActionCancelInteraction = {
+	type: 'cancelInteraction';
+};
+
+export type RuntimeInteractionAction =
+	| RuntimeInteractionActionStartLiftedDrag
+	| RuntimeInteractionActionStartReleaseTargetingDrag
+	| RuntimeInteractionActionCompleteCoreDrag
+	| RuntimeInteractionActionCompleteExtensionDrag
+	| RuntimeInteractionActionUpdateDragSessionCurrentTarget
+	| RuntimeInteractionActionCancelActiveInteraction
+	| RuntimeInteractionActionCancelInteraction;

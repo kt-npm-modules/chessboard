@@ -87,7 +87,8 @@ describe('createExtensionSystem – onEvent dispatch', () => {
 
 		const eventContext = {
 			rawEvent: new Event('pointerdown'),
-			sceneEvent: null
+			sceneEvent: null,
+			runtimeInteractionActionPreview: null
 		};
 		system.onEvent(eventContext);
 
@@ -105,7 +106,11 @@ describe('createExtensionSystem – onEvent dispatch', () => {
 		};
 		const system = createExtensionSystem(createExtensionSystemOptions([def]));
 
-		system.onEvent({ rawEvent: new Event('click'), sceneEvent: null });
+		system.onEvent({
+			rawEvent: new Event('click'),
+			sceneEvent: null,
+			runtimeInteractionActionPreview: null
+		});
 
 		expect(onEvent).not.toHaveBeenCalled();
 	});

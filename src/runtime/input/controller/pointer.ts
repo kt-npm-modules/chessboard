@@ -1,24 +1,27 @@
 import assert from '@ktarmyshov/assert';
-import { ExtensionOnEventContext } from '../../../extensions/types/context/events.js';
+import type { RuntimeInteractionAction } from '../../../extensions/types/basic/events.js';
 import { isEmptyPieceCode, isNonEmptyPieceCode } from '../../../state/board/check.js';
 import { fromPieceCode } from '../../../state/board/piece.js';
 import { isDragSessionCoreOwned } from '../../../state/interaction/helpers.js';
 import { MovabilityModeCode } from '../../../state/interaction/types/internal.js';
 import { canMoveTo } from './helpers.js';
-import { InteractionControllerInternal } from './types.js';
+import type {
+	InteractionControllerInternal,
+	InteractionControllerOnEventContext
+} from './types.js';
 
-export function handlePointerDown(
+export function determineActionPointerDown(
 	state: InteractionControllerInternal,
-	context: ExtensionOnEventContext
-): void {
+	context: InteractionControllerOnEventContext
+): RuntimeInteractionAction | null {
 	assert(
 		context.rawEvent.type === 'pointerdown',
-		'handlePointerDown should only be called for pointerdown events'
+		'determineActionPointerDown should only be called for pointerdown events'
 	);
 	const rawEvent = context.rawEvent as PointerEvent;
 	if (rawEvent.button !== 0) {
 		// Only handle left-click for now
-		return;
+		return null;
 	}
 
 	const sceneEvent = context.sceneEvent;
@@ -27,7 +30,7 @@ export function handlePointerDown(
 	const interaction = state.surface.getInteractionStateSnapshot();
 	if (interaction.dragSession) {
 		// Ignore pointer down events if there's already an active drag session
-		return;
+		return null;
 	}
 
 	if (sceneEvent.targetSquare !== null) {
@@ -43,11 +46,11 @@ export function handlePointerDown(
 			const targetPieceCode = state.surface.getPieceCodeAt(sceneEvent.targetSquare);
 
 			if (isEmptyPieceCode(targetPieceCode)) {
-				state.surface.startReleaseTargetingDrag(
-					interaction.selected.square,
-					sceneEvent.targetSquare
-				);
-				return;
+				return {
+					type: 'startReleaseTargetingDrag',
+					source: interaction.selected.square,
+					target: sceneEvent.targetSquare
+				};
 			}
 
 			const isLegalMoveTarget =
@@ -59,11 +62,11 @@ export function handlePointerDown(
 				fromPieceCode(targetPieceCode).color !== fromPieceCode(selectedPieceCode).color &&
 				isLegalMoveTarget
 			) {
-				state.surface.startReleaseTargetingDrag(
-					interaction.selected.square,
-					sceneEvent.targetSquare
-				);
-				return;
+				return {
+					type: 'startReleaseTargetingDrag',
+					source: interaction.selected.square,
+					target: sceneEvent.targetSquare
+				};
 			}
 		}
 		/**
@@ -72,39 +75,49 @@ export function handlePointerDown(
 		 */
 		const pieceCode = state.surface.getPieceCodeAt(sceneEvent.targetSquare);
 		if (!isEmptyPieceCode(pieceCode)) {
-			state.surface.startLiftedDrag(sceneEvent.targetSquare, sceneEvent.targetSquare);
+			return {
+				type: 'startLiftedDrag',
+				source: sceneEvent.targetSquare,
+				target: sceneEvent.targetSquare
+			};
 		}
 	}
+
+	return null;
 }
 
-export function handlePointerMove(
+export function determineActionPointerMove(
 	state: InteractionControllerInternal,
-	context: ExtensionOnEventContext
-): void {
+	context: InteractionControllerOnEventContext
+): RuntimeInteractionAction | null {
 	assert(
 		context.rawEvent.type === 'pointermove',
-		'handlePointerMove should only be called for pointermove events'
+		'determineActionPointerMove should only be called for pointermove events'
 	);
 	const interaction = state.surface.getInteractionStateSnapshot();
 	if (interaction.dragSession) {
-		state.surface.updateDragSessionCurrentTarget(context.sceneEvent?.targetSquare ?? null);
+		return {
+			type: 'updateDragSessionCurrentTarget',
+			target: context.sceneEvent?.targetSquare ?? null
+		};
 	}
+	return null;
 }
 
-export function handlePointerUp(
+export function determineActionPointerUp(
 	state: InteractionControllerInternal,
-	context: ExtensionOnEventContext
-): void {
+	context: InteractionControllerOnEventContext
+): RuntimeInteractionAction | null {
 	assert(
 		context.rawEvent.type === 'pointerup',
-		'handlePointerUp should only be called for pointerup events'
+		'determineActionPointerUp should only be called for pointerup events'
 	);
 	const interaction = state.surface.getInteractionStateSnapshot();
 	const dragSession = interaction.dragSession;
 
 	if (!dragSession) {
 		// No active drag session, so nothing to do on pointer up
-		return;
+		return null;
 	}
 
 	const sceneEvent = context.sceneEvent;
@@ -113,47 +126,58 @@ export function handlePointerUp(
 	if (!isDragSessionCoreOwned(dragSession)) {
 		// For extension-owned drag sessions, we simply end the session without attempting to make a move,
 		// since the runtime doesn't have enough information about the semantics of the drag session.
-		state.surface.completeExtensionDrag(sceneEvent.targetSquare);
-		return;
+		return {
+			type: 'completeExtensionDrag',
+			target: sceneEvent.targetSquare
+		};
 	}
 
 	// Check if the square is the same as the source square of the drag session.
 	// If it is, then we can end the drag session without making a move.
 	if (sceneEvent.targetSquare === dragSession.sourceSquare) {
-		state.surface.cancelActiveInteraction();
-		return;
+		return {
+			type: 'cancelActiveInteraction'
+		};
 	}
 
 	// Check if the target square is a valid destination for the selected piece.
 	if (sceneEvent.targetSquare !== null && canMoveTo(interaction, sceneEvent.targetSquare)) {
-		state.surface.completeCoreDragTo(sceneEvent.targetSquare);
-		return;
+		return {
+			type: 'completeCoreDragTo',
+			target: sceneEvent.targetSquare
+		};
 	}
 
 	// Invalid target: piece returns to source for lifted drag (selection preserved),
 	// or selection is cleared for release targeting.
 	if (dragSession.type === 'lifted-piece-drag') {
-		state.surface.cancelActiveInteraction();
+		return {
+			type: 'cancelActiveInteraction'
+		};
 	} else {
-		state.surface.cancelInteraction();
+		return {
+			type: 'cancelInteraction'
+		};
 	}
 }
 
-export function handlePointerCancel(
+export function determineActionPointerCancel(
 	state: InteractionControllerInternal,
-	context: ExtensionOnEventContext
-): void {
+	context: InteractionControllerOnEventContext
+): RuntimeInteractionAction | null {
 	assert(
 		context.rawEvent.type === 'pointercancel',
-		'handlePointerCancel should only be called for pointercancel events'
+		'determineActionPointerCancel should only be called for pointercancel events'
 	);
 	const interaction = state.surface.getInteractionStateSnapshot();
 
 	if (!interaction.dragSession) {
 		// No active drag session, so nothing to do on pointer cancel
-		return;
+		return null;
 	}
 
 	// Cancel the active interaction on pointer cancel
-	state.surface.cancelActiveInteraction();
+	return {
+		type: 'cancelActiveInteraction'
+	};
 }

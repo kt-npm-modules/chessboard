@@ -1,13 +1,13 @@
 import assert from '@ktarmyshov/assert';
 import { ALL_SCENE_POINTER_EVENT_TYPES } from '../../../extensions/types/basic/events.js';
-import { ExtensionOnEventContext } from '../../../extensions/types/context/events.js';
+import { InteractionControllerOnEventContext } from '../controller/types.js';
 import { makeScenePointerEvent } from './helpers.js';
 import { InputAdapterInternal } from './types.js';
 
 export function pointerEventHandler(
 	state: InputAdapterInternal,
 	e: PointerEvent
-): ExtensionOnEventContext {
+): InteractionControllerOnEventContext {
 	assert(ALL_SCENE_POINTER_EVENT_TYPES.has(e.type), `Unexpected pointer event type: ${e.type}`);
 	// First convert to scene event for controller
 	const sceneEvent = makeScenePointerEvent(state, e);

@@ -85,13 +85,21 @@ describe('createExtensionSystem – onUnmount cleanup', () => {
 
 		surface!.events.subscribeEvent('pointerdown');
 
-		system.onEvent({ rawEvent: new Event('pointerdown'), sceneEvent: null });
+		system.onEvent({
+			rawEvent: new Event('pointerdown'),
+			sceneEvent: null,
+			runtimeInteractionActionPreview: null
+		});
 		expect(onEvent).toHaveBeenCalledTimes(1);
 
 		system.onUnmount();
 
 		onEvent.mockClear();
-		system.onEvent({ rawEvent: new Event('pointerdown'), sceneEvent: null });
+		system.onEvent({
+			rawEvent: new Event('pointerdown'),
+			sceneEvent: null,
+			runtimeInteractionActionPreview: null
+		});
 		expect(onEvent).not.toHaveBeenCalled();
 	});
 
