@@ -10,11 +10,9 @@ import {
 	createPiecesLayer,
 	createPiecesRenderContext,
 	createPiecesUpdateContext,
-	createTestPieceSymbolResolver,
-	createTestPieceUrls
+	createTestPieceSymbolResolver
 } from '../../../../test-utils/extensions/first-party/main-renderer/pieces.js';
 
-const pieceUrls = createTestPieceUrls();
 const resolver = createTestPieceSymbolResolver();
 
 describe('pieces factory – unmount cleanup', () => {

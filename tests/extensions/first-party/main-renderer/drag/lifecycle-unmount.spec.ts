@@ -1,5 +1,3 @@
-import { createTestPieceSymbolResolver } from '../../../../test-utils/extensions/first-party/main-renderer/pieces.js';
-const resolver = createTestPieceSymbolResolver();
 import { describe, expect, it } from 'vitest';
 import { createMainRendererDrag } from '../../../../../src/extensions/first-party/main-renderer/drag/factory.js';
 import {
@@ -9,9 +7,8 @@ import {
 	createLiftedPieceDragSession,
 	createMockRuntimeSurface
 } from '../../../../test-utils/extensions/first-party/main-renderer/drag.js';
-import { createTestPieceUrls } from '../../../../test-utils/extensions/first-party/main-renderer/pieces.js';
-
-const pieceUrls = createTestPieceUrls();
+import { createTestPieceSymbolResolver } from '../../../../test-utils/extensions/first-party/main-renderer/pieces.js';
+const resolver = createTestPieceSymbolResolver();
 
 describe('drag lifecycle – unmount', () => {
 	it('removes dragged image node from the layer', () => {

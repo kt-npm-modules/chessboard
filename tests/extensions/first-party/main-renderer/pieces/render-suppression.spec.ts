@@ -10,11 +10,9 @@ import {
 import {
 	createPiecesLayer,
 	createPiecesRenderContext,
-	createTestPieceSymbolResolver,
-	createTestPieceUrls
+	createTestPieceSymbolResolver
 } from '../../../../test-utils/extensions/first-party/main-renderer/pieces.js';
 
-const pieceUrls = createTestPieceUrls();
 const resolver = createTestPieceSymbolResolver();
 
 function createInternalState(

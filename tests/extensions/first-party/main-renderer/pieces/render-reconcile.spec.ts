@@ -4,11 +4,9 @@ import { PieceCode, SQUARE_COUNT } from '../../../../../src/state/board/types/in
 import {
 	createPiecesLayer,
 	createPiecesRenderContext,
-	createTestPieceSymbolResolver,
-	createTestPieceUrls
+	createTestPieceSymbolResolver
 } from '../../../../test-utils/extensions/first-party/main-renderer/pieces.js';
 
-const pieceUrls = createTestPieceUrls();
 const resolver = createTestPieceSymbolResolver();
 
 describe('pieces renderer – DOM reconciliation', () => {

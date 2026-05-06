@@ -8,11 +8,9 @@ import {
 } from '../../../../../src/state/board/types/internal.js';
 import {
 	createPiecesUpdateContext,
-	createTestPieceSymbolResolver,
-	createTestPieceUrls
+	createTestPieceSymbolResolver
 } from '../../../../test-utils/extensions/first-party/main-renderer/pieces.js';
 
-const pieceUrls = createTestPieceUrls();
 const resolver = createTestPieceSymbolResolver();
 const emptySuppress: ReadonlySet<Square> = new Set();
 

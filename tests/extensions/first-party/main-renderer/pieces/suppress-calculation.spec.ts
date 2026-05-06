@@ -4,11 +4,9 @@ import type { MainRendererPiecesInternal } from '../../../../../src/extensions/f
 import { PieceCode, type Square } from '../../../../../src/state/board/types/internal.js';
 import {
 	createPiecesCleanAnimationContext,
-	createTestPieceSymbolResolver,
-	createTestPieceUrls
+	createTestPieceSymbolResolver
 } from '../../../../test-utils/extensions/first-party/main-renderer/pieces.js';
 
-const pieceUrls = createTestPieceUrls();
 const resolver = createTestPieceSymbolResolver();
 
 function createInternalState(): MainRendererPiecesInternal {

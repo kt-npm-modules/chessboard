@@ -11,12 +11,8 @@ import {
 	createDragTransientVisualsContext,
 	createMockRuntimeSurface
 } from '../../../../test-utils/extensions/first-party/main-renderer/drag.js';
-import {
-	createTestPieceSymbolResolver,
-	createTestPieceUrls
-} from '../../../../test-utils/extensions/first-party/main-renderer/pieces.js';
+import { createTestPieceSymbolResolver } from '../../../../test-utils/extensions/first-party/main-renderer/pieces.js';
 
-const pieceUrls = createTestPieceUrls();
 const resolver = createTestPieceSymbolResolver();
 
 function createInactiveState(): MainRendererDragInternal {
