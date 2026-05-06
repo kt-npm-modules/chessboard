@@ -2,6 +2,7 @@ import type {
 	ExtensionDefinition,
 	ExtensionInstance,
 	ExtensionInternalBase,
+	ExtensionRuntimeSurface,
 	ExtensionSlotName
 } from '../../../build/index.js';
 import type {
@@ -43,6 +44,11 @@ export interface AnnotationsStateInternalAnnotations {
 }
 
 export interface AnnotationsStateInternal extends ExtensionInternalBase<ExtensionSlotsType> {
+	// Future render wiring:
+	// public API mutations will need to request a render, but we still need to decide
+	// which annotations-specific dirty/invalidation flag should be set before
+	// calling state.runtimeSurface.commands.requestRender().
+	readonly runtimeSurface: ExtensionRuntimeSurface;
 	readonly svg: AnnotationsStateInternalSvg;
 	readonly annotations: AnnotationsStateInternalAnnotations;
 	readonly config: AnnotationsConfig;
