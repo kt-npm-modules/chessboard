@@ -1,6 +1,7 @@
 import { cloneDeep } from 'es-toolkit';
 import { normalizeSquare } from '../../../state/board/normalize.js';
 import type { ExtensionCreateInstanceOptions } from '../../build/index.js';
+import { isUpdateContextRenderable } from '../../types/context/update.js';
 import {
 	extensionCreateInternalBase,
 	extensionDestroyBase,
@@ -15,6 +16,7 @@ import {
 	normalizeCircleAnnotation,
 	normalizeInitialAnnotations
 } from './normalize.js';
+import { renderCommittedCircles } from './render-circles.js';
 import { DirtyLayer, type AnnotationsConfig } from './types/internal.js';
 import type {
 	AnnotationsDefinition,
@@ -68,6 +70,11 @@ function extensionCleanSvg(state: AnnotationsStateInternal): void {
 	state.svg.svgArrows.clear();
 }
 
+function markDirtyAndRequestRender(state: AnnotationsStateInternal, layers: number): void {
+	state.runtimeSurface.invalidation.markDirty(layers);
+	state.runtimeSurface.commands.requestRender({ state: true });
+}
+
 function createAnnotationsPublicAPI(state: AnnotationsStateInternal): AnnotationsPublicAPI {
 	return {
 		getCircles() {
@@ -82,8 +89,7 @@ function createAnnotationsPublicAPI(state: AnnotationsStateInternal): Annotation
 				const circle = normalizeCircleAnnotation(pub);
 				state.annotations.circles.set(circle.key, circle);
 			}
-			state.runtimeSurface.invalidation.markDirty(DirtyLayer.COMMITTED);
-			state.runtimeSurface.commands.requestRender({ state: true });
+			markDirtyAndRequestRender(state, DirtyLayer.COMMITTED);
 		},
 		setArrows(arrows) {
 			state.annotations.arrows.clear();
@@ -91,8 +97,7 @@ function createAnnotationsPublicAPI(state: AnnotationsStateInternal): Annotation
 				const arrow = normalizeArrowAnnotation(pub);
 				state.annotations.arrows.set(arrow.key, arrow);
 			}
-			state.runtimeSurface.invalidation.markDirty(DirtyLayer.COMMITTED);
-			state.runtimeSurface.commands.requestRender({ state: true });
+			markDirtyAndRequestRender(state, DirtyLayer.COMMITTED);
 		},
 		circle(square, annotation) {
 			const key = normalizeSquare(square);
@@ -105,8 +110,7 @@ function createAnnotationsPublicAPI(state: AnnotationsStateInternal): Annotation
 				});
 				state.annotations.circles.set(key, normalizedAnnotation);
 			}
-			state.runtimeSurface.invalidation.markDirty(DirtyLayer.COMMITTED);
-			state.runtimeSurface.commands.requestRender({ state: true });
+			markDirtyAndRequestRender(state, DirtyLayer.COMMITTED);
 		},
 		arrow(from, to, annotation) {
 			const key = arrowAnnotationKey(from, to);
@@ -120,14 +124,12 @@ function createAnnotationsPublicAPI(state: AnnotationsStateInternal): Annotation
 				});
 				state.annotations.arrows.set(key, normalizedArrow);
 			}
-			state.runtimeSurface.invalidation.markDirty(DirtyLayer.COMMITTED);
-			state.runtimeSurface.commands.requestRender({ state: true });
+			markDirtyAndRequestRender(state, DirtyLayer.COMMITTED);
 		},
 		clear() {
 			state.annotations.circles.clear();
 			state.annotations.arrows.clear();
-			state.runtimeSurface.invalidation.markDirty(DirtyLayer.COMMITTED);
-			state.runtimeSurface.commands.requestRender({ state: true });
+			markDirtyAndRequestRender(state, DirtyLayer.COMMITTED);
 		},
 		setClearOnCoreInteraction(value) {
 			state.config.clearOnCoreInteraction = value;
@@ -154,6 +156,21 @@ function createAnnotationsInstance(
 		id: EXTENSION_ID,
 		mount(env) {
 			extensionMountBase<ExtensionSlotsType>(internalState, env.slotRoots);
+		},
+		onUpdate(context) {
+			const needsRender =
+				context.mutation.hasMutation({ causes: ['layout.refreshGeometry'] }) &&
+				isUpdateContextRenderable(context);
+			if (!needsRender) {
+				return;
+			}
+			context.invalidation.markDirty(DirtyLayer.COMMITTED);
+		},
+		render(context) {
+			if (!(context.invalidation.dirtyLayers & DirtyLayer.COMMITTED)) {
+				return;
+			}
+			renderCommittedCircles(internalState, context.currentFrame.layout.geometry);
 		},
 		unmount() {
 			extensionUnmountBase<ExtensionSlotsType>(internalState);

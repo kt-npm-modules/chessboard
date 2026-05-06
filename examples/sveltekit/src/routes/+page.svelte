@@ -19,6 +19,7 @@
 	function resetPosition() {
 		if (!board) return;
 		board.setPosition('start');
+		board.extensions.annotations.clear();
 	}
 
 	function clearSelection() {
@@ -85,6 +86,14 @@
 			};
 			snapshotText = JSON.stringify(currentFrame, replacer, 2);
 		});
+
+		console.log('Setting up circle for e4');
+		board.extensions.annotations.circle('e4', { color: '#ef4444' });
+		console.log('Setting up circles for d5');
+		board.extensions.annotations.circle('d5', { color: '#3b82f6' });
+		console.log('Setting up circles for d2');
+		board.extensions.annotations.circle('d2', { color: '#3b82f6' });
+		// board.extensions.annotations.circle('e4', null); // removes e4
 
 		return () => {};
 	});

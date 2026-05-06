@@ -6,7 +6,7 @@ import { EXTENSION_ID } from '../../../../src/extensions/first-party/annotations
 
 function createMinimalMockSurface() {
 	return {
-		commands: { requestRender: vi.fn() },
+		commands: { requestRender: vi.fn(() => true) },
 		invalidation: { dirtyLayers: 0, markDirty: vi.fn(), clearDirty: vi.fn(), clear: vi.fn() }
 	} as never;
 }

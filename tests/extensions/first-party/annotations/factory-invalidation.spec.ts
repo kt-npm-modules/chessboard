@@ -7,7 +7,7 @@ function createMockRuntimeSurface() {
 	const markDirty = vi.fn();
 	const clearDirty = vi.fn();
 	const clear = vi.fn();
-	const requestRender = vi.fn();
+	const requestRender = vi.fn(() => true);
 
 	const surface: ExtensionRuntimeSurface = {
 		commands: {

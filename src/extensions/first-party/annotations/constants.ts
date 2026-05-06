@@ -14,9 +14,9 @@ export const DEFAULT_CONFIG: AnnotationsConfig = {
 export const VISUAL_CONFIG: VisualConfig = {
 	circle: {
 		committed: {
-			strokeWidth: 0.08,
-			radius: 0.34,
-			opacity: 0.8
+			strokeWidth: 0.0625,
+			radius: 0.46875,
+			opacity: 1
 		},
 		previewAdd: {
 			strokeWidth: 0.05,
