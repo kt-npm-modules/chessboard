@@ -72,3 +72,8 @@ export interface VisualConfig {
 	readonly circle: VisualConfigCircle;
 	readonly arrow: VisualConfigArrow;
 }
+
+export const enum DirtyLayer {
+	COMMITTED = 1 << 0,
+	PREVIEW = 1 << 1
+}

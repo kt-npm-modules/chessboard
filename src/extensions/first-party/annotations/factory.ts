@@ -15,7 +15,7 @@ import {
 	normalizeCircleAnnotation,
 	normalizeInitialAnnotations
 } from './normalize.js';
-import type { AnnotationsConfig } from './types/internal.js';
+import { DirtyLayer, type AnnotationsConfig } from './types/internal.js';
 import type {
 	AnnotationsDefinition,
 	AnnotationsInstance,
@@ -82,6 +82,8 @@ function createAnnotationsPublicAPI(state: AnnotationsStateInternal): Annotation
 				const circle = normalizeCircleAnnotation(pub);
 				state.annotations.circles.set(circle.key, circle);
 			}
+			state.runtimeSurface.invalidation.markDirty(DirtyLayer.COMMITTED);
+			state.runtimeSurface.commands.requestRender({ state: true });
 		},
 		setArrows(arrows) {
 			state.annotations.arrows.clear();
@@ -89,6 +91,8 @@ function createAnnotationsPublicAPI(state: AnnotationsStateInternal): Annotation
 				const arrow = normalizeArrowAnnotation(pub);
 				state.annotations.arrows.set(arrow.key, arrow);
 			}
+			state.runtimeSurface.invalidation.markDirty(DirtyLayer.COMMITTED);
+			state.runtimeSurface.commands.requestRender({ state: true });
 		},
 		circle(square, annotation) {
 			const key = normalizeSquare(square);
@@ -101,6 +105,8 @@ function createAnnotationsPublicAPI(state: AnnotationsStateInternal): Annotation
 				});
 				state.annotations.circles.set(key, normalizedAnnotation);
 			}
+			state.runtimeSurface.invalidation.markDirty(DirtyLayer.COMMITTED);
+			state.runtimeSurface.commands.requestRender({ state: true });
 		},
 		arrow(from, to, annotation) {
 			const key = arrowAnnotationKey(from, to);
@@ -114,10 +120,14 @@ function createAnnotationsPublicAPI(state: AnnotationsStateInternal): Annotation
 				});
 				state.annotations.arrows.set(key, normalizedArrow);
 			}
+			state.runtimeSurface.invalidation.markDirty(DirtyLayer.COMMITTED);
+			state.runtimeSurface.commands.requestRender({ state: true });
 		},
 		clear() {
 			state.annotations.circles.clear();
 			state.annotations.arrows.clear();
+			state.runtimeSurface.invalidation.markDirty(DirtyLayer.COMMITTED);
+			state.runtimeSurface.commands.requestRender({ state: true });
 		},
 		setClearOnCoreInteraction(value) {
 			state.config.clearOnCoreInteraction = value;

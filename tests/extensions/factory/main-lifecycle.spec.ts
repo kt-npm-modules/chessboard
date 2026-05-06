@@ -103,7 +103,7 @@ describe('createExtensionSystem – onUnmount cleanup', () => {
 		expect(onEvent).not.toHaveBeenCalled();
 	});
 
-	it('clears each extension invalidation state', () => {
+	it('does NOT clear extension invalidation state on unmount', () => {
 		const onUpdate = vi.fn();
 		const def: AnyExtensionDefinition = {
 			id: 'ext-a',
@@ -114,11 +114,12 @@ describe('createExtensionSystem – onUnmount cleanup', () => {
 		const shared = system.getSharedDataForRenderSystem();
 
 		shared.extensions.get('ext-a')!.invalidation.markDirty(0b1111);
-		expect(shared.extensions.get('ext-a')!.invalidation.dirtyLayers).not.toBe(0);
+		expect(shared.extensions.get('ext-a')!.invalidation.dirtyLayers).toBe(0b1111);
 
 		system.onUnmount();
 
-		expect(shared.extensions.get('ext-a')!.invalidation.dirtyLayers).toBe(0);
+		// Invalidation dirty bits survive unmount — they represent pending visual work
+		expect(shared.extensions.get('ext-a')!.invalidation.dirtyLayers).toBe(0b1111);
 	});
 
 	it('clears each extension animation sessions', () => {
@@ -187,7 +188,7 @@ describe('createExtensionSystem – onDestroy cleanup', () => {
 		expect(shared.extensions.size).toBe(0);
 	});
 
-	it('throws if called without proper unmount (dirty invalidation)', () => {
+	it('does not throw on destroy when invalidation is dirty (dirty bits are not a lifecycle signal)', () => {
 		const def: AnyExtensionDefinition = {
 			id: 'ext-a',
 			slots: [],
@@ -198,7 +199,27 @@ describe('createExtensionSystem – onDestroy cleanup', () => {
 
 		shared.extensions.get('ext-a')!.invalidation.markDirty(1);
 
-		expect(() => system.onDestroy()).toThrow();
+		// Dirty invalidation is legitimate — it does not prevent destroy
+		system.onUnmount();
+		expect(() => system.onDestroy()).not.toThrow();
+	});
+
+	it('dirty invalidation disappears structurally when destroy removes extension records', () => {
+		const def: AnyExtensionDefinition = {
+			id: 'ext-a',
+			slots: [],
+			createInstance: () => ({ id: 'ext-a' }) as unknown as AnyExtensionInstance
+		};
+		const system = createExtensionSystem(createExtensionSystemOptions([def]));
+		const shared = system.getSharedDataForRenderSystem();
+
+		shared.extensions.get('ext-a')!.invalidation.markDirty(0b1111);
+
+		system.onUnmount();
+		system.onDestroy();
+
+		// Records are cleared, so no invalidation state remains
+		expect(shared.extensions.size).toBe(0);
 	});
 
 	it('throws if called without proper unmount (pending animation)', () => {
