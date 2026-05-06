@@ -119,11 +119,10 @@ describe('createWatermark', () => {
 			expect(DefaultBuiltinChessboardExtensions).toContain('watermark');
 		});
 
-		it('watermark appears immediately after renderer and before other extensions', () => {
+		it('watermark appears immediately after renderer', () => {
 			const idx = DefaultBuiltinChessboardExtensions.indexOf('watermark');
 			expect(idx).toBe(1);
 			expect(DefaultBuiltinChessboardExtensions[0]).toBe('renderer');
-			expect(DefaultBuiltinChessboardExtensions[2]).toBe('selectedSquare');
 		});
 	});
 
@@ -267,10 +266,8 @@ describe('createWatermark', () => {
 	describe('explicit extension list can omit watermark', () => {
 		it('no watermark image rendered when extension list omits watermark', async () => {
 			const { createBoard } = await import('../../../../src/index.js');
-			const board = createBoard({ document, extensions: ['renderer'] as const });
 			const container = createTestContainer();
-
-			board.mount(container);
+			const board = createBoard({ element: container, extensions: ['renderer'] as const });
 
 			const img = container.querySelector('image[data-chessboard-id="watermark"]');
 			expect(img).toBeNull();

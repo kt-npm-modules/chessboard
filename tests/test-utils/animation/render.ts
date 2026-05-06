@@ -5,10 +5,10 @@ import { fileOf, rankOf } from '../../../src/state/board/coords.js';
 import { ColorCode, PieceCode, type Square } from '../../../src/state/board/types/internal.js';
 
 /**
- * Creates an SVG element suitable as the animation layer parent.
+ * Creates an SVG <g> element suitable as the animation layer parent.
  * Requires jsdom environment (vitest default).
  */
-export function createSvgLayer(): SVGElement {
+export function createSvgLayer(): SVGGElement {
 	const svg = document.createElementNS(SVG_NS, 'svg');
 	document.body.appendChild(svg);
 	const layer = document.createElementNS(SVG_NS, 'g');

@@ -30,7 +30,7 @@ function makeFadeTrack(
 }
 
 describe('fade render track', () => {
-	let layer: SVGElement;
+	let layer: SVGGElement;
 	let geometry: SceneRenderGeometry;
 	let pieceUrls: PieceUrls;
 

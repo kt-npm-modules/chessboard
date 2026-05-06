@@ -3,7 +3,7 @@ import { createRuntime } from '../../../src/runtime/factory/main.js';
 import { ColorCode } from '../../../src/state/board/types/internal.js';
 
 function createTestRuntime() {
-	return createRuntime({ doc: document });
+	return createRuntime({ element: document.createElement('div') });
 }
 
 describe('runtime view commands', () => {

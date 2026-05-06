@@ -27,7 +27,7 @@ function makeStaticTrack(overrides: Partial<AnimationTrackStatic> = {}): Animati
 }
 
 describe('static render track', () => {
-	let layer: SVGElement;
+	let layer: SVGGElement;
 	let geometry: SceneRenderGeometry;
 	let pieceUrls: PieceUrls;
 

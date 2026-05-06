@@ -25,7 +25,7 @@ function makePlan(tracks: AnimationTrack[]): AnimationPlan {
 }
 
 describe('animation render plan', () => {
-	let layer: SVGElement;
+	let layer: SVGGElement;
 	let geometry: SceneRenderGeometry;
 	let pieceUrls: PieceUrls;
 

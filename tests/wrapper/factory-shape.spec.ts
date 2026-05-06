@@ -1,18 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { createBoard } from '../../src/index.js';
-import { createTestBoard, createTestContainer } from '../test-utils/wrapper/factory.js';
+import {
+	createTestBoardWithContainer,
+	createTestContainer
+} from '../test-utils/wrapper/factory.js';
 
 describe('wrapper factory – public surface shape', () => {
-	it('returns lifecycle methods', () => {
-		const board = createTestBoard();
-
-		expect(typeof board.mount).toBe('function');
-		expect(typeof board.unmount).toBe('function');
-		expect(typeof board.destroy).toBe('function');
-	});
-
 	it('returns command methods', () => {
-		const board = createTestBoard();
+		const { board } = createTestBoardWithContainer();
 
 		expect(typeof board.setPosition).toBe('function');
 		expect(typeof board.setPiecePosition).toBe('function');
@@ -24,46 +19,28 @@ describe('wrapper factory – public surface shape', () => {
 		expect(typeof board.getSnapshot).toBe('function');
 	});
 
+	it('returns destroy method', () => {
+		const { board } = createTestBoardWithContainer();
+
+		expect(typeof board.destroy).toBe('function');
+	});
+
 	it('returns extensions property as an object', () => {
-		const board = createTestBoard();
+		const { board } = createTestBoardWithContainer();
 
 		expect(typeof board.extensions).toBe('object');
 		expect(board.extensions).not.toBeNull();
 	});
 });
 
-describe('wrapper factory – auto-mount behavior', () => {
-	it('auto-mounts when element option is provided', () => {
+describe('wrapper factory – element-first immediate-mount behavior', () => {
+	it('mounts immediately when element option is provided', () => {
 		const container = createTestContainer();
 
 		createBoard({ element: container, extensions: ['renderer'] as const });
 
-		// Auto-mount creates SVG structure in the container
+		// Immediate mount creates SVG structure in the container
 		expect(container.children.length).toBeGreaterThan(0);
-	});
-
-	it('does not auto-mount when document option is provided without element', () => {
-		const board = createTestBoard();
-		const container = createTestContainer();
-
-		// No DOM children until explicit mount
-		expect(container.children.length).toBe(0);
-
-		board.mount(container);
-		expect(container.children.length).toBeGreaterThan(0);
-	});
-});
-
-describe('wrapper factory – default extensions', () => {
-	it('works with no extensions option (uses all built-in defaults)', () => {
-		const container = createTestContainer();
-
-		// Use real default extensions by not passing extensions option
-		const board = createBoard({ element: container });
-
-		// Should render successfully with all built-in extensions
-		expect(container.children.length).toBeGreaterThan(0);
-		expect(typeof board.getSnapshot).toBe('function');
 	});
 
 	it('resolves built-in extension string to working definition', () => {
@@ -84,6 +61,19 @@ describe('wrapper factory – default extensions', () => {
 			extensions: [{ builtin: 'renderer', options: {} }] as const
 		});
 
+		expect(container.children.length).toBeGreaterThan(0);
+		expect(typeof board.getSnapshot).toBe('function');
+	});
+});
+
+describe('wrapper factory – default extensions', () => {
+	it('works with no extensions option (uses all built-in defaults)', () => {
+		const container = createTestContainer();
+
+		// Use real default extensions by not passing extensions option
+		const board = createBoard({ element: container });
+
+		// Should render successfully with all built-in extensions
 		expect(container.children.length).toBeGreaterThan(0);
 		expect(typeof board.getSnapshot).toBe('function');
 	});

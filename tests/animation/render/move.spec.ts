@@ -29,7 +29,7 @@ function makeTrack(overrides: Partial<AnimationTrackMove> = {}): AnimationTrackM
 }
 
 describe('move render track', () => {
-	let layer: SVGElement;
+	let layer: SVGGElement;
 	let geometry: SceneRenderGeometry;
 	let pieceUrls: PieceUrls;
 

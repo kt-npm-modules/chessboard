@@ -5,7 +5,7 @@ import { PieceCode } from '../../../src/state/board/types/internal.js';
 import { MovabilityModeCode } from '../../../src/state/interaction/types/internal.js';
 
 function createTestRuntime() {
-	return createRuntime({ doc: document });
+	return createRuntime({ element: document.createElement('div') });
 }
 
 describe('runtime interaction commands', () => {

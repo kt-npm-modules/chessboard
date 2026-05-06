@@ -17,7 +17,7 @@ afterEach(() => {
 });
 
 function createTestRuntime() {
-	return createRuntime({ doc: document });
+	return createRuntime({ element: document.createElement('div') });
 }
 
 describe('runtime requestRender command', () => {
@@ -59,7 +59,7 @@ describe('runtime requestRender command', () => {
 				}
 			);
 
-			const runtime = createRuntime({ doc: document });
+			const runtime = createRuntime({ element: document.createElement('div') });
 			const container = document.createElement('div');
 			// Stub clientWidth/clientHeight so isSceneSizeValid returns true
 			Object.defineProperty(container, 'clientWidth', { value: 400 });

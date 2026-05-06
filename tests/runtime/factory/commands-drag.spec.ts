@@ -40,7 +40,7 @@ function createExtensionWithoutCompleteDrag(id: string): AnyExtensionDefinition 
 function createTestRuntime(extDef?: AnyExtensionDefinition) {
 	capturedCommands = null;
 	const ext = extDef ?? createDragCapableExtension('test-ext');
-	const runtime = createRuntime({ doc: document, extensions: [ext] });
+	const runtime = createRuntime({ element: document.createElement('div'), extensions: [ext] });
 	return { runtime, commands: capturedCommands! };
 }
 

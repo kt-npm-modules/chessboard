@@ -21,6 +21,13 @@ import type {
 } from '../../../src/render/types.js';
 import type { RuntimeStateSnapshot } from '../../../src/state/types.js';
 
+/**
+ * Creates a host HTMLElement for render system initialization.
+ */
+export function createHostElement(): HTMLElement {
+	return document.createElement('div');
+}
+
 export interface FakeExtensionOptions {
 	id: string;
 	slots?: readonly ExtensionSlotName[];
@@ -93,7 +100,7 @@ export function createMinimalRenderSystemOptions(
 	opts: FakeSharedDataOptions = {}
 ): RenderSystemInitOptions {
 	return {
-		doc: document,
+		element: createHostElement(),
 		sharedDataFromExtensionSystem: createFakeSharedData(opts)
 	};
 }
@@ -136,8 +143,9 @@ export interface FakeRenderInternalOptions {
 export function createFakeRenderInternal(
 	opts: FakeRenderInternalOptions = {}
 ): RenderSystemInternal {
+	const hostElement = createHostElement();
 	const svgRoots: SvgRoots = createSvgRoots({
-		doc: document,
+		element: hostElement,
 		sharedDataFromExtensionSystem: {
 			extensions: new Map(),
 			transientVisualsSubscribers: new Set()
