@@ -32,6 +32,12 @@ function createMockRuntimeSurface(): ExtensionRuntimeSurface {
 		transientVisuals: {
 			subscribe: vi.fn(),
 			unsubscribe: vi.fn()
+		},
+		invalidation: {
+			dirtyLayers: 0,
+			markDirty: vi.fn(),
+			clearDirty: vi.fn(),
+			clear: vi.fn()
 		}
 	};
 }

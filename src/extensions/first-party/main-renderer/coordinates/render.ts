@@ -1,6 +1,6 @@
 import {
-	clearElementChildren,
-	createSvgElement,
+	clearVisualSlotChildren,
+	createVisualSvgElement,
 	isLightSquare
 } from '../../../../render/svg/helpers.js';
 import { squareOf } from '../../../../state/board/coords.js';
@@ -21,14 +21,14 @@ function labelColorForSquare(sq: Square, coordColors: { light: string; dark: str
 export function rendererCoordinatesRender(
 	state: MainRendererCoordinatesInternal,
 	context: ExtensionRenderContext,
-	layer: SVGElement
+	slot: SVGGElement
 ): void {
 	if ((context.invalidation.dirtyLayers & DirtyLayer.Coordinates) === 0) {
 		return;
 	}
 
 	const geometry = context.currentFrame.layout.geometry;
-	clearElementChildren(layer);
+	clearVisualSlotChildren(slot);
 
 	const coords = state.config;
 	const fontSize = geometry.squareSize * 0.12;
@@ -47,7 +47,7 @@ export function rendererCoordinatesRender(
 		const r = geometry.getSquareRect(sq);
 		const color = labelColorForSquare(sq, coords);
 
-		const text = createSvgElement(layer, 'text', {
+		const text = createVisualSvgElement(slot, 'text', {
 			'data-chessboard-id': `coord-rank-${label}`,
 			x: (r.x + offset).toString(),
 			y: (r.y + offset).toString(),
@@ -76,7 +76,7 @@ export function rendererCoordinatesRender(
 		const r = geometry.getSquareRect(sq);
 		const color = labelColorForSquare(sq, coords);
 
-		const text = createSvgElement(layer, 'text', {
+		const text = createVisualSvgElement(slot, 'text', {
 			'data-chessboard-id': `coord-file-${label}`,
 			x: (r.x + r.width - offset).toString(),
 			y: (r.y + r.height - offset).toString(),

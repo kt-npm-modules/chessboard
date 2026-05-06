@@ -4,7 +4,7 @@ import { normalizeSquare } from '../../../src/state/board/normalize.js';
 import { PieceCode } from '../../../src/state/board/types/internal.js';
 
 function createTestRuntime() {
-	return createRuntime({ doc: document });
+	return createRuntime({ element: document.createElement('div') });
 }
 
 describe('runtime board commands', () => {

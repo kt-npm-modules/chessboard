@@ -4,9 +4,11 @@ export {
 	renderAnimationPlan
 } from '../../animation/render/plan.js';
 export {
-	clearElementChildren,
-	createSvgElement,
-	updateElementAttributes
+	clearDefinitionSlotChildren,
+	clearVisualSlotChildren,
+	createDefinitionSvgElement,
+	createVisualSvgElement,
+	updateSvgElementAttributes
 } from '../../render/svg/helpers.js';
 export type { RuntimeReadonlyMutationSession } from '../../runtime/mutation/types.js';
 export { isNonEmptyPieceCode } from '../../state/board/check.js';

@@ -11,6 +11,7 @@ import { createMainRendererBoard } from './board/factory.js';
 import { createMainRendererCoordinates } from './coordinates/factory.js';
 import { createMainRendererDrag } from './drag/factory.js';
 import { normalizeMainRendererConfig } from './normalize.js';
+import { createPieceSymbolResolver, ensurePieceSymbolsDefined } from './piece-symbols.js';
 import { createMainRendererPieces } from './pieces/factory.js';
 import {
 	EXTENSION_ID,
@@ -41,11 +42,12 @@ function createMainRendererInternal(
 	options: ExtensionCreateInstanceOptions,
 	config: MainRendererConfig
 ): MainRendererInstanceInternal {
+	const pieceSymbolResolver = createPieceSymbolResolver();
 	const board = createMainRendererBoard(config.colors.board);
 	const coordinates = createMainRendererCoordinates(config.colors.coordinates);
-	const pieces = createMainRendererPieces(config.pieceUrls);
-	const drag = createMainRendererDrag(config.pieceUrls, options.runtimeSurface);
-	const animation = createMainRendererAnimation(config.pieceUrls, options.runtimeSurface);
+	const pieces = createMainRendererPieces(pieceSymbolResolver);
+	const drag = createMainRendererDrag(options.runtimeSurface, pieceSymbolResolver);
+	const animation = createMainRendererAnimation(options.runtimeSurface, pieceSymbolResolver);
 	return {
 		...extensionCreateInternalBase<ExtensionSlotsType>(),
 		board,
@@ -53,7 +55,8 @@ function createMainRendererInternal(
 		pieces,
 		drag,
 		animation,
-		runtimeSurface: options.runtimeSurface
+		runtimeSurface: options.runtimeSurface,
+		pieceSymbolResolver
 	};
 }
 
@@ -83,6 +86,11 @@ function createMainRendererInstance(
 		id: EXTENSION_ID,
 		mount(env) {
 			extensionMountBase<ExtensionSlotsType>(internalState, env.slotRoots);
+			ensurePieceSymbolsDefined(
+				env.slotRoots.defs,
+				config.pieceUrls,
+				internalState.pieceSymbolResolver
+			);
 		},
 		onUpdate(context) {
 			internalState.board.onUpdate(context);
@@ -119,11 +127,11 @@ function createMainRendererInstance(
 		},
 		unmount() {
 			extensionUnmountLocal(internalState);
-			extensionUnmountBase<ExtensionSlotsType>(internalState);
+			extensionUnmountBase<ExtensionSlotsType>(internalState, EXTENSION_ID);
 		},
 		destroy() {
 			extensionUnmountLocal(internalState);
-			extensionDestroyBase<ExtensionSlotsType>(internalState);
+			extensionDestroyBase<ExtensionSlotsType>(internalState, EXTENSION_ID);
 		}
 	};
 }

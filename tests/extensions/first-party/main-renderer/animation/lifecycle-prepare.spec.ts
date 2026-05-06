@@ -4,12 +4,9 @@ import { createSvgElement } from '../../../../test-utils/dom/svg.js';
 import {
 	createAnimationInternalState,
 	createAnimationPrepareContext,
-	createAnimationTestPieceUrls,
 	createMockAnimationRuntimeSurface,
 	createSimpleMovePlan
 } from '../../../../test-utils/extensions/first-party/main-renderer/animation.js';
-
-const pieceUrls = createAnimationTestPieceUrls();
 
 function createLayer(): SVGGElement {
 	return createSvgElement('g');
@@ -18,7 +15,7 @@ function createLayer(): SVGGElement {
 describe('rendererAnimationPrepare – prepares matching entries', () => {
 	it('prepares nodes for a submitted session when a matching entry exists', () => {
 		const { surface } = createMockAnimationRuntimeSurface();
-		const state = createAnimationInternalState(surface, pieceUrls);
+		const state = createAnimationInternalState(surface);
 		const plan = createSimpleMovePlan();
 		state.entries.set(1, { plan, nodes: null });
 
@@ -33,7 +30,7 @@ describe('rendererAnimationPrepare – prepares matching entries', () => {
 
 	it('creates SVG elements in the provided layer', () => {
 		const { surface } = createMockAnimationRuntimeSurface();
-		const state = createAnimationInternalState(surface, pieceUrls);
+		const state = createAnimationInternalState(surface);
 		const plan = createSimpleMovePlan();
 		state.entries.set(1, { plan, nodes: null });
 
@@ -47,7 +44,7 @@ describe('rendererAnimationPrepare – prepares matching entries', () => {
 
 	it('does not prepare the same entry twice when nodes already exist', () => {
 		const { surface } = createMockAnimationRuntimeSurface();
-		const state = createAnimationInternalState(surface, pieceUrls);
+		const state = createAnimationInternalState(surface);
 		const plan = createSimpleMovePlan();
 		state.entries.set(1, { plan, nodes: null });
 
@@ -69,7 +66,7 @@ describe('rendererAnimationPrepare – prepares matching entries', () => {
 
 	it('ignores unknown submitted session ids without throwing', () => {
 		const { surface } = createMockAnimationRuntimeSurface();
-		const state = createAnimationInternalState(surface, pieceUrls);
+		const state = createAnimationInternalState(surface);
 
 		const layer = createLayer();
 		const ctx = createAnimationPrepareContext({ submittedSessions: [{ id: 999 }] });
@@ -80,7 +77,7 @@ describe('rendererAnimationPrepare – prepares matching entries', () => {
 
 	it('appends nodes to the provided layer element', () => {
 		const { surface } = createMockAnimationRuntimeSurface();
-		const state = createAnimationInternalState(surface, pieceUrls);
+		const state = createAnimationInternalState(surface);
 		const plan = createSimpleMovePlan();
 		state.entries.set(1, { plan, nodes: null });
 

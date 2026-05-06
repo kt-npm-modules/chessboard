@@ -1,6 +1,6 @@
 import assert from '@ktarmyshov/assert';
 import { createExtensionSystem } from '../../extensions/factory/main.js';
-import { assertFrameRenderable, UpdateFrameSnapshot } from '../../extensions/types/basic/update.js';
+import { isFrameRenderable, UpdateFrameSnapshot } from '../../extensions/types/basic/update.js';
 import type { ExtensionRuntimeSurfaceCommandsInternalSurface } from '../../extensions/types/surface/commands.js';
 import { createLayout } from '../../layout/factory.js';
 import { createRenderSystem } from '../../render/factory.js';
@@ -26,7 +26,7 @@ import { createRuntimeInteractionSurface } from './input.js';
 function createRuntimeInternal(options: RuntimeInitOptionsInternal): RuntimeInternal {
 	const extensionSystem = createExtensionSystem(options);
 	const render = createRenderSystem({
-		doc: options.doc,
+		element: options.element,
 		sharedDataFromExtensionSystem: extensionSystem.getSharedDataForRenderSystem()
 	});
 	return {
@@ -83,9 +83,13 @@ function createExtensionRuntimeSurfaceCommandsInternalSurface(
 					state: state.state.getSnapshot(),
 					layout: state.layout.getSnapshot()
 				};
-				assertFrameRenderable(renderRequest);
+				if (!isFrameRenderable(renderRequest)) {
+					return false;
+				}
 				state.renderSystem.requestRender(renderRequest);
+				return true;
 			}
+			return false;
 		},
 		setOrientation(orientation) {
 			const state = getInternalState();

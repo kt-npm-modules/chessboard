@@ -1,5 +1,5 @@
 import assert from '@ktarmyshov/assert';
-import { createSvgElement, updateElementAttributes } from '../../../render/svg/helpers.js';
+import { createVisualSvgElement, updateSvgElementAttributes } from '../../../render/svg/helpers.js';
 import { fileOf, rankOf, squareOf } from '../../../state/board/coords.js';
 import { toPieceCode } from '../../../state/board/piece.js';
 import { ColorCode, RolePromotionCode, SquareRank } from '../../../state/board/types/internal.js';
@@ -156,7 +156,7 @@ function createPromotionInstance(
 
 			// Create or update a node for each promotion role
 			assert(internalState.slotRoots, 'Slot roots should be available when render is called');
-			const layer = internalState.slotRoots.animation;
+			const slot = internalState.slotRoots.animation;
 			for (let i = 0; i < promotedToSorted.length; i++) {
 				const roleCode = promotedToSorted[i];
 				const displayRank = (targetRank + i * rankStep) as SquareRank;
@@ -186,14 +186,14 @@ function createPromotionInstance(
 
 				const existing = internalState.svgPromotionPieces.get(roleCode) ?? null;
 				if (existing !== null) {
-					updateElementAttributes(existing.rect, rectAttrs);
-					updateElementAttributes(existing.svg, imageAttrs);
+					updateSvgElementAttributes(existing.rect, rectAttrs);
+					updateSvgElementAttributes(existing.svg, imageAttrs);
 				} else {
-					const rect = createSvgElement(layer, 'rect', {
+					const rect = createVisualSvgElement(slot, 'rect', {
 						'data-chessboard-id': `promotion-bg-${roleCode}`,
 						...rectAttrs
 					});
-					const svg = createSvgElement(layer, 'image', {
+					const svg = createVisualSvgElement(slot, 'image', {
 						'data-chessboard-id': `promotion-piece-${roleCode}`,
 						...imageAttrs
 					});
@@ -217,14 +217,14 @@ function createPromotionInstance(
 					'shape-rendering': 'crispEdges'
 				};
 				if (internalState.svgHoverRect) {
-					updateElementAttributes(internalState.svgHoverRect, attrs);
+					updateSvgElementAttributes(internalState.svgHoverRect, attrs);
 				} else {
 					assert(
 						internalState.slotRoots,
 						'Slot roots should be available when renderTransientVisuals is called'
 					);
-					const layer = internalState.slotRoots.animation;
-					internalState.svgHoverRect = createSvgElement(layer, 'rect', {
+					const slot = internalState.slotRoots.animation;
+					internalState.svgHoverRect = createVisualSvgElement(slot, 'rect', {
 						'data-chessboard-id': 'promotion-hover',
 						...attrs
 					});
@@ -253,11 +253,11 @@ function createPromotionInstance(
 			internalState.runtimeSurface.commands.cancelDeferredUIMoveRequest();
 		},
 		unmount() {
-			extensionUnmountBase<ExtensionSlotsType>(internalState);
+			extensionUnmountBase<ExtensionSlotsType>(internalState, EXTENSION_ID);
 			extensionClean(internalState);
 		},
 		destroy() {
-			extensionDestroyBase<ExtensionSlotsType>(internalState);
+			extensionDestroyBase<ExtensionSlotsType>(internalState, EXTENSION_ID);
 			extensionClean(internalState);
 		}
 	};

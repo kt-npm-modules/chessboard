@@ -1,4 +1,5 @@
 import { vi } from 'vitest';
+import type { PieceSymbolResolver } from '../../../../../src/extensions/first-party/main-renderer/piece-symbols.js';
 import { DirtyLayer } from '../../../../../src/extensions/first-party/main-renderer/types/extension.js';
 import type { PieceUrls } from '../../../../../src/extensions/first-party/main-renderer/types/internal.js';
 import type { ExtensionRenderContext } from '../../../../../src/extensions/types/context/render.js';
@@ -37,6 +38,16 @@ export function createTestPieceUrls(): PieceUrls {
 		urls[code] = `url://${code}`;
 	}
 	return urls as PieceUrls;
+}
+
+// ─── Piece Symbol Resolver ────────────────────────────────────────────────────
+
+/**
+ * Creates a test PieceSymbolResolver with a deterministic prefix.
+ */
+export function createTestPieceSymbolResolver(prefix = 'test'): PieceSymbolResolver {
+	const getHref = (pieceCode: NonEmptyPieceCode): string => `#${prefix}-p${pieceCode}`;
+	return { getHref, prefix };
 }
 
 // ─── Render context ───────────────────────────────────────────────────────────

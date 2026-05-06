@@ -1,37 +1,51 @@
 import { describe, expect, it } from 'vitest';
 import { rendererDragRenderTransientVisuals } from '../../../../../src/extensions/first-party/main-renderer/drag/render.js';
 import type { MainRendererDragInternal } from '../../../../../src/extensions/first-party/main-renderer/drag/types.js';
-import { PieceCode } from '../../../../../src/state/board/types/internal.js';
+import {
+	type NonEmptyPieceCode,
+	PieceCode
+} from '../../../../../src/state/board/types/internal.js';
 import { queryByDataChessboardId } from '../../../../test-utils/dom/svg.js';
 import {
 	createDragLayer,
 	createDragTransientVisualsContext,
 	createMockRuntimeSurface
 } from '../../../../test-utils/extensions/first-party/main-renderer/drag.js';
-import { createTestPieceUrls } from '../../../../test-utils/extensions/first-party/main-renderer/pieces.js';
+import { createTestPieceSymbolResolver } from '../../../../test-utils/extensions/first-party/main-renderer/pieces.js';
 
-const pieceUrls = createTestPieceUrls();
+const resolver = createTestPieceSymbolResolver();
 
 function createInactiveState(): MainRendererDragInternal {
 	const { surface } = createMockRuntimeSurface();
 	return {
-		config: pieceUrls,
 		runtimeSurface: surface,
+		resolver,
 		isDragActive: false,
-		pieceUrl: null,
+		pieceCode: null,
 		pieceNode: null
 	};
 }
 
 function createActiveState(
-	pieceUrl: string | null = pieceUrls[PieceCode.WhiteKing]
+	pieceCode: NonEmptyPieceCode = PieceCode.WhiteKing
 ): MainRendererDragInternal {
 	const { surface } = createMockRuntimeSurface();
 	return {
-		config: pieceUrls,
 		runtimeSurface: surface,
+		resolver,
 		isDragActive: true,
-		pieceUrl,
+		pieceCode,
+		pieceNode: null
+	};
+}
+
+function createActiveStateNoPiece(): MainRendererDragInternal {
+	const { surface } = createMockRuntimeSurface();
+	return {
+		runtimeSurface: surface,
+		resolver,
+		isDragActive: true,
+		pieceCode: null,
 		pieceNode: null
 	};
 }
@@ -47,8 +61,8 @@ describe('drag transient render – inactive', () => {
 		expect(layer.children.length).toBe(0);
 	});
 
-	it('no-op when active but pieceUrl is null', () => {
-		const state = createActiveState(null);
+	it('no-op when active but pieceCode is null', () => {
+		const state = createActiveStateNoPiece();
 		const layer = createDragLayer();
 		const ctx = createDragTransientVisualsContext();
 
@@ -58,8 +72,8 @@ describe('drag transient render – inactive', () => {
 	});
 });
 
-describe('drag transient render – creates dragged image', () => {
-	it('creates an image element on first render when active with pieceUrl', () => {
+describe('drag transient render – creates dragged use element', () => {
+	it('creates a use element on first render when active with pieceCode', () => {
 		const state = createActiveState();
 		const layer = createDragLayer();
 		const ctx = createDragTransientVisualsContext({ boardClampedPoint: { x: 200, y: 200 } });
@@ -67,7 +81,7 @@ describe('drag transient render – creates dragged image', () => {
 		rendererDragRenderTransientVisuals(state, ctx, layer);
 
 		expect(layer.children.length).toBe(1);
-		expect(layer.children[0].tagName).toBe('image');
+		expect(layer.children[0].tagName).toBe('use');
 	});
 
 	it('sets data-chessboard-id to dragged-piece', () => {
@@ -80,7 +94,7 @@ describe('drag transient render – creates dragged image', () => {
 		expect(queryByDataChessboardId(layer, 'dragged-piece')).not.toBeNull();
 	});
 
-	it('positions image centered around boardClampedPoint', () => {
+	it('positions element centered around boardClampedPoint', () => {
 		const state = createActiveState();
 		const layer = createDragLayer();
 		// 400px scene → squareSize = 50, point at (200, 150)
@@ -91,10 +105,10 @@ describe('drag transient render – creates dragged image', () => {
 
 		rendererDragRenderTransientVisuals(state, ctx, layer);
 
-		const img = layer.children[0];
+		const el = layer.children[0];
 		// x = 200 - 50/2 = 175, y = 150 - 50/2 = 125
-		expect(img.getAttribute('x')).toBe('175');
-		expect(img.getAttribute('y')).toBe('125');
+		expect(el.getAttribute('x')).toBe('175');
+		expect(el.getAttribute('y')).toBe('125');
 	});
 
 	it('sets width and height from geometry.squareSize', () => {
@@ -104,23 +118,22 @@ describe('drag transient render – creates dragged image', () => {
 
 		rendererDragRenderTransientVisuals(state, ctx, layer);
 
-		const img = layer.children[0];
-		expect(img.getAttribute('width')).toBe('50');
-		expect(img.getAttribute('height')).toBe('50');
+		const el = layer.children[0];
+		expect(el.getAttribute('width')).toBe('50');
+		expect(el.getAttribute('height')).toBe('50');
 	});
 
-	it('uses stored piece URL as href', () => {
-		const url = pieceUrls[PieceCode.BlackQueen];
-		const state = createActiveState(url);
+	it('uses resolver symbol href as href', () => {
+		const state = createActiveState(PieceCode.BlackQueen);
 		const layer = createDragLayer();
 		const ctx = createDragTransientVisualsContext();
 
 		rendererDragRenderTransientVisuals(state, ctx, layer);
 
-		expect(layer.children[0].getAttribute('href')).toBe(url);
+		expect(layer.children[0].getAttribute('href')).toBe(resolver.getHref(PieceCode.BlackQueen));
 	});
 
-	it('appends image to the provided layer element', () => {
+	it('appends element to the provided layer element', () => {
 		const state = createActiveState();
 		const layer = createDragLayer();
 		const ctx = createDragTransientVisualsContext();

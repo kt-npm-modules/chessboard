@@ -87,21 +87,11 @@ export type ChessboardExtensionsPublicMap<TExtensions extends readonly Chessboar
 /**
  * Public createBoard options
  */
-interface ChessboardInitOptionsDocument {
-	readonly document: Document;
-	readonly element?: never;
-}
-
-interface ChessboardInitOptionsElement {
-	readonly element: HTMLElement;
-	readonly document?: never;
-}
-
-type ChessboardInitTarget = ChessboardInitOptionsDocument | ChessboardInitOptionsElement;
 
 export type ChessboardInitOptions<
 	TExtensions extends readonly ChessboardExtensionInput[] = DefaultBuiltinChessboardExtensions
-> = ChessboardInitTarget & {
+> = {
+	element: HTMLElement;
 	readonly state?: RuntimeStateInitOptions;
 	readonly extensions?: TExtensions;
 };
@@ -111,8 +101,6 @@ export type ChessboardInitOptions<
  */
 export type ChessboardRuntimeSurface = Pick<
 	Runtime,
-	| 'mount'
-	| 'unmount'
 	| 'destroy'
 	| 'move'
 	| 'setPosition'

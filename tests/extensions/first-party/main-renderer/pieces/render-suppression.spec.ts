@@ -10,18 +10,18 @@ import {
 import {
 	createPiecesLayer,
 	createPiecesRenderContext,
-	createTestPieceUrls
+	createTestPieceSymbolResolver
 } from '../../../../test-utils/extensions/first-party/main-renderer/pieces.js';
 
-const pieceUrls = createTestPieceUrls();
+const resolver = createTestPieceSymbolResolver();
 
 function createInternalState(
 	suppressedSquares: ReadonlySet<Square> = new Set()
 ): MainRendererPiecesInternal {
 	return {
-		config: pieceUrls,
 		pieceNodes: new Map(),
-		suppressedSquares
+		suppressedSquares,
+		resolver
 	};
 }
 
@@ -38,7 +38,7 @@ describe('pieces renderer – suppression smoke', () => {
 
 		// Only square 7 should be rendered (square 0 is suppressed)
 		expect(layer.children.length).toBe(1);
-		expect(layer.children[0].getAttribute('href')).toBe(pieceUrls[PieceCode.BlackKing]);
+		expect(layer.children[0].getAttribute('href')).toBe(resolver.getHref(PieceCode.BlackKing));
 	});
 
 	it('removes an already-rendered image when its square becomes suppressed', () => {

@@ -20,7 +20,7 @@ function makeScenePointerEvent(
 
 describe('createInteractionController', () => {
 	describe('onEvent routing', () => {
-		it('calls surface.onEvent first for every event', () => {
+		it('calls surface.onEvent with enriched context including runtimeInteractionActionPreview', () => {
 			const surface = createMockSurface();
 			const controller = createInteractionController({ surface });
 			const context = createEventContext({
@@ -31,10 +31,31 @@ describe('createInteractionController', () => {
 			controller.onEvent(context);
 
 			expect(surface.onEvent).toHaveBeenCalledOnce();
-			expect(surface.onEvent).toHaveBeenCalledWith(context);
+			expect(surface.onEvent).toHaveBeenCalledWith({
+				...context,
+				runtimeInteractionActionPreview: null
+			});
 		});
 
-		it('calls surface.onEvent before core pointer handler', () => {
+		it('passes non-null runtimeInteractionActionPreview to surface.onEvent when action is determined', () => {
+			const surface = createMockSurface({
+				getPieceCodeAt: () => PieceCode.WhitePawn
+			});
+			const controller = createInteractionController({ surface });
+			const context = createEventContext({
+				rawEvent: new PointerEvent('pointerdown', { button: 0 }),
+				sceneEvent: makeScenePointerEvent('pointerdown', 12)
+			});
+
+			controller.onEvent(context);
+
+			expect(surface.onEvent).toHaveBeenCalledWith({
+				...context,
+				runtimeInteractionActionPreview: { type: 'startLiftedDrag', source: 12, target: 12 }
+			});
+		});
+
+		it('calls surface.onEvent before executing the action', () => {
 			const surface = createMockSurface({
 				getPieceCodeAt: () => PieceCode.WhitePawn
 			});
@@ -51,7 +72,7 @@ describe('createInteractionController', () => {
 			expect(onEventOrder).toBeLessThan(startLiftedDragOrder);
 		});
 
-		it('skips core pointer handling when rawEvent.defaultPrevented', () => {
+		it('skips action execution when rawEvent.defaultPrevented', () => {
 			const surface = createMockSurface({
 				snapshot: {
 					dragSession: {
@@ -73,7 +94,7 @@ describe('createInteractionController', () => {
 
 			controller.onEvent(context);
 
-			// Core pointer handling (updateDragSessionCurrentTarget) should NOT be called
+			// Action execution (updateDragSessionCurrentTarget) should NOT be called
 			expect(surface.updateDragSessionCurrentTarget).not.toHaveBeenCalled();
 		});
 
@@ -109,7 +130,7 @@ describe('createInteractionController', () => {
 	});
 
 	describe('pointerdown routing', () => {
-		it('calls startLiftedDrag when target has a piece', () => {
+		it('executes startLiftedDrag when target has a piece', () => {
 			const surface = createMockSurface({
 				getPieceCodeAt: () => PieceCode.WhitePawn
 			});
@@ -126,7 +147,7 @@ describe('createInteractionController', () => {
 	});
 
 	describe('pointermove routing', () => {
-		it('calls updateDragSessionCurrentTarget when drag is active', () => {
+		it('executes updateDragSessionCurrentTarget when drag is active', () => {
 			const surface = createMockSurface({
 				snapshot: {
 					dragSession: {
@@ -151,7 +172,7 @@ describe('createInteractionController', () => {
 	});
 
 	describe('pointerup routing', () => {
-		it('calls completeExtensionDrag for extension-owned drag session', () => {
+		it('executes completeExtensionDrag for extension-owned drag session', () => {
 			const surface = createMockSurface({
 				snapshot: {
 					dragSession: {
@@ -174,7 +195,7 @@ describe('createInteractionController', () => {
 			expect(surface.completeExtensionDrag).toHaveBeenCalledWith(28);
 		});
 
-		it('calls cancelActiveInteraction for core drag when target is source', () => {
+		it('executes cancelActiveInteraction for core drag when target is source', () => {
 			const surface = createMockSurface({
 				snapshot: {
 					dragSession: {
@@ -197,7 +218,7 @@ describe('createInteractionController', () => {
 			expect(surface.cancelActiveInteraction).toHaveBeenCalledOnce();
 		});
 
-		it('calls completeCoreDragTo for core drag with valid target in free mode', () => {
+		it('executes completeCoreDragTo for core drag with valid target in free mode', () => {
 			const surface = createMockSurface({
 				snapshot: {
 					selected: { square: 12, pieceCode: PieceCode.WhitePawn },
@@ -224,7 +245,7 @@ describe('createInteractionController', () => {
 	});
 
 	describe('pointercancel routing', () => {
-		it('calls cancelActiveInteraction when drag is active', () => {
+		it('executes cancelActiveInteraction when drag is active', () => {
 			const surface = createMockSurface({
 				snapshot: {
 					dragSession: {

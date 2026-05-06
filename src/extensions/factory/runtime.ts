@@ -1,5 +1,6 @@
 import assert from '@ktarmyshov/assert';
 import { DragSessionExtensionOwned } from '../../state/interaction/types/internal.js';
+import type { ExtensionInvalidationState } from '../invalidation/types.js';
 import type { ExtensionAnimationController } from '../types/basic/animation.js';
 import type { AnyExtensionDefinition } from '../types/extension.js';
 import type { GetInternalState } from '../types/main.js';
@@ -117,6 +118,33 @@ function createExtensionRuntimeSurfaceCommands(
 	};
 }
 
+function createExtensionRuntimeSurfaceInvalidation(
+	getInternalState: GetInternalState,
+	extensionDef: AnyExtensionDefinition
+): ExtensionInvalidationState {
+	function getInvalidation(): ExtensionInvalidationState {
+		const internalState = getInternalState();
+		const record = internalState.extensions.get(extensionDef.id);
+		assert(record, 'Extension record not found for invalidation');
+		return record.invalidation;
+	}
+
+	return {
+		get dirtyLayers() {
+			return getInvalidation().dirtyLayers;
+		},
+		markDirty(layers) {
+			getInvalidation().markDirty(layers);
+		},
+		clearDirty(layers) {
+			getInvalidation().clearDirty(layers);
+		},
+		clear() {
+			getInvalidation().clear();
+		}
+	};
+}
+
 export function createExtensionRuntimeSurface(
 	getInternalState: GetInternalState,
 	commands: ExtensionRuntimeSurfaceCommands,
@@ -127,6 +155,7 @@ export function createExtensionRuntimeSurface(
 		commands: createExtensionRuntimeSurfaceCommands(getInternalState, commands, extensionDef),
 		animation: createExtensionRuntimeSurfaceAnimation(getInternalState, extensionDef),
 		transientVisuals: createExtensionRuntimeSurfaceTransientVisuals(getInternalState, extensionDef),
-		events: createExtensionRuntimeSurfaceEvents(getInternalState, events, extensionDef)
+		events: createExtensionRuntimeSurfaceEvents(getInternalState, events, extensionDef),
+		invalidation: createExtensionRuntimeSurfaceInvalidation(getInternalState, extensionDef)
 	};
 }

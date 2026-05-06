@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { ScenePointerEvent } from '../../../../src/extensions/types/basic/events.js';
-import { handlePointerCancel } from '../../../../src/runtime/input/controller/pointer.js';
+import { determineActionPointerCancel } from '../../../../src/runtime/input/controller/pointer.js';
 import { PieceCode, type Square } from '../../../../src/state/board/types/internal.js';
 import { createEventContext, createMockSurface } from '../../../test-utils/runtime/controller.js';
 
@@ -17,17 +17,17 @@ function makeContext() {
 	});
 }
 
-describe('handlePointerCancel', () => {
-	it('does nothing when no active drag session', () => {
+describe('determineActionPointerCancel', () => {
+	it('returns null when no active drag session', () => {
 		const surface = createMockSurface();
 		const context = makeContext();
 
-		handlePointerCancel({ surface }, context);
+		const result = determineActionPointerCancel({ surface }, context);
 
-		expect(surface.cancelActiveInteraction).not.toHaveBeenCalled();
+		expect(result).toBeNull();
 	});
 
-	it('calls cancelActiveInteraction when drag session is active', () => {
+	it('returns cancelActiveInteraction when drag session is active', () => {
 		const surface = createMockSurface({
 			snapshot: {
 				dragSession: {
@@ -41,8 +41,8 @@ describe('handlePointerCancel', () => {
 		});
 		const context = makeContext();
 
-		handlePointerCancel({ surface }, context);
+		const result = determineActionPointerCancel({ surface }, context);
 
-		expect(surface.cancelActiveInteraction).toHaveBeenCalledOnce();
+		expect(result).toEqual({ type: 'cancelActiveInteraction' });
 	});
 });

@@ -36,7 +36,7 @@ export interface RenderSystemInternal {
 }
 
 export interface RenderSystemInitOptions {
-	doc: Document;
+	element: HTMLElement;
 	sharedDataFromExtensionSystem: ExtensionSystemSharedDataForRenderSystem;
 }
 

@@ -1,11 +1,7 @@
-import {
-	handlePointerCancel,
-	handlePointerDown,
-	handlePointerMove,
-	handlePointerUp
-} from './pointer.js';
+import type { ExtensionOnEventContext } from '../../../extensions/types/context/events.js';
+import { determineRuntimeInteractionAction } from './interaction.js';
 import { transmitTransientInput } from './transient-visuals.js';
-import {
+import type {
 	InteractionController,
 	InteractionControllerInitOptions,
 	InteractionControllerInternal
@@ -25,25 +21,48 @@ export function createInteractionController(
 	const internalState = createInteractionControllerInternal(options);
 	return {
 		onEvent(context) {
-			internalState.surface.onEvent(context);
+			const action = determineRuntimeInteractionAction(internalState, context);
+			const extensionContext: ExtensionOnEventContext = {
+				...context,
+				runtimeInteractionActionPreview: action
+			};
+			internalState.surface.onEvent(extensionContext);
 			if (context.rawEvent.defaultPrevented) {
 				transmitTransientInput(internalState, context);
 				return; // The event has been handled by the surface (extensions)
 			}
-			switch (context.rawEvent.type) {
-				case 'pointerdown':
-					handlePointerDown(internalState, context);
-					break;
-				case 'pointermove':
-					handlePointerMove(internalState, context);
-					break;
-				case 'pointerup':
-					handlePointerUp(internalState, context);
-					break;
-				case 'pointercancel':
-					handlePointerCancel(internalState, context);
-					break;
+
+			if (action) {
+				switch (action.type) {
+					case 'startLiftedDrag':
+						internalState.surface.startLiftedDrag(action.source, action.target);
+						break;
+					case 'startReleaseTargetingDrag':
+						internalState.surface.startReleaseTargetingDrag(action.source, action.target);
+						break;
+					case 'completeCoreDragTo':
+						internalState.surface.completeCoreDragTo(action.target);
+						break;
+					case 'completeExtensionDrag':
+						internalState.surface.completeExtensionDrag(action.target);
+						break;
+					case 'updateDragSessionCurrentTarget':
+						internalState.surface.updateDragSessionCurrentTarget(action.target);
+						break;
+					case 'cancelActiveInteraction':
+						internalState.surface.cancelActiveInteraction();
+						break;
+					case 'cancelInteraction':
+						internalState.surface.cancelInteraction();
+						break;
+					default:
+						throw new Error(
+							// eslint-disable-next-line @typescript-eslint/no-explicit-any
+							`Unhandled RuntimeInteractionAction type: ${String((action as any).type)}`
+						);
+				}
 			}
+
 			transmitTransientInput(internalState, context);
 		}
 	};

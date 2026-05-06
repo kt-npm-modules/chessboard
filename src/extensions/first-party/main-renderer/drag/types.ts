@@ -1,18 +1,19 @@
+import { NonEmptyPieceCode } from '../../../../state/board/types/internal.js';
 import { ExtensionRenderTransientVisualsContext } from '../../../types/context/transient-visuals.js';
 import { ExtensionUpdateContext } from '../../../types/context/update.js';
 import { ExtensionRuntimeSurface } from '../../../types/surface/main.js';
-import { PieceUrls } from '../types/internal.js';
+import type { PieceSymbolResolver } from '../piece-symbols.js';
 
 export interface MainRendererDragInternal {
-	readonly config: PieceUrls;
 	readonly runtimeSurface: ExtensionRuntimeSurface;
+	readonly resolver: PieceSymbolResolver;
 	isDragActive: boolean;
-	pieceUrl: string | null;
-	pieceNode: SVGImageElement | null;
+	pieceCode: NonEmptyPieceCode | null;
+	pieceNode: SVGUseElement | null;
 }
 
 export interface MainRendererDrag {
 	onUpdate(context: ExtensionUpdateContext): void;
-	renderTransientVisuals(context: ExtensionRenderTransientVisualsContext, layer: SVGElement): void;
+	renderTransientVisuals(context: ExtensionRenderTransientVisualsContext, slot: SVGGElement): void;
 	unmount(): void;
 }

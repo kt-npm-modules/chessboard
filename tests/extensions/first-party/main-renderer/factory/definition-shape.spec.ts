@@ -10,7 +10,7 @@ describe('main-renderer definition shape', () => {
 
 	it('declares the expected slots', () => {
 		const def = createMainRenderer();
-		expect(def.slots).toEqual(['board', 'coordinates', 'pieces', 'animation', 'drag']);
+		expect(def.slots).toEqual(['defs', 'board', 'coordinates', 'pieces', 'animation', 'drag']);
 	});
 
 	it('createInstance returns an object with expected lifecycle methods', () => {

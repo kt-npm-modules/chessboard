@@ -1,4 +1,7 @@
-import { createSvgElement, updateElementAttributes } from '../../../../render/svg/helpers.js';
+import {
+	createVisualSvgElement,
+	updateSvgElementAttributes
+} from '../../../../render/svg/helpers.js';
 import { isNonEmptyPieceCode } from '../../../../state/board/check.js';
 import { Square, SQUARE_COUNT } from '../../../../state/board/types/internal.js';
 import { ExtensionRenderContext } from '../../../types/context/render.js';
@@ -8,7 +11,7 @@ import { MainRendererPiecesInternal } from './types.js';
 export function rendererPiecesRender(
 	state: MainRendererPiecesInternal,
 	context: ExtensionRenderContext,
-	layer: SVGElement
+	slot: SVGGElement
 ): void {
 	if ((context.invalidation.dirtyLayers & DirtyLayer.Pieces) === 0) {
 		return;
@@ -22,22 +25,22 @@ export function rendererPiecesRender(
 		const suppressed = state.suppressedSquares.has(sq);
 
 		if (isNonEmptyPieceCode(pieceCode) && !suppressed) {
-			const url = state.config[pieceCode];
+			const href = state.resolver.getHref(pieceCode);
 			const r = geometry.getSquareRect(sq);
 
 			if (existing !== null) {
-				updateElementAttributes(existing.root, {
+				updateSvgElementAttributes(existing.root, {
 					x: r.x.toString(),
 					y: r.y.toString(),
 					width: r.width.toString(),
 					height: r.height.toString(),
-					href: url
+					href
 				});
 			} else {
 				state.pieceNodes.set(sq, {
-					root: createSvgElement(layer, 'image', {
+					root: createVisualSvgElement(slot, 'use', {
 						'data-chessboard-id': `piece-${pieceCode}-${sq}`,
-						href: url,
+						href,
 						x: r.x.toString(),
 						y: r.y.toString(),
 						width: r.width.toString(),
@@ -46,7 +49,7 @@ export function rendererPiecesRender(
 				});
 			}
 		} else if (existing !== null) {
-			layer.removeChild(existing.root);
+			slot.removeChild(existing.root);
 			state.pieceNodes.delete(sq);
 		}
 	}

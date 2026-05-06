@@ -16,7 +16,7 @@ A framework-agnostic TypeScript chessboard platform with real chess interaction 
 
 ## Using React?
 
-Use [`@mirasen/react-chessboard`](https://github.com/mirasen-io/react-chessboard) for a React component with the same built-in interaction, promotion, animation, and chess.js integration.
+Use [`@mirasen/react-chessboard`](https://www.npmjs.com/package/@mirasen/react-chessboard) for a React component with the same built-in interaction, promotion, animation, and chess.js integration.
 
 ## Why this exists
 

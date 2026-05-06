@@ -1,6 +1,6 @@
 import assert from '@ktarmyshov/assert';
 import { toMerged } from 'es-toolkit';
-import { clearElementChildren, createSvgElement } from '../../../render/svg/helpers.js';
+import { clearVisualSlotChildren, createVisualSvgElement } from '../../../render/svg/helpers.js';
 import { isNonEmptyPieceCode } from '../../../state/board/check.js';
 import { fromPieceCode } from '../../../state/board/piece.js';
 import { MovabilityModeCode } from '../../../state/interaction/types/internal.js';
@@ -73,7 +73,7 @@ function createLegalMovesInstance(config: LegalMovesConfig): LegalMovesInstance 
 			);
 
 			assert(internalState.slotRoots, 'Slot roots should be available when render is called');
-			clearElementChildren(internalState.slotRoots.overPieces);
+			clearVisualSlotChildren(internalState.slotRoots.overPieces);
 			internalState.svgCircles = [];
 
 			const interaction = context.currentFrame.state.interaction;
@@ -116,7 +116,7 @@ function createLegalMovesInstance(config: LegalMovesConfig): LegalMovesInstance 
 					cy: circleY.toString(),
 					...(!isCapture ? commonAttributesEmpty : commonAttributesCapture)
 				};
-				const circle = createSvgElement(internalState.slotRoots.overPieces, 'circle', {
+				const circle = createVisualSvgElement(internalState.slotRoots.overPieces, 'circle', {
 					'data-chessboard-id': `legal-move-from-${square}-to-${destination.to}`,
 					...attributes
 				});
@@ -124,11 +124,11 @@ function createLegalMovesInstance(config: LegalMovesConfig): LegalMovesInstance 
 			}
 		},
 		unmount() {
-			extensionUnmountBase<ExtensionSlotsType>(internalState);
+			extensionUnmountBase<ExtensionSlotsType>(internalState, EXTENSION_ID);
 			extensionClean(internalState);
 		},
 		destroy() {
-			extensionDestroyBase<ExtensionSlotsType>(internalState);
+			extensionDestroyBase<ExtensionSlotsType>(internalState, EXTENSION_ID);
 			extensionClean(internalState);
 		}
 	};

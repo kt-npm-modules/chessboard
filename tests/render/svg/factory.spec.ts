@@ -1,17 +1,19 @@
 import { describe, expect, it } from 'vitest';
 import { allocateExtensionSlotRoots, createSvgRoots } from '../../../src/render/svg/factory.js';
 import { SVG_NS } from '../../../src/render/svg/helpers.js';
-import type { SvgRoots } from '../../../src/render/types.js';
+import type { RenderSystemInitOptionsInternal, SvgRoots } from '../../../src/render/types.js';
+import { createHostElement } from '../../test-utils/render/factory.js';
 
 function makeSvgRoots(): SvgRoots {
-	return createSvgRoots({
-		doc: document,
+	const options: RenderSystemInitOptionsInternal = {
+		element: createHostElement(),
 		sharedDataFromExtensionSystem: {
 			extensions: new Map(),
 			transientVisualsSubscribers: new Set()
 		},
 		performRender: () => {}
-	});
+	};
+	return createSvgRoots(options);
 }
 
 describe('createSvgRoots', () => {
@@ -129,5 +131,11 @@ describe('allocateExtensionSlotRoots', () => {
 		allocateExtensionSlotRoots(roots, 'ext-a', ['board']);
 		allocateExtensionSlotRoots(roots, 'ext-b', ['board']);
 		expect(roots.board.children).toHaveLength(2);
+	});
+
+	it('defs slot returns the shared defs element directly', () => {
+		const roots = makeSvgRoots();
+		const allocated = allocateExtensionSlotRoots(roots, 'ext-a', ['defs']);
+		expect(allocated.defs).toBe(roots.defs);
 	});
 });

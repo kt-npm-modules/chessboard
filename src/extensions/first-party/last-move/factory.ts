@@ -1,6 +1,6 @@
 import assert from '@ktarmyshov/assert';
 import { toMerged } from 'es-toolkit';
-import { createSvgElement, updateElementAttributes } from '../../../render/svg/helpers.js';
+import { createVisualSvgElement, updateSvgElementAttributes } from '../../../render/svg/helpers.js';
 import { isUpdateContextRenderable } from '../../types/context/update.js';
 import {
 	extensionCreateInternalBase,
@@ -108,29 +108,37 @@ function createLastMoveInstance(config: LastMoveConfig): LastMoveInstance {
 
 			if (internalState.svgRectFrom === null) {
 				assert(internalState.slotRoots, 'Slot roots should be available when render is called');
-				internalState.svgRectFrom = createSvgElement(internalState.slotRoots.underPieces, 'rect', {
-					'data-chessboard-id': 'last-move-square-from-highlight',
-					...rectFromAttributes
-				});
-				internalState.svgRectTo = createSvgElement(internalState.slotRoots.underPieces, 'rect', {
-					'data-chessboard-id': 'last-move-square-to-highlight',
-					...rectToAttributes
-				});
+				internalState.svgRectFrom = createVisualSvgElement(
+					internalState.slotRoots.underPieces,
+					'rect',
+					{
+						'data-chessboard-id': 'last-move-square-from-highlight',
+						...rectFromAttributes
+					}
+				);
+				internalState.svgRectTo = createVisualSvgElement(
+					internalState.slotRoots.underPieces,
+					'rect',
+					{
+						'data-chessboard-id': 'last-move-square-to-highlight',
+						...rectToAttributes
+					}
+				);
 			} else {
-				updateElementAttributes(internalState.svgRectFrom, rectFromAttributes);
+				updateSvgElementAttributes(internalState.svgRectFrom, rectFromAttributes);
 				assert(
 					internalState.svgRectTo,
 					'svgRectTo should be available if svgRectFrom is available'
 				);
-				updateElementAttributes(internalState.svgRectTo, rectToAttributes);
+				updateSvgElementAttributes(internalState.svgRectTo, rectToAttributes);
 			}
 		},
 		unmount() {
-			extensionUnmountBase<ExtensionSlotsType>(internalState);
+			extensionUnmountBase<ExtensionSlotsType>(internalState, EXTENSION_ID);
 			extensionClean(internalState);
 		},
 		destroy() {
-			extensionDestroyBase<ExtensionSlotsType>(internalState);
+			extensionDestroyBase<ExtensionSlotsType>(internalState, EXTENSION_ID);
 			extensionClean(internalState);
 		}
 	};

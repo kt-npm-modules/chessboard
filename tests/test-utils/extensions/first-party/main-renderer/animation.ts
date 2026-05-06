@@ -1,6 +1,7 @@
 import { vi } from 'vitest';
 import type { AnimationPlan, AnimationTrackMove } from '../../../../../src/animation/types.js';
 import type { MainRendererAnimationInternal } from '../../../../../src/extensions/first-party/main-renderer/animation/types.js';
+import type { PieceSymbolResolver } from '../../../../../src/extensions/first-party/main-renderer/piece-symbols.js';
 import type { PieceUrls } from '../../../../../src/extensions/first-party/main-renderer/types/internal.js';
 import type { ExtensionRuntimeSurface } from '../../../../../src/extensions/types/surface/main.js';
 import { createRenderGeometry } from '../../../../../src/layout/geometry/factory.js';
@@ -71,14 +72,18 @@ export function createMockAnimationRuntimeSurface() {
 /**
  * Creates a minimal MainRendererAnimationInternal for direct lifecycle tests.
  */
+function createDefaultResolver(): PieceSymbolResolver {
+	const getHref = (pieceCode: NonEmptyPieceCode): string => `#anim-test-p${pieceCode}`;
+	return { getHref, prefix: 'anim-test' };
+}
+
 export function createAnimationInternalState(
-	surface?: ExtensionRuntimeSurface,
-	config?: PieceUrls
+	surface?: ExtensionRuntimeSurface
 ): MainRendererAnimationInternal {
 	const { surface: defaultSurface } = createMockAnimationRuntimeSurface();
 	return {
-		config: config ?? ({} as PieceUrls),
 		runtimeSurface: surface ?? defaultSurface,
+		resolver: createDefaultResolver(),
 		entries: new Map()
 	};
 }

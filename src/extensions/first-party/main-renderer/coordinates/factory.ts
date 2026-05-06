@@ -5,8 +5,8 @@ import { MainRendererCoordinates, MainRendererCoordinatesInternal } from './type
 export function createMainRendererCoordinates(config: ConfigColorPair): MainRendererCoordinates {
 	const internalState: MainRendererCoordinatesInternal = { config };
 	return {
-		render(context, layer) {
-			rendererCoordinatesRender(internalState, context, layer);
+		render(context, slot) {
+			rendererCoordinatesRender(internalState, context, slot);
 		}
 	};
 }

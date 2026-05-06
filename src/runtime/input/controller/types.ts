@@ -1,7 +1,8 @@
-import { TransientInput } from '../../../extensions/types/basic/transient-visuals.js';
-import { ExtensionOnEventContext } from '../../../extensions/types/context/events.js';
-import { PieceCode, Square } from '../../../state/board/types/internal.js';
-import { InteractionStateSnapshot } from '../../../state/interaction/types/main.js';
+import type { RuntimeInteractionAction } from '../../../extensions/types/basic/events.js';
+import type { TransientInput } from '../../../extensions/types/basic/transient-visuals.js';
+import type { ExtensionOnEventContext } from '../../../extensions/types/context/events.js';
+import type { PieceCode, Square } from '../../../state/board/types/internal.js';
+import type { InteractionStateSnapshot } from '../../../state/interaction/types/main.js';
 
 export interface RuntimeInteractionSurface {
 	getInteractionStateSnapshot(): InteractionStateSnapshot;
@@ -17,6 +18,16 @@ export interface RuntimeInteractionSurface {
 	onEvent(context: ExtensionOnEventContext): void;
 }
 
+type _AssertTrue<T extends true> = T;
+type _RuntimeInteractionActionTypesMissingFromSurface = Exclude<
+	RuntimeInteractionAction['type'],
+	keyof RuntimeInteractionSurface
+>;
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+type _AssertRuntimeInteractionActionKeysAreSurfaceKeys = _AssertTrue<
+	_RuntimeInteractionActionTypesMissingFromSurface extends never ? true : false
+>;
+
 export interface InteractionControllerInternal {
 	readonly surface: RuntimeInteractionSurface;
 }
@@ -25,6 +36,11 @@ export interface InteractionControllerInitOptions {
 	surface: RuntimeInteractionSurface;
 }
 
+export type InteractionControllerOnEventContext = Omit<
+	ExtensionOnEventContext,
+	'runtimeInteractionActionPreview'
+>;
+
 export interface InteractionController {
-	onEvent(context: ExtensionOnEventContext): void;
+	onEvent(context: InteractionControllerOnEventContext): void;
 }

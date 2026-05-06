@@ -4,14 +4,14 @@ import { PieceCode, SQUARE_COUNT } from '../../../../../src/state/board/types/in
 import {
 	createPiecesLayer,
 	createPiecesRenderContext,
-	createTestPieceUrls
+	createTestPieceSymbolResolver
 } from '../../../../test-utils/extensions/first-party/main-renderer/pieces.js';
 
-const pieceUrls = createTestPieceUrls();
+const resolver = createTestPieceSymbolResolver();
 
 describe('pieces renderer – DOM reconciliation', () => {
 	it('repeated render with same state does not duplicate nodes', () => {
-		const pieces = createMainRendererPieces(pieceUrls);
+		const pieces = createMainRendererPieces(resolver);
 		const layer = createPiecesLayer();
 		const board = new Uint8Array(SQUARE_COUNT);
 		board[0] = PieceCode.WhiteKing;
@@ -25,8 +25,8 @@ describe('pieces renderer – DOM reconciliation', () => {
 		expect(layer.children.length).toBe(2);
 	});
 
-	it('updates existing image attributes when geometry changes', () => {
-		const pieces = createMainRendererPieces(pieceUrls);
+	it('updates existing element attributes when geometry changes', () => {
+		const pieces = createMainRendererPieces(resolver);
 		const layer = createPiecesLayer();
 		const board = new Uint8Array(SQUARE_COUNT);
 		board[0] = PieceCode.WhiteRook;
@@ -41,8 +41,8 @@ describe('pieces renderer – DOM reconciliation', () => {
 		expect(layer.children.length).toBe(1);
 	});
 
-	it('removes image when a previously-occupied square becomes empty', () => {
-		const pieces = createMainRendererPieces(pieceUrls);
+	it('removes element when a previously-occupied square becomes empty', () => {
+		const pieces = createMainRendererPieces(resolver);
 		const layer = createPiecesLayer();
 		const board = new Uint8Array(SQUARE_COUNT);
 		board[0] = PieceCode.WhiteKing;
@@ -59,8 +59,8 @@ describe('pieces renderer – DOM reconciliation', () => {
 		expect(layer.children.length).toBe(1);
 	});
 
-	it('adds image when a previously-empty square becomes occupied', () => {
-		const pieces = createMainRendererPieces(pieceUrls);
+	it('adds element when a previously-empty square becomes occupied', () => {
+		const pieces = createMainRendererPieces(resolver);
 		const layer = createPiecesLayer();
 		const board = new Uint8Array(SQUARE_COUNT);
 		board[0] = PieceCode.WhiteKing;
@@ -77,25 +77,25 @@ describe('pieces renderer – DOM reconciliation', () => {
 	});
 
 	it('updates href when piece code changes on the same square', () => {
-		const pieces = createMainRendererPieces(pieceUrls);
+		const pieces = createMainRendererPieces(resolver);
 		const layer = createPiecesLayer();
 		const board = new Uint8Array(SQUARE_COUNT);
 		board[0] = PieceCode.WhitePawn;
 
 		pieces.render(createPiecesRenderContext({ pieces: board }), layer);
-		expect(layer.children[0].getAttribute('href')).toBe(pieceUrls[PieceCode.WhitePawn]);
+		expect(layer.children[0].getAttribute('href')).toBe(resolver.getHref(PieceCode.WhitePawn));
 
 		// Promote pawn to queen on the same square
 		const board2 = new Uint8Array(SQUARE_COUNT);
 		board2[0] = PieceCode.WhiteQueen;
 		pieces.render(createPiecesRenderContext({ pieces: board2 }), layer);
 
-		expect(layer.children[0].getAttribute('href')).toBe(pieceUrls[PieceCode.WhiteQueen]);
+		expect(layer.children[0].getAttribute('href')).toBe(resolver.getHref(PieceCode.WhiteQueen));
 		expect(layer.children.length).toBe(1);
 	});
 
 	it('total children always equals occupied square count', () => {
-		const pieces = createMainRendererPieces(pieceUrls);
+		const pieces = createMainRendererPieces(resolver);
 		const layer = createPiecesLayer();
 
 		// Start with 3 pieces

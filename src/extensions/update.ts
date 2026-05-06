@@ -1,10 +1,5 @@
 import { ExtensionPendingUIMoveRequestContext } from './types/context/ui-move.js';
-import {
-	ExtensionUpdateContext,
-	ExtensionUpdateContextCommon,
-	ExtensionUpdateContextCommonUnmounted,
-	isUpdateContextCommonMounted
-} from './types/context/update.js';
+import { ExtensionUpdateContext, ExtensionUpdateContextCommon } from './types/context/update.js';
 import { ExtensionSystemInternal, ExtensionSystemUpdateRequest } from './types/main.js';
 
 export function extensionSystemUpdateState(
@@ -12,7 +7,7 @@ export function extensionSystemUpdateState(
 	request: ExtensionSystemUpdateRequest
 ): void {
 	// Prepare base context
-	const contextCommon: ExtensionUpdateContextCommon = {
+	const contextCommonPart: Omit<ExtensionUpdateContextCommon, 'invalidation'> = {
 		previousFrame: state.currentFrame,
 		mutation: request.mutation,
 		currentFrame: request.state
@@ -20,14 +15,11 @@ export function extensionSystemUpdateState(
 
 	// Update invalidation state based on the new request
 	for (const extension of state.extensions.values()) {
-		const context: ExtensionUpdateContext = isUpdateContextCommonMounted(contextCommon)
-			? {
-					...contextCommon,
-					invalidation: extension.invalidation
-				}
-			: {
-					...(contextCommon as ExtensionUpdateContextCommonUnmounted)
-				};
+		const contextCommon: ExtensionUpdateContextCommon = {
+			...contextCommonPart,
+			invalidation: extension.invalidation
+		};
+		const context: ExtensionUpdateContext = contextCommon as ExtensionUpdateContext;
 		extension.instance.onUpdate?.(context);
 	}
 	state.currentFrame = request.state;

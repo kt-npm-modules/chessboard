@@ -6,5 +6,5 @@ export interface MainRendererCoordinatesInternal {
 }
 
 export interface MainRendererCoordinates {
-	render(context: ExtensionRenderContext, layer: SVGElement): void;
+	render(context: ExtensionRenderContext, slot: SVGGElement): void;
 }

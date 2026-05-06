@@ -9,12 +9,9 @@ import {
 	createAnimationInternalState,
 	createAnimationPrepareContext,
 	createAnimationRenderContext,
-	createAnimationTestPieceUrls,
 	createMockAnimationRuntimeSurface,
 	createSimpleMovePlan
 } from '../../../../test-utils/extensions/first-party/main-renderer/animation.js';
-
-const pieceUrls = createAnimationTestPieceUrls();
 
 function createLayer(): SVGGElement {
 	return createSvgElement('g');
@@ -32,7 +29,7 @@ function prepareEntry(
 describe('rendererAnimationRender – active sessions', () => {
 	it('updates node position based on progress', () => {
 		const { surface } = createMockAnimationRuntimeSurface();
-		const state = createAnimationInternalState(surface, pieceUrls);
+		const state = createAnimationInternalState(surface);
 		// Move from sq 0 (file=0, rank=0) to sq 7 (file=7, rank=0)
 		// In white orientation 400px: sq 0 = x:0, y:350; sq 7 = x:350, y:350
 		const plan = createSimpleMovePlan(0 as Square, 7 as Square, PieceCode.WhiteRook);
@@ -54,7 +51,7 @@ describe('rendererAnimationRender – active sessions', () => {
 
 	it('at progress=1, position matches destination square', () => {
 		const { surface } = createMockAnimationRuntimeSurface();
-		const state = createAnimationInternalState(surface, pieceUrls);
+		const state = createAnimationInternalState(surface);
 		const plan = createSimpleMovePlan(0 as Square, 7 as Square, PieceCode.WhiteRook);
 		state.entries.set(1, { plan, nodes: null });
 
@@ -73,7 +70,7 @@ describe('rendererAnimationRender – active sessions', () => {
 
 	it('at progress=0.5, position is midpoint', () => {
 		const { surface } = createMockAnimationRuntimeSurface();
-		const state = createAnimationInternalState(surface, pieceUrls);
+		const state = createAnimationInternalState(surface);
 		const plan = createSimpleMovePlan(0 as Square, 7 as Square, PieceCode.WhiteRook);
 		state.entries.set(1, { plan, nodes: null });
 
@@ -94,7 +91,7 @@ describe('rendererAnimationRender – active sessions', () => {
 describe('rendererAnimationRender – edge cases', () => {
 	it('ignores unknown active session ids without throwing', () => {
 		const { surface } = createMockAnimationRuntimeSurface();
-		const state = createAnimationInternalState(surface, pieceUrls);
+		const state = createAnimationInternalState(surface);
 
 		const renderCtx = createAnimationRenderContext({
 			activeSessions: [{ id: 999, progress: 0.5 }]
@@ -105,7 +102,7 @@ describe('rendererAnimationRender – edge cases', () => {
 
 	it('ignores entries whose nodes are still null', () => {
 		const { surface } = createMockAnimationRuntimeSurface();
-		const state = createAnimationInternalState(surface, pieceUrls);
+		const state = createAnimationInternalState(surface);
 		const plan = createSimpleMovePlan();
 		state.entries.set(1, { plan, nodes: null }); // not prepared
 
@@ -118,7 +115,7 @@ describe('rendererAnimationRender – edge cases', () => {
 
 	it('does not create additional DOM nodes on repeated render', () => {
 		const { surface } = createMockAnimationRuntimeSurface();
-		const state = createAnimationInternalState(surface, pieceUrls);
+		const state = createAnimationInternalState(surface);
 		const plan = createSimpleMovePlan(0 as Square, 7 as Square, PieceCode.WhiteRook);
 		state.entries.set(1, { plan, nodes: null });
 
