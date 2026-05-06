@@ -8,15 +8,17 @@ import {
 } from '../../../../../src/state/board/types/internal.js';
 import {
 	createPiecesUpdateContext,
+	createTestPieceSymbolResolver,
 	createTestPieceUrls
 } from '../../../../test-utils/extensions/first-party/main-renderer/pieces.js';
 
 const pieceUrls = createTestPieceUrls();
+const resolver = createTestPieceSymbolResolver();
 const emptySuppress: ReadonlySet<Square> = new Set();
 
 describe('pieces update – non-renderable context', () => {
 	it('no-op when context is not mounted', () => {
-		const pieces = createMainRendererPieces(pieceUrls);
+		const pieces = createMainRendererPieces(resolver);
 		const { context, markDirty } = createPiecesUpdateContext({
 			isMounted: false,
 			causes: ['layout.refreshGeometry']
@@ -28,7 +30,7 @@ describe('pieces update – non-renderable context', () => {
 	});
 
 	it('no-op when mounted but geometry is null', () => {
-		const pieces = createMainRendererPieces(pieceUrls);
+		const pieces = createMainRendererPieces(resolver);
 		const { context, markDirty } = createPiecesUpdateContext({
 			hasGeometry: false,
 			causes: ['layout.refreshGeometry']
@@ -42,7 +44,7 @@ describe('pieces update – non-renderable context', () => {
 
 describe('pieces update – unrelated mutations', () => {
 	it('no-op when mutation has no relevant causes or prefixes', () => {
-		const pieces = createMainRendererPieces(pieceUrls);
+		const pieces = createMainRendererPieces(resolver);
 		const { context, markDirty } = createPiecesUpdateContext({
 			causes: ['state.view.setAutoPromote']
 		});
@@ -53,7 +55,7 @@ describe('pieces update – unrelated mutations', () => {
 	});
 
 	it('no-op when mutation cause is completely unrelated', () => {
-		const pieces = createMainRendererPieces(pieceUrls);
+		const pieces = createMainRendererPieces(resolver);
 		const { context, markDirty } = createPiecesUpdateContext({
 			causes: ['runtime.interaction.cancelDeferredUIMoveRequest']
 		});
@@ -66,7 +68,7 @@ describe('pieces update – unrelated mutations', () => {
 
 describe('pieces update – marks DirtyLayer.Pieces', () => {
 	it('marks dirty when layout.refreshGeometry cause is present', () => {
-		const pieces = createMainRendererPieces(pieceUrls);
+		const pieces = createMainRendererPieces(resolver);
 		const { context, markDirty } = createPiecesUpdateContext({
 			causes: ['layout.refreshGeometry'],
 			previousFrame: true
@@ -78,7 +80,7 @@ describe('pieces update – marks DirtyLayer.Pieces', () => {
 	});
 
 	it('marks dirty when board piece positions change', () => {
-		const pieces = createMainRendererPieces(pieceUrls);
+		const pieces = createMainRendererPieces(resolver);
 		const currentBoard = new Uint8Array(SQUARE_COUNT);
 		currentBoard[0] = PieceCode.WhiteKing;
 
@@ -98,7 +100,7 @@ describe('pieces update – marks DirtyLayer.Pieces', () => {
 	});
 
 	it('marks dirty when previousFrame is null (first mount)', () => {
-		const pieces = createMainRendererPieces(pieceUrls);
+		const pieces = createMainRendererPieces(resolver);
 		const { context, markDirty } = createPiecesUpdateContext({
 			causes: ['state.board.setPosition'],
 			previousFrame: false,
@@ -111,7 +113,7 @@ describe('pieces update – marks DirtyLayer.Pieces', () => {
 	});
 
 	it('marks dirty when suppression changes via animationSuppressedSquares', () => {
-		const pieces = createMainRendererPieces(pieceUrls);
+		const pieces = createMainRendererPieces(resolver);
 		const board = new Uint8Array(SQUARE_COUNT);
 		board[0] = PieceCode.WhiteKing;
 
@@ -132,7 +134,7 @@ describe('pieces update – marks DirtyLayer.Pieces', () => {
 
 describe('pieces update – does not mark dirty when unchanged', () => {
 	it('does not mark dirty when positions and suppression are unchanged', () => {
-		const pieces = createMainRendererPieces(pieceUrls);
+		const pieces = createMainRendererPieces(resolver);
 		const board = new Uint8Array(SQUARE_COUNT);
 		board[0] = PieceCode.WhiteKing;
 

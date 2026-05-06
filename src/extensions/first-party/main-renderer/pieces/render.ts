@@ -25,7 +25,7 @@ export function rendererPiecesRender(
 		const suppressed = state.suppressedSquares.has(sq);
 
 		if (isNonEmptyPieceCode(pieceCode) && !suppressed) {
-			const url = state.config[pieceCode];
+			const href = state.resolver.getHref(pieceCode);
 			const r = geometry.getSquareRect(sq);
 
 			if (existing !== null) {
@@ -34,13 +34,13 @@ export function rendererPiecesRender(
 					y: r.y.toString(),
 					width: r.width.toString(),
 					height: r.height.toString(),
-					href: url
+					href
 				});
 			} else {
 				state.pieceNodes.set(sq, {
-					root: createVisualSvgElement(slot, 'image', {
+					root: createVisualSvgElement(slot, 'use', {
 						'data-chessboard-id': `piece-${pieceCode}-${sq}`,
-						href: url,
+						href,
 						x: r.x.toString(),
 						y: r.y.toString(),
 						width: r.width.toString(),

@@ -1,3 +1,4 @@
+import type { NonEmptyPieceCode } from '../../state/board/types/internal.js';
 import type {
 	AnimationTrack,
 	AnimationTrackFade,
@@ -5,19 +6,25 @@ import type {
 	AnimationTrackStatic
 } from '../types.js';
 
-/** Prepared node for a move track — holds the SVG image and its track. */
+/**
+ * A function that resolves a piece code to a href string for <use> elements.
+ * Decoupled from main-renderer internals — any conforming callback works.
+ */
+export type PieceHrefResolver = (pieceCode: NonEmptyPieceCode) => string;
+
+/** Prepared node for a move track — holds the SVG use element and its track. */
 export interface PreparedMoveNode extends AnimationTrackMove {
-	root: SVGImageElement;
+	root: SVGUseElement;
 }
 
 /** Prepared node for a fade-in / fade-out track. */
 export interface PreparedFadeNode extends AnimationTrackFade {
-	root: SVGImageElement;
+	root: SVGUseElement;
 }
 
 /** Prepared node for a static (captured piece) track. */
 export interface PreparedStaticNode extends AnimationTrackStatic {
-	root: SVGImageElement;
+	root: SVGUseElement;
 }
 
 export type PreparedTrackNode = PreparedMoveNode | PreparedFadeNode | PreparedStaticNode;

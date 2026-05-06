@@ -1,22 +1,21 @@
-import type { PieceUrls } from '../../extensions/first-party/main-renderer/types/internal.js';
 import type { SceneRenderGeometry } from '../../layout/geometry/types.js';
 import { createVisualSvgElement, updateSvgElementAttributes } from '../../render/svg/helpers.js';
 import type { AnimationTrackFade } from '../types.js';
-import type { PreparedFadeNode } from './types.js';
+import type { PieceHrefResolver, PreparedFadeNode } from './types.js';
 
 export function prepareFadeTrack(
 	track: AnimationTrackFade,
 	geometry: SceneRenderGeometry,
-	pieceUrls: PieceUrls,
+	resolveHref: PieceHrefResolver,
 	slot: SVGGElement
 ): PreparedFadeNode {
 	const r = geometry.getSquareRect(track.sq);
-	const url = pieceUrls[track.pieceCode];
+	const href = resolveHref(track.pieceCode);
 	const initialOpacity = track.effect === 'fade-in' ? '0' : '1';
-	const root = createVisualSvgElement(slot, 'image', {
+	const root = createVisualSvgElement(slot, 'use', {
 		'data-chessboard-id': `animation-fade-${track.id}`,
 		'data-animation-effect': track.effect,
-		href: url,
+		href,
 		x: r.x.toString(),
 		y: r.y.toString(),
 		width: r.width.toString(),

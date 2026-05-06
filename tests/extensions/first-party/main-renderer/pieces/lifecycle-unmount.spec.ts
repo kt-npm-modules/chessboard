@@ -10,14 +10,16 @@ import {
 	createPiecesLayer,
 	createPiecesRenderContext,
 	createPiecesUpdateContext,
+	createTestPieceSymbolResolver,
 	createTestPieceUrls
 } from '../../../../test-utils/extensions/first-party/main-renderer/pieces.js';
 
 const pieceUrls = createTestPieceUrls();
+const resolver = createTestPieceSymbolResolver();
 
 describe('pieces factory – unmount cleanup', () => {
-	it('removes rendered piece image nodes from the layer', () => {
-		const pieces = createMainRendererPieces(pieceUrls);
+	it('removes rendered piece nodes from the layer', () => {
+		const pieces = createMainRendererPieces(resolver);
 		const layer = createPiecesLayer();
 		const board = new Uint8Array(SQUARE_COUNT);
 		board[0] = PieceCode.WhiteKing;
@@ -36,7 +38,7 @@ describe('pieces factory – unmount cleanup', () => {
 	});
 
 	it('after unmount, a fresh render creates new nodes', () => {
-		const pieces = createMainRendererPieces(pieceUrls);
+		const pieces = createMainRendererPieces(resolver);
 		const layer = createPiecesLayer();
 		const board = new Uint8Array(SQUARE_COUNT);
 		board[0] = PieceCode.WhiteKing;
@@ -56,11 +58,11 @@ describe('pieces factory – unmount cleanup', () => {
 			layer
 		);
 		expect(layer.children.length).toBe(1);
-		expect(layer.children[0].getAttribute('href')).toBe(pieceUrls[PieceCode.WhiteKing]);
+		expect(layer.children[0].getAttribute('href')).toBe(resolver.getHref(PieceCode.WhiteKing));
 	});
 
 	it('after unmount, a previously suppressed piece is not stuck suppressed', () => {
-		const pieces = createMainRendererPieces(pieceUrls);
+		const pieces = createMainRendererPieces(resolver);
 		const layer = createPiecesLayer();
 		const board = new Uint8Array(SQUARE_COUNT);
 		board[0] = PieceCode.WhiteKing;
@@ -103,13 +105,13 @@ describe('pieces factory – unmount cleanup', () => {
 	});
 
 	it('does not throw when called with no rendered nodes', () => {
-		const pieces = createMainRendererPieces(pieceUrls);
+		const pieces = createMainRendererPieces(resolver);
 
 		expect(() => pieces.unmount()).not.toThrow();
 	});
 
 	it('does not throw when called after already being unmounted', () => {
-		const pieces = createMainRendererPieces(pieceUrls);
+		const pieces = createMainRendererPieces(resolver);
 		const layer = createPiecesLayer();
 		const board = new Uint8Array(SQUARE_COUNT);
 		board[0] = PieceCode.WhiteKing;

@@ -24,7 +24,7 @@ export function rendererAnimationPrepare(
 			entry.nodes = prepareAnimationPlan(
 				entry.plan,
 				context.currentFrame.layout.geometry,
-				state.config,
+				state.resolver.getHref,
 				slot
 			);
 		}

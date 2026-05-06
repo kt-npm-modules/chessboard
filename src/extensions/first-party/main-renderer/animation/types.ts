@@ -8,7 +8,7 @@ import {
 } from '../../../types/context/animation.js';
 import { ExtensionUpdateContext } from '../../../types/context/update.js';
 import { ExtensionRuntimeSurface } from '../../../types/surface/main.js';
-import type { PieceUrls } from '../types/internal.js';
+import type { PieceSymbolResolver } from '../piece-symbols.js';
 
 export interface MainRendererAnimationEntry {
 	plan: AnimationPlan;
@@ -16,8 +16,8 @@ export interface MainRendererAnimationEntry {
 }
 
 export interface MainRendererAnimationInternal {
-	readonly config: PieceUrls;
 	readonly runtimeSurface: ExtensionRuntimeSurface;
+	readonly resolver: PieceSymbolResolver;
 	readonly entries: Map<number, MainRendererAnimationEntry>;
 }
 

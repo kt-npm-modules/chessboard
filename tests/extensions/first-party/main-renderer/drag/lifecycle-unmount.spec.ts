@@ -1,3 +1,5 @@
+import { createTestPieceSymbolResolver } from '../../../../test-utils/extensions/first-party/main-renderer/pieces.js';
+const resolver = createTestPieceSymbolResolver();
 import { describe, expect, it } from 'vitest';
 import { createMainRendererDrag } from '../../../../../src/extensions/first-party/main-renderer/drag/factory.js';
 import {
@@ -14,7 +16,7 @@ const pieceUrls = createTestPieceUrls();
 describe('drag lifecycle – unmount', () => {
 	it('removes dragged image node from the layer', () => {
 		const { surface } = createMockRuntimeSurface();
-		const drag = createMainRendererDrag(pieceUrls, surface);
+		const drag = createMainRendererDrag(surface, resolver);
 		const layer = createDragLayer();
 
 		// Start drag and render
@@ -29,7 +31,7 @@ describe('drag lifecycle – unmount', () => {
 
 	it('calls transientVisuals.unsubscribe unconditionally', () => {
 		const { surface, unsubscribe } = createMockRuntimeSurface();
-		const drag = createMainRendererDrag(pieceUrls, surface);
+		const drag = createMainRendererDrag(surface, resolver);
 
 		// Start drag so subscribe is called
 		drag.onUpdate(createDragUpdateContext({ dragSession: createLiftedPieceDragSession() }));
@@ -42,7 +44,7 @@ describe('drag lifecycle – unmount', () => {
 
 	it('calls unsubscribe even when drag was not active', () => {
 		const { surface, unsubscribe } = createMockRuntimeSurface();
-		const drag = createMainRendererDrag(pieceUrls, surface);
+		const drag = createMainRendererDrag(surface, resolver);
 
 		// Never started a drag
 		drag.unmount();
@@ -52,7 +54,7 @@ describe('drag lifecycle – unmount', () => {
 
 	it('after unmount, renderTransientVisuals does not create a node', () => {
 		const { surface } = createMockRuntimeSurface();
-		const drag = createMainRendererDrag(pieceUrls, surface);
+		const drag = createMainRendererDrag(surface, resolver);
 		const layer = createDragLayer();
 
 		// Start drag, render, then unmount
@@ -67,14 +69,14 @@ describe('drag lifecycle – unmount', () => {
 
 	it('does not throw when called with no active drag and no node', () => {
 		const { surface } = createMockRuntimeSurface();
-		const drag = createMainRendererDrag(pieceUrls, surface);
+		const drag = createMainRendererDrag(surface, resolver);
 
 		expect(() => drag.unmount()).not.toThrow();
 	});
 
 	it('does not throw when called after already being unmounted', () => {
 		const { surface } = createMockRuntimeSurface();
-		const drag = createMainRendererDrag(pieceUrls, surface);
+		const drag = createMainRendererDrag(surface, resolver);
 		const layer = createDragLayer();
 
 		drag.onUpdate(createDragUpdateContext({ dragSession: createLiftedPieceDragSession() }));

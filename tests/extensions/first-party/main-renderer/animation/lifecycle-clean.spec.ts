@@ -9,12 +9,9 @@ import {
 	createAnimationCleanContext,
 	createAnimationInternalState,
 	createAnimationPrepareContext,
-	createAnimationTestPieceUrls,
 	createMockAnimationRuntimeSurface,
 	createSimpleMovePlan
 } from '../../../../test-utils/extensions/first-party/main-renderer/animation.js';
-
-const pieceUrls = createAnimationTestPieceUrls();
 
 function createLayer(): SVGGElement {
 	return createSvgElement('g');
@@ -23,7 +20,7 @@ function createLayer(): SVGGElement {
 describe('rendererAnimationClean – cleans prepared entries', () => {
 	it('removes DOM nodes for a finished session with prepared nodes', () => {
 		const { surface } = createMockAnimationRuntimeSurface();
-		const state = createAnimationInternalState(surface, pieceUrls);
+		const state = createAnimationInternalState(surface);
 		const plan = createSimpleMovePlan(0 as Square, 7 as Square, PieceCode.WhiteRook);
 		state.entries.set(1, { plan, nodes: null });
 
@@ -44,7 +41,7 @@ describe('rendererAnimationClean – cleans prepared entries', () => {
 
 	it('deletes the entry from state.entries after cleanup', () => {
 		const { surface } = createMockAnimationRuntimeSurface();
-		const state = createAnimationInternalState(surface, pieceUrls);
+		const state = createAnimationInternalState(surface);
 		const plan = createSimpleMovePlan();
 		state.entries.set(1, { plan, nodes: null });
 
@@ -62,7 +59,7 @@ describe('rendererAnimationClean – cleans prepared entries', () => {
 
 	it('deletes entry even if nodes is null (not yet prepared)', () => {
 		const { surface } = createMockAnimationRuntimeSurface();
-		const state = createAnimationInternalState(surface, pieceUrls);
+		const state = createAnimationInternalState(surface);
 		const plan = createSimpleMovePlan();
 		state.entries.set(1, { plan, nodes: null });
 
@@ -76,7 +73,7 @@ describe('rendererAnimationClean – cleans prepared entries', () => {
 
 	it('ignores unknown finished session ids without throwing', () => {
 		const { surface } = createMockAnimationRuntimeSurface();
-		const state = createAnimationInternalState(surface, pieceUrls);
+		const state = createAnimationInternalState(surface);
 
 		const { context: cleanCtx } = createAnimationCleanContext({
 			finishedSessions: [{ id: 999, status: 'ended' }]
@@ -88,7 +85,7 @@ describe('rendererAnimationClean – cleans prepared entries', () => {
 
 	it('handles cancelled session status the same as ended', () => {
 		const { surface } = createMockAnimationRuntimeSurface();
-		const state = createAnimationInternalState(surface, pieceUrls);
+		const state = createAnimationInternalState(surface);
 		const plan = createSimpleMovePlan();
 		state.entries.set(1, { plan, nodes: null });
 

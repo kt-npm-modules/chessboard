@@ -15,15 +15,16 @@ export function rendererDragRenderTransientVisuals(
 	const squareSize = geometry.squareSize.toString();
 	const x = (point.x - geometry.squareSize / 2).toString();
 	const y = (point.y - geometry.squareSize / 2).toString();
-	if (state.isDragActive && state.pieceUrl && !state.pieceNode) {
+	if (state.isDragActive && state.pieceCode && !state.pieceNode) {
 		// Ok this is first render pass, let's create the piece node
-		state.pieceNode = createVisualSvgElement(slot, 'image', {
+		const href = state.resolver.getHref(state.pieceCode);
+		state.pieceNode = createVisualSvgElement(slot, 'use', {
 			'data-chessboard-id': 'dragged-piece',
 			width: squareSize,
 			height: squareSize,
 			x,
 			y,
-			href: state.pieceUrl
+			href
 		});
 	} else if (state.isDragActive && state.pieceNode) {
 		updateSvgElementAttributes(state.pieceNode, {

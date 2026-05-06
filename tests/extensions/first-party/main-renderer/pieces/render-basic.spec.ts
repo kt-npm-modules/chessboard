@@ -9,14 +9,16 @@ import {
 import {
 	createPiecesLayer,
 	createPiecesRenderContext,
+	createTestPieceSymbolResolver,
 	createTestPieceUrls
 } from '../../../../test-utils/extensions/first-party/main-renderer/pieces.js';
 
 const pieceUrls = createTestPieceUrls();
+const resolver = createTestPieceSymbolResolver();
 
 describe('pieces renderer – dirty layer gating', () => {
 	it('no-ops when DirtyLayer.Pieces is not set', () => {
-		const pieces = createMainRendererPieces(pieceUrls);
+		const pieces = createMainRendererPieces(resolver);
 		const layer = createPiecesLayer();
 		const board = new Uint8Array(SQUARE_COUNT);
 		board[0] = PieceCode.WhiteKing;
@@ -37,7 +39,7 @@ describe('pieces renderer – dirty layer gating', () => {
 	});
 
 	it('renders when DirtyLayer.Pieces is set', () => {
-		const pieces = createMainRendererPieces(pieceUrls);
+		const pieces = createMainRendererPieces(resolver);
 		const layer = createPiecesLayer();
 		const board = new Uint8Array(SQUARE_COUNT);
 		board[0] = PieceCode.WhiteKing;
@@ -52,9 +54,9 @@ describe('pieces renderer – dirty layer gating', () => {
 	});
 });
 
-describe('pieces renderer – basic image creation', () => {
-	it('creates image nodes only for occupied squares', () => {
-		const pieces = createMainRendererPieces(pieceUrls);
+describe('pieces renderer – basic use element creation', () => {
+	it('creates use nodes only for occupied squares', () => {
+		const pieces = createMainRendererPieces(resolver);
 		const layer = createPiecesLayer();
 		const board = new Uint8Array(SQUARE_COUNT);
 		board[0] = PieceCode.WhiteRook;
@@ -65,12 +67,12 @@ describe('pieces renderer – basic image creation', () => {
 
 		expect(layer.children.length).toBe(3);
 		for (const child of Array.from(layer.children)) {
-			expect(child.tagName).toBe('image');
+			expect(child.tagName).toBe('use');
 		}
 	});
 
-	it('does not create image nodes for empty squares', () => {
-		const pieces = createMainRendererPieces(pieceUrls);
+	it('does not create use nodes for empty squares', () => {
+		const pieces = createMainRendererPieces(resolver);
 		const layer = createPiecesLayer();
 		const board = new Uint8Array(SQUARE_COUNT); // all empty
 
@@ -79,20 +81,20 @@ describe('pieces renderer – basic image creation', () => {
 		expect(layer.children.length).toBe(0);
 	});
 
-	it('uses the configured piece URL as href', () => {
-		const pieces = createMainRendererPieces(pieceUrls);
+	it('uses the resolver symbol href as href', () => {
+		const pieces = createMainRendererPieces(resolver);
 		const layer = createPiecesLayer();
 		const board = new Uint8Array(SQUARE_COUNT);
 		board[0] = PieceCode.WhiteKing;
 
 		pieces.render(createPiecesRenderContext({ pieces: board }), layer);
 
-		const img = layer.children[0];
-		expect(img.getAttribute('href')).toBe(pieceUrls[PieceCode.WhiteKing]);
+		const el = layer.children[0];
+		expect(el.getAttribute('href')).toBe(resolver.getHref(PieceCode.WhiteKing));
 	});
 
 	it('sets data-chessboard-id as piece-{pieceCode}-{sq}', () => {
-		const pieces = createMainRendererPieces(pieceUrls);
+		const pieces = createMainRendererPieces(resolver);
 		const layer = createPiecesLayer();
 		const board = new Uint8Array(SQUARE_COUNT);
 		board[4] = PieceCode.WhiteKing;
@@ -104,8 +106,8 @@ describe('pieces renderer – basic image creation', () => {
 		expect(queryByDataChessboardId(layer, `piece-${PieceCode.BlackKing}-60`)).not.toBeNull();
 	});
 
-	it('positions each image from geometry.getSquareRect', () => {
-		const pieces = createMainRendererPieces(pieceUrls);
+	it('positions each use element from geometry.getSquareRect', () => {
+		const pieces = createMainRendererPieces(resolver);
 		const layer = createPiecesLayer();
 		const board = new Uint8Array(SQUARE_COUNT);
 		board[0] = PieceCode.WhiteRook;
@@ -113,15 +115,15 @@ describe('pieces renderer – basic image creation', () => {
 		// 400px scene → squareSize = 50, sq 0 = a1 → white orientation: x=0, y=350
 		pieces.render(createPiecesRenderContext({ pieces: board, sceneSize: 400 }), layer);
 
-		const img = layer.children[0];
-		expect(img.getAttribute('x')).toBe('0');
-		expect(img.getAttribute('y')).toBe('350');
-		expect(img.getAttribute('width')).toBe('50');
-		expect(img.getAttribute('height')).toBe('50');
+		const el = layer.children[0];
+		expect(el.getAttribute('x')).toBe('0');
+		expect(el.getAttribute('y')).toBe('350');
+		expect(el.getAttribute('width')).toBe('50');
+		expect(el.getAttribute('height')).toBe('50');
 	});
 
-	it('all rendered images are prefixed with piece- in data-chessboard-id', () => {
-		const pieces = createMainRendererPieces(pieceUrls);
+	it('all rendered use elements are prefixed with piece- in data-chessboard-id', () => {
+		const pieces = createMainRendererPieces(resolver);
 		const layer = createPiecesLayer();
 		const board = new Uint8Array(SQUARE_COUNT);
 		board[0] = PieceCode.WhitePawn;

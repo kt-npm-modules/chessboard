@@ -1,10 +1,9 @@
-import type { PieceUrls } from '../../extensions/first-party/main-renderer/types/internal.js';
 import type { SceneRenderGeometry } from '../../layout/geometry/types.js';
 import type { AnimationPlan } from '../types.js';
 import { cleanFadeTrack, prepareFadeTrack, renderFadeTrack } from './fade.js';
 import { cleanMoveTrack, prepareMoveTrack, renderMoveTrack } from './move.js';
 import { cleanStaticTrack, prepareStaticTrack, renderStaticTrack } from './static.js';
-import type { PreparedNodeMap, PreparedTrackNode } from './types.js';
+import type { PieceHrefResolver, PreparedNodeMap, PreparedTrackNode } from './types.js';
 
 /**
  * Prepare all tracks in the plan — creates SVG nodes in `slot` for each track.
@@ -13,7 +12,7 @@ import type { PreparedNodeMap, PreparedTrackNode } from './types.js';
 export function prepareAnimationPlan(
 	plan: AnimationPlan,
 	geometry: SceneRenderGeometry,
-	pieceUrls: PieceUrls,
+	resolveHref: PieceHrefResolver,
 	slot: SVGGElement
 ): PreparedNodeMap {
 	const nodes: PreparedNodeMap = new Map();
@@ -21,14 +20,14 @@ export function prepareAnimationPlan(
 		let node: PreparedTrackNode;
 		switch (track.effect) {
 			case 'move':
-				node = prepareMoveTrack(track, geometry, pieceUrls, slot);
+				node = prepareMoveTrack(track, geometry, resolveHref, slot);
 				break;
 			case 'fade-in':
 			case 'fade-out':
-				node = prepareFadeTrack(track, geometry, pieceUrls, slot);
+				node = prepareFadeTrack(track, geometry, resolveHref, slot);
 				break;
 			case 'static':
-				node = prepareStaticTrack(track, geometry, pieceUrls, slot);
+				node = prepareStaticTrack(track, geometry, resolveHref, slot);
 				break;
 			default:
 				throw new RangeError(`Unsupported track effect: ${track}`);

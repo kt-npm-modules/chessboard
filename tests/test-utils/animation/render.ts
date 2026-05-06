@@ -1,8 +1,14 @@
+import type { PieceHrefResolver } from '../../../src/animation/render/types.js';
 import type { PieceUrls } from '../../../src/extensions/first-party/main-renderer/types/internal.js';
 import type { RectSnapshot, SceneRenderGeometry } from '../../../src/layout/geometry/types.js';
 import { SVG_NS } from '../../../src/render/svg/helpers.js';
 import { fileOf, rankOf } from '../../../src/state/board/coords.js';
-import { ColorCode, PieceCode, type Square } from '../../../src/state/board/types/internal.js';
+import {
+	ColorCode,
+	type NonEmptyPieceCode,
+	PieceCode,
+	type Square
+} from '../../../src/state/board/types/internal.js';
 
 /**
  * Creates an SVG <g> element suitable as the animation layer parent.
@@ -58,4 +64,12 @@ export function createMockPieceUrls(): PieceUrls {
 		[PieceCode.BlackQueen]: 'http://test/bQ.svg',
 		[PieceCode.BlackKing]: 'http://test/bK.svg'
 	} as PieceUrls;
+}
+
+/**
+ * Creates a mock PieceHrefResolver that returns deterministic symbol hrefs.
+ * Pattern: #test-p{pieceCode}
+ */
+export function createMockPieceHrefResolver(): PieceHrefResolver {
+	return (pieceCode: NonEmptyPieceCode) => `#test-p${pieceCode}`;
 }

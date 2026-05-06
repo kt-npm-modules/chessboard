@@ -3,7 +3,14 @@ import { MainRendererConfigInput } from './input.js';
 
 export type MainRendererInitOptions = Partial<MainRendererConfigInput>;
 
-export const EXTENSION_SLOTS = ['board', 'coordinates', 'pieces', 'animation', 'drag'] as const;
+export const EXTENSION_SLOTS = [
+	'defs',
+	'board',
+	'coordinates',
+	'pieces',
+	'animation',
+	'drag'
+] as const;
 export type ExtensionSlotsType = typeof EXTENSION_SLOTS;
 export const EXTENSION_ID = 'renderer' as const;
 
