@@ -13,6 +13,6 @@ export interface MainRendererDragInternal {
 
 export interface MainRendererDrag {
 	onUpdate(context: ExtensionUpdateContext): void;
-	renderTransientVisuals(context: ExtensionRenderTransientVisualsContext, layer: SVGElement): void;
+	renderTransientVisuals(context: ExtensionRenderTransientVisualsContext, slot: SVGGElement): void;
 	unmount(): void;
 }

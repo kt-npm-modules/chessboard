@@ -16,8 +16,8 @@ export function createMainRendererPieces(config: PieceUrls): MainRendererPieces 
 		refreshSuppressedSquares(context, animationSuppressedSquares) {
 			rendererPiecesRefreshSuppressedSquares(state, context, animationSuppressedSquares);
 		},
-		render(context, layer) {
-			rendererPiecesRender(state, context, layer);
+		render(context, slot) {
+			rendererPiecesRender(state, context, slot);
 		},
 		unmount() {
 			for (const nodeRecord of state.pieceNodes.values()) {

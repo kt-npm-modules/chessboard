@@ -8,5 +8,5 @@ export interface MainRendererBoardInternal {
 
 export interface MainRendererBoard {
 	onUpdate(context: ExtensionUpdateContext): void;
-	render(context: ExtensionRenderContext, layer: SVGElement): void;
+	render(context: ExtensionRenderContext, slot: SVGGElement): void;
 }

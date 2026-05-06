@@ -26,7 +26,7 @@ import { createRuntimeInteractionSurface } from './input.js';
 function createRuntimeInternal(options: RuntimeInitOptionsInternal): RuntimeInternal {
 	const extensionSystem = createExtensionSystem(options);
 	const render = createRenderSystem({
-		doc: options.doc,
+		element: options.element,
 		sharedDataFromExtensionSystem: extensionSystem.getSharedDataForRenderSystem()
 	});
 	return {

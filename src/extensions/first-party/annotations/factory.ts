@@ -173,11 +173,11 @@ function createAnnotationsInstance(
 			renderCommittedCircles(internalState, context.currentFrame.layout.geometry);
 		},
 		unmount() {
-			extensionUnmountBase<ExtensionSlotsType>(internalState);
+			extensionUnmountBase<ExtensionSlotsType>(internalState, EXTENSION_ID);
 			extensionCleanSvg(internalState);
 		},
 		destroy() {
-			extensionDestroyBase<ExtensionSlotsType>(internalState);
+			extensionDestroyBase<ExtensionSlotsType>(internalState, EXTENSION_ID);
 			extensionCleanSvg(internalState);
 		},
 		getPublic() {

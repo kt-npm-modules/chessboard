@@ -23,8 +23,8 @@ export function createMainRendererAnimation(
 		onUpdate(context) {
 			rendererAnimationOnUpdate(state, context);
 		},
-		prepareAnimation(context, layer) {
-			rendererAnimationPrepare(state, context, layer);
+		prepareAnimation(context, slot) {
+			rendererAnimationPrepare(state, context, slot);
 		},
 		renderAnimation(context) {
 			rendererAnimationRender(state, context);

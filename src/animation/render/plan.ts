@@ -7,28 +7,28 @@ import { cleanStaticTrack, prepareStaticTrack, renderStaticTrack } from './stati
 import type { PreparedNodeMap, PreparedTrackNode } from './types.js';
 
 /**
- * Prepare all tracks in the plan — creates SVG nodes in `layer` for each track.
+ * Prepare all tracks in the plan — creates SVG nodes in `slot` for each track.
  * Returns a map keyed by track id for use in render/clean passes.
  */
 export function prepareAnimationPlan(
 	plan: AnimationPlan,
 	geometry: SceneRenderGeometry,
 	pieceUrls: PieceUrls,
-	layer: SVGElement
+	slot: SVGGElement
 ): PreparedNodeMap {
 	const nodes: PreparedNodeMap = new Map();
 	for (const track of plan.tracks) {
 		let node: PreparedTrackNode;
 		switch (track.effect) {
 			case 'move':
-				node = prepareMoveTrack(track, geometry, pieceUrls, layer);
+				node = prepareMoveTrack(track, geometry, pieceUrls, slot);
 				break;
 			case 'fade-in':
 			case 'fade-out':
-				node = prepareFadeTrack(track, geometry, pieceUrls, layer);
+				node = prepareFadeTrack(track, geometry, pieceUrls, slot);
 				break;
 			case 'static':
-				node = prepareStaticTrack(track, geometry, pieceUrls, layer);
+				node = prepareStaticTrack(track, geometry, pieceUrls, slot);
 				break;
 			default:
 				throw new RangeError(`Unsupported track effect: ${track}`);

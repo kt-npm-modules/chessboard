@@ -20,6 +20,6 @@ export interface MainRendererPieces {
 		context: ExtensionCleanAnimationContext,
 		animationSuppressedSquares: ReadonlySet<Square>
 	): void;
-	render(context: ExtensionRenderContext, layer: SVGElement): void;
+	render(context: ExtensionRenderContext, slot: SVGGElement): void;
 	unmount(): void;
 }

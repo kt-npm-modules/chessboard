@@ -18,7 +18,7 @@ export interface RuntimeInternal extends RuntimeMutationPipelineContext {
 export type GetInternalState = () => RuntimeInternal;
 
 export interface RuntimeInitOptions {
-	doc: Document;
+	element: HTMLElement;
 	state?: RuntimeStateInitOptions;
 	extensions?: readonly AnyExtensionDefinition[];
 }

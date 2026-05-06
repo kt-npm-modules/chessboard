@@ -1,6 +1,6 @@
 import assert from '@ktarmyshov/assert';
 import type { SceneRenderGeometry } from '../../../layout/geometry/types.js';
-import { createSvgElement, updateElementAttributes } from '../../../render/svg/helpers.js';
+import { createVisualSvgElement, updateSvgElementAttributes } from '../../../render/svg/helpers.js';
 import { VISUAL_CONFIG } from './constants.js';
 import type { CircleAnnotationKey } from './types/internal.js';
 import type { AnnotationsStateInternal } from './types/main.js';
@@ -48,10 +48,10 @@ export function renderCommittedCircles(
 		const existing = state.svg.svgCircles.get(key);
 		if (existing) {
 			// Update in place
-			updateElementAttributes(existing, attributes);
+			updateSvgElementAttributes(existing, attributes);
 		} else {
 			// Create new element
-			const el = createSvgElement(state.slotRoots.overPieces, 'circle', {
+			const el = createVisualSvgElement(state.slotRoots.overPieces, 'circle', {
 				'data-chessboard-id': `annotation-circle-committed-${key}`,
 				...attributes
 			});

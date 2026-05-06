@@ -13,8 +13,8 @@ export function createMainRendererBoard(config: ConfigColorPair): MainRendererBo
 		onUpdate(context) {
 			rendererBoardOnUpdate(internalState, context);
 		},
-		render(context, layer) {
-			rendererBoardRender(internalState, context, layer);
+		render(context, slot) {
+			rendererBoardRender(internalState, context, slot);
 		}
 	};
 }

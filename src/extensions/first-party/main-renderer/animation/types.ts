@@ -23,7 +23,7 @@ export interface MainRendererAnimationInternal {
 
 export interface MainRendererAnimation {
 	onUpdate(context: ExtensionUpdateContext): void;
-	prepareAnimation(context: ExtensionPrepareAnimationContext, layer: SVGElement): void;
+	prepareAnimation(context: ExtensionPrepareAnimationContext, slot: SVGGElement): void;
 	renderAnimation(context: ExtensionRenderAnimationContext): void;
 	cleanAnimation(context: ExtensionCleanAnimationContext): void;
 	getSuppressedSquares(): ReadonlySet<Square>;

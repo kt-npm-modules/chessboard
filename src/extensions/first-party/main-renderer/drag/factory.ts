@@ -20,8 +20,8 @@ export function createMainRendererDrag(
 		onUpdate(context) {
 			rendererDragOnUpdate(internalState, context);
 		},
-		renderTransientVisuals(context, layer) {
-			rendererDragRenderTransientVisuals(internalState, context, layer);
+		renderTransientVisuals(context, slot) {
+			rendererDragRenderTransientVisuals(internalState, context, slot);
 		},
 		unmount() {
 			internalState.pieceNode?.remove();
