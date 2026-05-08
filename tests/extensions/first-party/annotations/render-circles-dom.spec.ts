@@ -165,15 +165,17 @@ describe('annotations — committed circle DOM reconciliation', () => {
 		});
 	});
 
-	describe('no arrow rendering in this slice', () => {
-		it('does not render any arrow elements', () => {
+	describe('arrows do not interfere with circle slot assertions', () => {
+		it('circles render in overPieces even when arrows are present', () => {
 			const { instance, api, roots } = setupMountedInstance();
 
+			api.circle('e4', { color: '#ef4444' });
 			api.arrow('e2', 'e4', { color: '#ff0000' });
 			instance.render!(createRenderContext());
 
-			expect(roots.overPieces.children.length).toBe(0);
-			expect(roots.drag.children.length).toBe(0);
+			// At least one circle element exists
+			const circles = Array.from(roots.overPieces.children).filter((el) => el.tagName === 'circle');
+			expect(circles.length).toBe(1);
 		});
 	});
 });

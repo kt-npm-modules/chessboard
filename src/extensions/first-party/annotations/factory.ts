@@ -16,6 +16,7 @@ import {
 	normalizeCircleAnnotation,
 	normalizeInitialAnnotations
 } from './normalize.js';
+import { renderCommittedArrows } from './render-arrows.js';
 import { renderCommittedCircles } from './render-circles.js';
 import { DirtyLayer, type AnnotationsConfig } from './types/internal.js';
 import type {
@@ -172,6 +173,7 @@ function createAnnotationsInstance(
 				return;
 			}
 			renderCommittedCircles(internalState, context.currentFrame.layout.geometry);
+			renderCommittedArrows(internalState, context.currentFrame.layout.geometry);
 		},
 		unmount() {
 			extensionUnmountBase<ExtensionSlotsType>(internalState, EXTENSION_ID);

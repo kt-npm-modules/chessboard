@@ -81,7 +81,7 @@ export function createVisualSvgElement<K extends Exclude<SvgElementNames, 'svg' 
 }
 
 export function createDefinitionSvgElement<K extends SvgElementNames>(
-	parent: SVGDefsElement,
+	parent: SVGDefsElement | SVGMarkerElement,
 	name: K,
 	attrs: SvgElementWithExtensionIdAttributes
 ): SVGElementTagNameMap[K] {

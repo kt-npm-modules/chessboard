@@ -39,11 +39,19 @@ export interface VisualConfigCircleAnnotation {
 }
 
 export interface VisualConfigArrowAnnotation {
-	strokeWidth: number; // relative to the square size
-	headSize: number; // relative to the square size
-	startOffset: number; // relative to the square size
-	endOffset: number; // relative to the square size
+	strokeWidth: number; // relative to square size
+	startOffset: number; // relative to square size
+	endOffset: number; // relative to square size
 	opacity: number;
+
+	// SVG marker-space values. With markerUnits="strokeWidth",
+	// these scale with the computed stroke width, not directly with square size.
+	markerWidth: number;
+	markerHeight: number;
+	markerRefX: number;
+	markerRefY: number;
+	markerViewBox: string;
+	markerPathD: string;
 }
 
 export interface VisualConfigCircle {

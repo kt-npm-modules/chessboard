@@ -27,18 +27,28 @@ export const VISUAL_CONFIG: VisualConfig = {
 	},
 	arrow: {
 		committed: {
-			strokeWidth: 0.14,
-			headSize: 0.32,
-			startOffset: 0.18,
-			endOffset: 0.28,
-			opacity: 0.75
+			strokeWidth: 0.15625,
+			startOffset: 0,
+			endOffset: 0.15625,
+			opacity: 0.75,
+			markerWidth: 4,
+			markerHeight: 4,
+			markerRefX: 2.05,
+			markerRefY: 2,
+			markerViewBox: '0 0 4 4',
+			markerPathD: 'M0,0 V4 L3,2 Z'
 		},
 		previewAdd: {
 			strokeWidth: 0.11,
-			headSize: 0.28,
-			startOffset: 0.18,
-			endOffset: 0.28,
-			opacity: 0.55
+			startOffset: 0,
+			endOffset: 0.15625,
+			opacity: 0.55,
+			markerWidth: 4,
+			markerHeight: 4,
+			markerRefX: 2.05,
+			markerRefY: 2,
+			markerViewBox: '0 0 4 4',
+			markerPathD: 'M0,0 V4 L3,2 Z'
 		},
 		previewRemoveOpacity: 0.25
 	}
