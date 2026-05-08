@@ -1,10 +1,10 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import {
-	_resetInstanceCounter,
 	createPieceSymbolResolver,
 	ensurePieceSymbolsDefined
 } from '../../../../src/extensions/first-party/main-renderer/piece-symbols.js';
 import { clearDefinitionSlotChildren, SVG_NS } from '../../../../src/render/svg/helpers.js';
+import { createSvgIdResolver } from '../../../../src/render/svg/ids.js';
 import {
 	ALL_NON_EMPTY_PIECE_CODES,
 	PieceCode
@@ -21,42 +21,79 @@ function createDefs(): SVGDefsElement {
 	return defs as SVGDefsElement;
 }
 
-afterEach(() => {
-	document.body.innerHTML = '';
-	_resetInstanceCounter();
-});
-
 describe('createPieceSymbolResolver', () => {
-	it('returns a resolver with a unique prefix', () => {
-		const r1 = createPieceSymbolResolver();
-		const r2 = createPieceSymbolResolver();
-		expect(r1.prefix).not.toBe(r2.prefix);
+	it('returns a resolver with getId and getHref methods', () => {
+		const svgIds = createSvgIdResolver();
+		const resolver = createPieceSymbolResolver(svgIds);
+		expect(typeof resolver.getId).toBe('function');
+		expect(typeof resolver.getHref).toBe('function');
 	});
 
-	it('getHref returns # prefixed symbol id', () => {
-		const resolver = createPieceSymbolResolver();
+	it('getHref returns # prefixed symbol id using SvgIdResolver', () => {
+		const svgIds = createSvgIdResolver();
+		const resolver = createPieceSymbolResolver(svgIds);
 		const href = resolver.getHref(PieceCode.WhiteKing);
-		expect(href).toBe(`#${resolver.prefix}-p${PieceCode.WhiteKing}`);
+		expect(href).toBe(`#${svgIds.prefix}-renderer-p${PieceCode.WhiteKing}`);
+	});
+
+	it('getId returns symbol id using SvgIdResolver', () => {
+		const svgIds = createSvgIdResolver();
+		const resolver = createPieceSymbolResolver(svgIds);
+		const id = resolver.getId(PieceCode.WhiteKing);
+		expect(id).toBe(`${svgIds.prefix}-renderer-p${PieceCode.WhiteKing}`);
 	});
 
 	it('getHref is safe to pass as a bare callback', () => {
-		const resolver = createPieceSymbolResolver();
+		const svgIds = createSvgIdResolver();
+		const resolver = createPieceSymbolResolver(svgIds);
 		const fn = resolver.getHref;
-		expect(fn(PieceCode.BlackQueen)).toBe(`#${resolver.prefix}-p${PieceCode.BlackQueen}`);
+		expect(fn(PieceCode.BlackQueen)).toBe(`#${svgIds.prefix}-renderer-p${PieceCode.BlackQueen}`);
+	});
+
+	it('two resolvers with different SvgIdResolvers produce non-colliding ids', () => {
+		const svgIds1 = createSvgIdResolver();
+		const svgIds2 = createSvgIdResolver();
+		const r1 = createPieceSymbolResolver(svgIds1);
+		const r2 = createPieceSymbolResolver(svgIds2);
+
+		const id1 = r1.getId(PieceCode.WhiteKing);
+		const id2 = r2.getId(PieceCode.WhiteKing);
+		expect(id1).not.toBe(id2);
+	});
+
+	it('two resolvers with different SvgIdResolvers produce non-colliding hrefs', () => {
+		const svgIds1 = createSvgIdResolver();
+		const svgIds2 = createSvgIdResolver();
+		const r1 = createPieceSymbolResolver(svgIds1);
+		const r2 = createPieceSymbolResolver(svgIds2);
+
+		const href1 = r1.getHref(PieceCode.BlackQueen);
+		const href2 = r2.getHref(PieceCode.BlackQueen);
+		expect(href1).not.toBe(href2);
+	});
+
+	it('href starts with # followed by the id', () => {
+		const svgIds = createSvgIdResolver();
+		const resolver = createPieceSymbolResolver(svgIds);
+		for (const pieceCode of ALL_NON_EMPTY_PIECE_CODES) {
+			expect(resolver.getHref(pieceCode)).toBe(`#${resolver.getId(pieceCode)}`);
+		}
 	});
 });
 
 describe('ensurePieceSymbolsDefined', () => {
 	it('creates 12 symbol elements in defs', () => {
 		const defs = createDefs();
-		const resolver = createPieceSymbolResolver();
+		const svgIds = createSvgIdResolver();
+		const resolver = createPieceSymbolResolver(svgIds);
 		ensurePieceSymbolsDefined(defs, pieceUrls, resolver);
 		expect(defs.children).toHaveLength(12);
 	});
 
 	it('symbols are direct children of defs', () => {
 		const defs = createDefs();
-		const resolver = createPieceSymbolResolver();
+		const svgIds = createSvgIdResolver();
+		const resolver = createPieceSymbolResolver(svgIds);
 		ensurePieceSymbolsDefined(defs, pieceUrls, resolver);
 		for (const child of Array.from(defs.children)) {
 			expect(child.parentElement).toBe(defs);
@@ -66,7 +103,8 @@ describe('ensurePieceSymbolsDefined', () => {
 
 	it('each symbol has data-chessboard-extension-id="renderer"', () => {
 		const defs = createDefs();
-		const resolver = createPieceSymbolResolver();
+		const svgIds = createSvgIdResolver();
+		const resolver = createPieceSymbolResolver(svgIds);
 		ensurePieceSymbolsDefined(defs, pieceUrls, resolver);
 		for (const child of Array.from(defs.children)) {
 			expect(child.getAttribute('data-chessboard-extension-id')).toBe('renderer');
@@ -75,7 +113,8 @@ describe('ensurePieceSymbolsDefined', () => {
 
 	it('each symbol has data-chessboard-id="piece-symbol-{pieceCode}"', () => {
 		const defs = createDefs();
-		const resolver = createPieceSymbolResolver();
+		const svgIds = createSvgIdResolver();
+		const resolver = createPieceSymbolResolver(svgIds);
 		ensurePieceSymbolsDefined(defs, pieceUrls, resolver);
 		for (const pieceCode of ALL_NON_EMPTY_PIECE_CODES) {
 			const symbol = defs.querySelector(`[data-chessboard-id="piece-symbol-${pieceCode}"]`);
@@ -85,19 +124,21 @@ describe('ensurePieceSymbolsDefined', () => {
 
 	it('each symbol has viewBox="0 0 1 1"', () => {
 		const defs = createDefs();
-		const resolver = createPieceSymbolResolver();
+		const svgIds = createSvgIdResolver();
+		const resolver = createPieceSymbolResolver(svgIds);
 		ensurePieceSymbolsDefined(defs, pieceUrls, resolver);
 		for (const child of Array.from(defs.children)) {
 			expect(child.getAttribute('viewBox')).toBe('0 0 1 1');
 		}
 	});
 
-	it('each symbol has an id matching the resolver pattern', () => {
+	it('each symbol has an id matching the resolver getId pattern', () => {
 		const defs = createDefs();
-		const resolver = createPieceSymbolResolver();
+		const svgIds = createSvgIdResolver();
+		const resolver = createPieceSymbolResolver(svgIds);
 		ensurePieceSymbolsDefined(defs, pieceUrls, resolver);
 		for (const pieceCode of ALL_NON_EMPTY_PIECE_CODES) {
-			const expectedId = `${resolver.prefix}-p${pieceCode}`;
+			const expectedId = resolver.getId(pieceCode);
 			const symbol = defs.querySelector(`#${expectedId}`);
 			expect(symbol).not.toBeNull();
 		}
@@ -105,7 +146,8 @@ describe('ensurePieceSymbolsDefined', () => {
 
 	it('symbol child image uses x=0, y=0, width=1, height=1', () => {
 		const defs = createDefs();
-		const resolver = createPieceSymbolResolver();
+		const svgIds = createSvgIdResolver();
+		const resolver = createPieceSymbolResolver(svgIds);
 		ensurePieceSymbolsDefined(defs, pieceUrls, resolver);
 		for (const child of Array.from(defs.children)) {
 			const image = child.querySelector('image');
@@ -119,7 +161,8 @@ describe('ensurePieceSymbolsDefined', () => {
 
 	it('symbol child image has correct href from piece URLs config', () => {
 		const defs = createDefs();
-		const resolver = createPieceSymbolResolver();
+		const svgIds = createSvgIdResolver();
+		const resolver = createPieceSymbolResolver(svgIds);
 		ensurePieceSymbolsDefined(defs, pieceUrls, resolver);
 		for (const pieceCode of ALL_NON_EMPTY_PIECE_CODES) {
 			const symbol = defs.querySelector(`[data-chessboard-id="piece-symbol-${pieceCode}"]`);
@@ -130,7 +173,8 @@ describe('ensurePieceSymbolsDefined', () => {
 
 	it('repeated calls do not duplicate symbols (idempotent)', () => {
 		const defs = createDefs();
-		const resolver = createPieceSymbolResolver();
+		const svgIds = createSvgIdResolver();
+		const resolver = createPieceSymbolResolver(svgIds);
 		ensurePieceSymbolsDefined(defs, pieceUrls, resolver);
 		ensurePieceSymbolsDefined(defs, pieceUrls, resolver);
 		ensurePieceSymbolsDefined(defs, pieceUrls, resolver);
@@ -139,7 +183,8 @@ describe('ensurePieceSymbolsDefined', () => {
 
 	it('clearDefinitionSlotChildren removes renderer-owned symbols', () => {
 		const defs = createDefs();
-		const resolver = createPieceSymbolResolver();
+		const svgIds = createSvgIdResolver();
+		const resolver = createPieceSymbolResolver(svgIds);
 		ensurePieceSymbolsDefined(defs, pieceUrls, resolver);
 		expect(defs.children).toHaveLength(12);
 

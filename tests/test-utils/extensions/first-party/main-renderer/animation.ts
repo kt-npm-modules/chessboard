@@ -73,8 +73,9 @@ export function createMockAnimationRuntimeSurface() {
  * Creates a minimal MainRendererAnimationInternal for direct lifecycle tests.
  */
 function createDefaultResolver(): PieceSymbolResolver {
-	const getHref = (pieceCode: NonEmptyPieceCode): string => `#anim-test-p${pieceCode}`;
-	return { getHref, prefix: 'anim-test' };
+	const getId = (pieceCode: NonEmptyPieceCode): string => `anim-test-renderer-p${pieceCode}`;
+	const getHref = (pieceCode: NonEmptyPieceCode): string => `#anim-test-renderer-p${pieceCode}`;
+	return { getId, getHref };
 }
 
 export function createAnimationInternalState(

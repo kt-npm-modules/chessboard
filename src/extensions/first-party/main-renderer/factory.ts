@@ -42,7 +42,7 @@ function createMainRendererInternal(
 	options: ExtensionCreateInstanceOptions,
 	config: MainRendererConfig
 ): MainRendererInstanceInternal {
-	const pieceSymbolResolver = createPieceSymbolResolver();
+	const pieceSymbolResolver = createPieceSymbolResolver(options.svgIds);
 	const board = createMainRendererBoard(config.colors.board);
 	const coordinates = createMainRendererCoordinates(config.colors.coordinates);
 	const pieces = createMainRendererPieces(pieceSymbolResolver);

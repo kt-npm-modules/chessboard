@@ -1,9 +1,13 @@
 import { vi } from 'vitest';
-import type { PieceSymbolResolver } from '../../../../../src/extensions/first-party/main-renderer/piece-symbols.js';
+import {
+	createPieceSymbolResolver,
+	type PieceSymbolResolver
+} from '../../../../../src/extensions/first-party/main-renderer/piece-symbols.js';
 import { DirtyLayer } from '../../../../../src/extensions/first-party/main-renderer/types/extension.js';
 import type { PieceUrls } from '../../../../../src/extensions/first-party/main-renderer/types/internal.js';
 import type { ExtensionRenderContext } from '../../../../../src/extensions/types/context/render.js';
 import { createRenderGeometry } from '../../../../../src/layout/geometry/factory.js';
+import { createSvgIdResolver } from '../../../../../src/render/svg/ids.js';
 import {
 	ColorCode,
 	type NonEmptyPieceCode,
@@ -43,11 +47,10 @@ export function createTestPieceUrls(): PieceUrls {
 // ─── Piece Symbol Resolver ────────────────────────────────────────────────────
 
 /**
- * Creates a test PieceSymbolResolver with a deterministic prefix.
+ * Creates a test PieceSymbolResolver backed by a real SvgIdResolver.
  */
-export function createTestPieceSymbolResolver(prefix = 'test'): PieceSymbolResolver {
-	const getHref = (pieceCode: NonEmptyPieceCode): string => `#${prefix}-p${pieceCode}`;
-	return { getHref, prefix };
+export function createTestPieceSymbolResolver(): PieceSymbolResolver {
+	return createPieceSymbolResolver(createSvgIdResolver());
 }
 
 // ─── Render context ───────────────────────────────────────────────────────────

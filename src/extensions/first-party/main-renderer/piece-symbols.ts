@@ -1,50 +1,37 @@
 import { SVG_NS } from '../../../render/svg/helpers.js';
+import type { SvgIdResolver } from '../../../render/svg/ids.js';
 import {
 	ALL_NON_EMPTY_PIECE_CODES,
 	NonEmptyPieceCode
 } from '../../../state/board/types/internal.js';
 import type { PieceUrls } from './types/internal.js';
 
-// ─── Symbol ID generation ─────────────────────────────────────────────────────
-
-let nextInstanceId = 0;
-
-/**
- * Generates a unique instance prefix for symbol ids.
- * Deterministic per call order within a JS runtime session.
- */
-function generateInstancePrefix(): string {
-	return `cb${nextInstanceId++}`;
-}
-
 // ─── PieceSymbolResolver ──────────────────────────────────────────────────────
 
 export interface PieceSymbolResolver {
-	/** Returns the href suitable for <use href="..."> (e.g., "#cb0-p6") */
+	/** Returns the DOM id for a piece symbol (e.g., "cb0-renderer-p6") */
+	getId(pieceCode: NonEmptyPieceCode): string;
+	/** Returns the href suitable for <use href="..."> (e.g., "#cb0-renderer-p6") */
 	getHref(pieceCode: NonEmptyPieceCode): string;
-	/** The unique prefix for this renderer instance */
-	readonly prefix: string;
 }
 
 /**
- * Creates a PieceSymbolResolver with a unique prefix.
- * getHref is a closure and safe to pass as a bare callback.
+ * Creates a PieceSymbolResolver backed by the shared SvgIdResolver.
+ * All ids use the "renderer" scope with a "p{pieceCode}" local id.
  */
-export function createPieceSymbolResolver(): PieceSymbolResolver {
-	const prefix = generateInstancePrefix();
-
-	const getHref = (pieceCode: NonEmptyPieceCode): string => {
-		return `#${prefix}-p${pieceCode}`;
+export function createPieceSymbolResolver(svgIds: SvgIdResolver): PieceSymbolResolver {
+	const getId = (pieceCode: NonEmptyPieceCode): string => {
+		return svgIds.makeId('renderer', `p${pieceCode}`);
 	};
 
-	return { getHref, prefix };
+	const getHref = (pieceCode: NonEmptyPieceCode): string => {
+		return svgIds.makeHref('renderer', `p${pieceCode}`);
+	};
+
+	return { getId, getHref };
 }
 
 // ─── Symbol DOM creation ──────────────────────────────────────────────────────
-
-function getSymbolId(prefix: string, pieceCode: NonEmptyPieceCode): string {
-	return `${prefix}-p${pieceCode}`;
-}
 
 function getSymbolDataId(pieceCode: NonEmptyPieceCode): string {
 	return `piece-symbol-${pieceCode}`;
@@ -62,7 +49,7 @@ export function ensurePieceSymbolsDefined(
 	const doc = defs.ownerDocument;
 
 	for (const pieceCode of ALL_NON_EMPTY_PIECE_CODES) {
-		const symbolId = getSymbolId(resolver.prefix, pieceCode);
+		const symbolId = resolver.getId(pieceCode);
 
 		// Idempotency: check if this symbol already exists in the DOM
 		if (defs.querySelector(`#${symbolId}`)) {
@@ -85,12 +72,4 @@ export function ensurePieceSymbolsDefined(
 		symbol.appendChild(image);
 		defs.appendChild(symbol);
 	}
-}
-
-/**
- * Resets the instance counter. Only for testing purposes.
- * @internal
- */
-export function _resetInstanceCounter(): void {
-	nextInstanceId = 0;
 }
