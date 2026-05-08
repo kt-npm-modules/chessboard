@@ -27,6 +27,7 @@ export function createMockRuntimeSurface(): ExtensionRuntimeSurface {
 
 export function createSlotRoots() {
 	return {
+		defs: document.createElementNS('http://www.w3.org/2000/svg', 'defs'),
 		overPieces: document.createElementNS('http://www.w3.org/2000/svg', 'g'),
 		drag: document.createElementNS('http://www.w3.org/2000/svg', 'g')
 	};

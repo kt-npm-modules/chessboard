@@ -92,9 +92,10 @@ function createAnnotationsPublicAPI(state: AnnotationsStateInternal): Annotation
 			markDirtyAndRequestRender(state, DirtyLayer.COMMITTED);
 		},
 		setArrows(arrows) {
+			// Validate all entries before mutating state (atomic behavior)
+			const normalized = arrows.map((pub) => normalizeArrowAnnotation(pub));
 			state.annotations.arrows.clear();
-			for (const pub of arrows) {
-				const arrow = normalizeArrowAnnotation(pub);
+			for (const arrow of normalized) {
 				state.annotations.arrows.set(arrow.key, arrow);
 			}
 			markDirtyAndRequestRender(state, DirtyLayer.COMMITTED);

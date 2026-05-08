@@ -14,6 +14,7 @@ function createMinimalMockSurface() {
 
 function createSlotRoots() {
 	return {
+		defs: document.createElementNS('http://www.w3.org/2000/svg', 'defs'),
 		overPieces: document.createElementNS('http://www.w3.org/2000/svg', 'g'),
 		drag: document.createElementNS('http://www.w3.org/2000/svg', 'g')
 	};
@@ -29,7 +30,7 @@ describe('createAnnotations', () => {
 
 		it('returns definition with expected slots', () => {
 			const def = createAnnotations();
-			expect(def.slots).toEqual(['overPieces', 'drag']);
+			expect(def.slots).toEqual(['defs', 'overPieces', 'drag']);
 		});
 
 		it('createInstance returns an instance with expected hooks', () => {
@@ -260,6 +261,70 @@ describe('createAnnotations', () => {
 			const arrows = api.getArrows();
 			expect(arrows).toHaveLength(1);
 			expect(arrows[0]).toEqual({ from: 'a1', to: 'h8', color: '#0000ff' });
+		});
+	});
+
+	describe('public API — same-square arrow validation', () => {
+		it('arrow(from, from, annotation) throws for same-square arrow', () => {
+			const def = createAnnotations();
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: createMinimalMockSurface() })
+			);
+			const api = instance.getPublic();
+
+			expect(() => api.arrow('e4', 'e4', { color: '#ff0000' })).toThrow(/different squares/i);
+		});
+
+		it('arrow(from, from, null) throws for same-square arrow', () => {
+			const def = createAnnotations();
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: createMinimalMockSurface() })
+			);
+			const api = instance.getPublic();
+
+			expect(() => api.arrow('a1', 'a1', null)).toThrow(/different squares/i);
+		});
+
+		it('setArrows with a same-square entry throws', () => {
+			const def = createAnnotations();
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: createMinimalMockSurface() })
+			);
+			const api = instance.getPublic();
+
+			expect(() => api.setArrows([{ from: 'd4', to: 'd4', color: '#ff0000' }])).toThrow(
+				/different squares/i
+			);
+		});
+
+		it('setArrows does not mutate state when validation fails', () => {
+			const def = createAnnotations();
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: createMinimalMockSurface() })
+			);
+			const api = instance.getPublic();
+
+			// Set up valid arrows first
+			api.arrow('e2', 'e4', { color: '#00ff00' });
+
+			// Attempt to set arrows with an invalid entry — should throw
+			expect(() =>
+				api.setArrows([
+					{ from: 'a1', to: 'h8', color: '#0000ff' },
+					{ from: 'c3', to: 'c3', color: '#ff0000' }
+				])
+			).toThrow(/different squares/i);
+
+			// Original arrows should remain unchanged (atomic behavior)
+			expect(api.getArrows()).toEqual([{ from: 'e2', to: 'e4', color: '#00ff00' }]);
+		});
+
+		it('initial annotations with same-square arrow throws', () => {
+			expect(() =>
+				createAnnotations({
+					annotations: { arrows: [{ from: 'b2', to: 'b2', color: '#ff0000' }] }
+				})
+			).toThrow(/different squares/i);
 		});
 	});
 

@@ -15,6 +15,7 @@ import type {
 import type { AnnotationsPublicAPI } from './public.js';
 
 export const EXTENSION_SLOTS = [
+	'defs',
 	'overPieces',
 	'drag'
 ] as const satisfies readonly ExtensionSlotName[];
@@ -33,9 +34,15 @@ export type AnnotationsInstance = ExtensionInstance<
 	AnnotationsPublicAPI
 >;
 
+export interface RenderedArrowSvg {
+	readonly line: SVGLineElement;
+	readonly marker: SVGMarkerElement;
+	readonly markerPath: SVGPathElement;
+}
+
 export interface AnnotationsStateInternalSvg {
 	readonly svgCircles: Map<CircleAnnotationKey, SVGCircleElement>;
-	readonly svgArrows: Map<ArrowAnnotationKey, SVGPathElement>;
+	readonly svgArrows: Map<ArrowAnnotationKey, RenderedArrowSvg>;
 }
 
 export interface AnnotationsStateInternalAnnotations {

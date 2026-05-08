@@ -41,6 +41,9 @@ export function normalizeCircleAnnotation(pub: CircleAnnotationPublic): CircleAn
 }
 
 export function arrowAnnotationKeyNormalized(from: Square, to: Square): ArrowAnnotationKey {
+	if (from === to) {
+		throw new Error("Invalid arrow: 'from' and 'to' must be different squares");
+	}
 	return from * 64 + to;
 }
 
