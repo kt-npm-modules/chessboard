@@ -87,13 +87,36 @@
 			snapshotText = JSON.stringify(currentFrame, replacer, 2);
 		});
 
-		console.log('Setting up circle for e4');
-		board.extensions.annotations.circle('e4', { color: '#ef4444' });
-		console.log('Setting up circles for d5');
-		board.extensions.annotations.circle('d5', { color: '#3b82f6' });
-		console.log('Setting up circles for d2');
-		board.extensions.annotations.circle('d2', { color: '#3b82f6' });
-		// board.extensions.annotations.circle('e4', null); // removes e4
+		const annotationColors = {
+			none: '#15781B',
+			ctrl: '#882020',
+			shift: '#e68f00',
+			alt: '#003088',
+			meta: '#6f2da8'
+		};
+
+		// Circles: each color on one light square and one dark square.
+		board.extensions.annotations.circle('d4', { color: annotationColors.none }); // green, light
+		board.extensions.annotations.circle('e4', { color: annotationColors.none }); // green, dark
+
+		board.extensions.annotations.circle('c4', { color: annotationColors.ctrl }); // red, dark
+		board.extensions.annotations.circle('f4', { color: annotationColors.ctrl }); // red, light
+
+		board.extensions.annotations.circle('b4', { color: annotationColors.shift }); // orange, light
+		board.extensions.annotations.circle('g4', { color: annotationColors.shift }); // orange, dark
+
+		board.extensions.annotations.circle('a4', { color: annotationColors.alt }); // blue, dark
+		board.extensions.annotations.circle('h4', { color: annotationColors.alt }); // blue, light
+
+		board.extensions.annotations.circle('d5', { color: annotationColors.meta }); // purple, dark
+		board.extensions.annotations.circle('e5', { color: annotationColors.meta }); // purple, light
+
+		// Arrows: each default color once.
+		board.extensions.annotations.arrow('a2', 'a4', { color: annotationColors.none });
+		board.extensions.annotations.arrow('b2', 'b4', { color: annotationColors.ctrl });
+		board.extensions.annotations.arrow('c2', 'c4', { color: annotationColors.shift });
+		board.extensions.annotations.arrow('d2', 'd4', { color: annotationColors.alt });
+		board.extensions.annotations.arrow('e2', 'e4', { color: annotationColors.meta });
 
 		return () => {};
 	});
