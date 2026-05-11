@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { DEFAULT_CONFIG } from '../../../../src/extensions/first-party/annotations/constants.js';
 import { resolveAnnotationColor } from '../../../../src/extensions/first-party/annotations/interaction.js';
 import type { AnnotationsConfig } from '../../../../src/extensions/first-party/annotations/types/internal.js';
