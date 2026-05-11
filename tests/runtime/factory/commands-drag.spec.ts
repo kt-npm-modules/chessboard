@@ -175,16 +175,13 @@ describe('runtime cancelDrag notification on clearActiveInteraction', () => {
 		const cancelDrag = vi.fn();
 		const mockExtensionSystem = { cancelDrag } as never;
 
-		notifyExtensionCancelDragIfOwned(
-			{ extensionSystem: mockExtensionSystem } as never,
-			{
-				owner: 'core',
-				type: 'lifted-piece-drag',
-				sourceSquare: normalizeSquare('e2'),
-				sourcePieceCode: PieceCode.WhitePawn,
-				targetSquare: normalizeSquare('e4')
-			}
-		);
+		notifyExtensionCancelDragIfOwned({ extensionSystem: mockExtensionSystem } as never, {
+			owner: 'core',
+			type: 'lifted-piece-drag',
+			sourceSquare: normalizeSquare('e2'),
+			sourcePieceCode: PieceCode.WhitePawn,
+			targetSquare: normalizeSquare('e4')
+		});
 
 		expect(cancelDrag).not.toHaveBeenCalled();
 	});
@@ -193,10 +190,7 @@ describe('runtime cancelDrag notification on clearActiveInteraction', () => {
 		const cancelDrag = vi.fn();
 		const mockExtensionSystem = { cancelDrag } as never;
 
-		notifyExtensionCancelDragIfOwned(
-			{ extensionSystem: mockExtensionSystem } as never,
-			null
-		);
+		notifyExtensionCancelDragIfOwned({ extensionSystem: mockExtensionSystem } as never, null);
 
 		expect(cancelDrag).not.toHaveBeenCalled();
 	});

@@ -19,7 +19,11 @@ import {
 	annotationsSetClearOnCoreInteraction
 } from './api.js';
 import { clearCommittedAnnotations, hasCommittedAnnotations } from './committed.js';
-import { cancelAnnotationsDrag, completeAnnotationsDrag, handleAnnotationsEvent } from './interaction.js';
+import {
+	cancelAnnotationsDrag,
+	completeAnnotationsDrag,
+	handleAnnotationsEvent
+} from './interaction.js';
 import { normalizeAnnotationsConfig, normalizeInitialAnnotations } from './normalize.js';
 import { renderCommittedArrows } from './render-arrows.js';
 import { renderCommittedCircles } from './render-circles.js';

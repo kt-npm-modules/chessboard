@@ -154,9 +154,7 @@ describe('annotations draw gesture — idle clear remains unchanged', () => {
 
 		handleAnnotationsEvent(state, context);
 
-		expect(startDrag).toHaveBeenCalledWith(
-			expect.objectContaining({ type: 'ext:idle-clear' })
-		);
+		expect(startDrag).toHaveBeenCalledWith(expect.objectContaining({ type: 'ext:idle-clear' }));
 	});
 
 	it('primary button with non-null runtimeInteractionActionPreview does not start any drag', () => {
