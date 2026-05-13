@@ -1,4 +1,5 @@
 import type { Square } from '../../../../state/board/types/internal.js';
+import type { AnnotationsDrawModifier } from './public.js';
 
 /** Annotation color as a CSS-compatible color string. */
 export type AnnotationColor = string;
@@ -30,6 +31,7 @@ export interface AnnotationModifierColorConfig {
 export interface AnnotationsConfig {
 	clearOnCoreInteraction: boolean;
 	drawButton: number;
+	drawModifier: AnnotationsDrawModifier | null;
 	readonly colors: AnnotationModifierColorConfig;
 }
 

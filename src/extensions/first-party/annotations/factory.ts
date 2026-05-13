@@ -13,12 +13,14 @@ import {
 	annotationsGetCircles,
 	annotationsGetClearOnCoreInteraction,
 	annotationsGetDrawButton,
+	annotationsGetDrawModifier,
 	annotationsSetArrow,
 	annotationsSetArrows,
 	annotationsSetCircle,
 	annotationsSetCircles,
 	annotationsSetClearOnCoreInteraction,
-	annotationsSetDrawButton
+	annotationsSetDrawButton,
+	annotationsSetDrawModifier
 } from './api.js';
 import { clearCommittedAnnotations, hasCommittedAnnotations } from './committed.js';
 import {
@@ -117,6 +119,12 @@ function createAnnotationsPublicAPI(state: AnnotationsStateInternal): Annotation
 		},
 		set drawButton(value) {
 			annotationsSetDrawButton(state, value);
+		},
+		get drawModifier() {
+			return annotationsGetDrawModifier(state);
+		},
+		set drawModifier(value) {
+			annotationsSetDrawModifier(state, value);
 		}
 	};
 }

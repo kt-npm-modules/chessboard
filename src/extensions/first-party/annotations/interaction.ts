@@ -15,6 +15,9 @@ export function resolveAnnotationColor(
 	config: AnnotationsConfig,
 	rawEvent: PointerEvent
 ): AnnotationColor {
+	if (config.drawModifier != null) {
+		return config.colors[config.drawModifier];
+	}
 	if (rawEvent.ctrlKey) return config.colors.ctrl;
 	if (rawEvent.shiftKey) return config.colors.shift;
 	if (rawEvent.altKey) return config.colors.alt;

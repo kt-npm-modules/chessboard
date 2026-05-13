@@ -9,7 +9,8 @@ export const DEFAULT_CONFIG: AnnotationsConfig = {
 		alt: '#003088',
 		meta: '#6f2da8'
 	},
-	drawButton: 2
+	drawButton: 2,
+	drawModifier: null
 };
 
 export const VISUAL_CONFIG: VisualConfig = {

@@ -9,6 +9,7 @@ import {
 } from './normalize.js';
 import type { AnnotationsStateInternal } from './types/main.js';
 import type {
+	AnnotationsDrawModifier,
 	ArrowAnnotationPublic,
 	ArrowAnnotationValuePublic,
 	CircleAnnotationPublic,
@@ -109,4 +110,17 @@ export function annotationsSetDrawButton(state: AnnotationsStateInternal, value:
 
 export function annotationsGetDrawButton(state: AnnotationsStateInternal): number {
 	return state.config.drawButton;
+}
+
+export function annotationsSetDrawModifier(
+	state: AnnotationsStateInternal,
+	value: AnnotationsDrawModifier | null
+): void {
+	state.config.drawModifier = value;
+}
+
+export function annotationsGetDrawModifier(
+	state: AnnotationsStateInternal
+): AnnotationsDrawModifier | null {
+	return state.config.drawModifier;
 }

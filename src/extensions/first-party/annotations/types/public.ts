@@ -22,9 +22,15 @@ export interface AnnotationsInitOptionsConfigModifierColor {
 	meta?: AnnotationColorPublic;
 }
 
+export type AnnotationsDrawModifier = Exclude<
+	keyof AnnotationsInitOptionsConfigModifierColor,
+	'none'
+>;
+
 export interface AnnotationsInitOptionsConfig {
 	clearOnCoreInteraction?: boolean;
 	drawButton?: number;
+	drawModifier?: AnnotationsDrawModifier | null;
 	colors?: AnnotationsInitOptionsConfigModifierColor;
 }
 
@@ -56,4 +62,5 @@ export interface AnnotationsPublicAPI {
 
 	clearOnCoreInteraction: boolean;
 	drawButton: number;
+	drawModifier: AnnotationsDrawModifier | null;
 }

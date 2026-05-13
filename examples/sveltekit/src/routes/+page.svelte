@@ -7,6 +7,13 @@
 	let snapshotText = $state('');
 	let orientation: 'white' | 'black' = $state('white');
 	let drawButton = $state(2);
+	let drawModifier: 'ctrl' | 'shift' | 'alt' | 'meta' | null = $state(null);
+
+	function setAnnotationModifier(modifier: typeof drawModifier) {
+		if (!board) return;
+		drawModifier = modifier;
+		board.extensions.annotations.drawModifier = modifier;
+	}
 
 	function toggleOrientation() {
 		if (!board) return;
@@ -146,9 +153,48 @@
 			<button onclick={resetPosition}>Reset position</button>
 			<button onclick={clearSelection}>Clear selection</button>
 			<button onclick={randomMove}>Random move</button>
-			<button onclick={toggleAnnotationsDrawButton}
-				>Annotation: {drawButton === 0 ? 'on' : 'off'}</button
-			>
+
+			<button onclick={toggleAnnotationsDrawButton}>
+				Annotation: {drawButton === 0 ? 'on' : 'off'}
+			</button>
+
+			<div class="segmented" aria-label="Annotation color modifier">
+				<button
+					class:active={drawModifier === null}
+					aria-pressed={drawModifier === null}
+					onclick={() => setAnnotationModifier(null)}
+				>
+					None
+				</button>
+				<button
+					class:active={drawModifier === 'ctrl'}
+					aria-pressed={drawModifier === 'ctrl'}
+					onclick={() => setAnnotationModifier('ctrl')}
+				>
+					Ctrl
+				</button>
+				<button
+					class:active={drawModifier === 'shift'}
+					aria-pressed={drawModifier === 'shift'}
+					onclick={() => setAnnotationModifier('shift')}
+				>
+					Shift
+				</button>
+				<button
+					class:active={drawModifier === 'alt'}
+					aria-pressed={drawModifier === 'alt'}
+					onclick={() => setAnnotationModifier('alt')}
+				>
+					Alt
+				</button>
+				<button
+					class:active={drawModifier === 'meta'}
+					aria-pressed={drawModifier === 'meta'}
+					onclick={() => setAnnotationModifier('meta')}
+				>
+					Meta
+				</button>
+			</div>
 		</div>
 
 		<div class="board-wrap">
@@ -256,5 +302,28 @@
 		.board-wrap {
 			width: min(92vw, 640px);
 		}
+	}
+
+	.segmented {
+		display: inline-flex;
+		gap: 0;
+	}
+
+	.segmented button {
+		border-radius: 0;
+	}
+
+	.segmented button:first-child {
+		border-top-left-radius: 6px;
+		border-bottom-left-radius: 6px;
+	}
+
+	.segmented button:last-child {
+		border-top-right-radius: 6px;
+		border-bottom-right-radius: 6px;
+	}
+
+	.segmented button.active {
+		font-weight: 700;
 	}
 </style>
