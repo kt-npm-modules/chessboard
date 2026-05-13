@@ -1,6 +1,4 @@
 import { cloneDeep } from 'es-toolkit';
-import type { Square } from '../../../state/board/types/internal.js';
-import { isUpdateContextRenderable } from '../../types/context/update.js';
 import type { ExtensionCreateInstanceOptions } from '../../types/extension.js';
 import {
 	extensionCreateInternalBase,
@@ -23,7 +21,6 @@ import {
 	annotationsSetDrawButton,
 	annotationsSetDrawModifier
 } from './api.js';
-import { clearCommittedAnnotations, hasCommittedAnnotations } from './committed.js';
 import {
 	cancelAnnotationsDrag,
 	completeAnnotationsDrag,
@@ -42,6 +39,7 @@ import type {
 } from './types/main.js';
 import { EXTENSION_ID, EXTENSION_SLOTS } from './types/main.js';
 import type { AnnotationsInitOptions, AnnotationsPublicAPI } from './types/public.js';
+import { annotationsOnUpdate } from './update.js';
 
 export function createAnnotations(options: AnnotationsInitOptions = {}): AnnotationsDefinition {
 	const normalizedConfig = normalizeAnnotationsConfig(options.config);
@@ -165,58 +163,7 @@ function createAnnotationsInstance(
 			internalState.runtimeSurface.events.subscribeEvent('contextmenu');
 		},
 		onUpdate(context) {
-			if (
-				internalState.config.clearOnCoreInteraction &&
-				hasCommittedAnnotations(internalState) &&
-				context.mutation.hasMutation({
-					causes: ['runtime.interaction.completeCoreDragTo']
-				})
-			) {
-				clearCommittedAnnotations(internalState);
-				context.invalidation.markDirty(DirtyLayer.COMMITTED);
-			}
-
-			if (
-				context.mutation.hasMutation({
-					causes: ['layout.refreshGeometry']
-				}) &&
-				isUpdateContextRenderable(context)
-			) {
-				context.invalidation.markDirty(DirtyLayer.COMMITTED);
-				if (
-					internalState.activeDrawPreviewTarget !== null ||
-					internalState.previewSvg.circle !== null ||
-					internalState.previewSvg.arrow !== null
-				) {
-					context.invalidation.markDirty(DirtyLayer.PREVIEW);
-				}
-			}
-
-			// Preview target tracking from ext:draw drag session
-			let nextPreviewTarget: Square | null = null;
-			if (internalState.activeDrawGesture !== null) {
-				const dragSession = context.currentFrame.state.interaction.dragSession;
-				if (
-					dragSession &&
-					dragSession.type === 'ext:draw' &&
-					'owner' in dragSession &&
-					dragSession.owner === EXTENSION_ID
-				) {
-					nextPreviewTarget = dragSession.targetSquare;
-				}
-			}
-
-			if (nextPreviewTarget !== internalState.activeDrawPreviewTarget) {
-				internalState.activeDrawPreviewTarget = nextPreviewTarget;
-				context.invalidation.markDirty(DirtyLayer.PREVIEW);
-				context.invalidation.markDirty(DirtyLayer.COMMITTED);
-			} else if (
-				nextPreviewTarget === null &&
-				(internalState.previewSvg.circle !== null || internalState.previewSvg.arrow !== null)
-			) {
-				context.invalidation.markDirty(DirtyLayer.PREVIEW);
-				context.invalidation.markDirty(DirtyLayer.COMMITTED);
-			}
+			annotationsOnUpdate(internalState, context);
 		},
 		render(context) {
 			if (context.invalidation.dirtyLayers & DirtyLayer.COMMITTED) {
