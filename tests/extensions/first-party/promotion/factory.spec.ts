@@ -6,6 +6,7 @@ import {
 } from '../../../../src/extensions/first-party/promotion/types/main.js';
 import type { ExtensionRuntimeSurface } from '../../../../src/extensions/types/surface/main.js';
 import type { RuntimeReadonlyMutationSession } from '../../../../src/runtime/mutation/types.js';
+import { createMockExtensionCreateInstanceOptions } from '../../../test-utils/extensions/factory.js';
 
 function createMockMutation(hasCauses: string[] = []): RuntimeReadonlyMutationSession {
 	return {
@@ -32,6 +33,12 @@ function createMockRuntimeSurface(): ExtensionRuntimeSurface {
 		transientVisuals: {
 			subscribe: vi.fn(),
 			unsubscribe: vi.fn()
+		},
+		invalidation: {
+			dirtyLayers: 0,
+			markDirty: vi.fn(),
+			clearDirty: vi.fn(),
+			clear: vi.fn()
 		}
 	};
 }
@@ -87,7 +94,9 @@ describe('createPromotion', () => {
 	it('createInstance returns an instance with expected hooks', () => {
 		const def = createPromotion();
 		const surface = createMockRuntimeSurface();
-		const instance = def.createInstance({ runtimeSurface: surface });
+		const instance = def.createInstance(
+			createMockExtensionCreateInstanceOptions({ runtimeSurface: surface })
+		);
 		expect(instance.id).toBe(EXTENSION_ID);
 		expect(instance.mount).toBeDefined();
 		expect(instance.unmount).toBeDefined();
@@ -103,7 +112,9 @@ describe('createPromotion', () => {
 		it('mount/unmount/destroy works', () => {
 			const def = createPromotion();
 			const surface = createMockRuntimeSurface();
-			const instance = def.createInstance({ runtimeSurface: surface });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: surface })
+			);
 			const roots = createSlotRoots();
 
 			instance.mount!({ slotRoots: roots } as never);
@@ -116,7 +127,9 @@ describe('createPromotion', () => {
 		it('destroy auto-unmounts if mounted', () => {
 			const def = createPromotion();
 			const surface = createMockRuntimeSurface();
-			const instance = def.createInstance({ runtimeSurface: surface });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: surface })
+			);
 			const roots = createSlotRoots();
 
 			instance.mount!({ slotRoots: roots } as never);
@@ -130,7 +143,9 @@ describe('createPromotion', () => {
 		it('marks dirty when setDeferredUIMoveRequest mutation occurs and frame is renderable', () => {
 			const def = createPromotion();
 			const surface = createMockRuntimeSurface();
-			const instance = def.createInstance({ runtimeSurface: surface });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: surface })
+			);
 			instance.mount!({ slotRoots: createSlotRoots() } as never);
 
 			const { context, markDirty } = createRenderableUpdateContext({
@@ -146,7 +161,9 @@ describe('createPromotion', () => {
 		it('marks dirty on layout.refreshGeometry', () => {
 			const def = createPromotion();
 			const surface = createMockRuntimeSurface();
-			const instance = def.createInstance({ runtimeSurface: surface });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: surface })
+			);
 			instance.mount!({ slotRoots: createSlotRoots() } as never);
 
 			const { context, markDirty } = createRenderableUpdateContext({
@@ -161,7 +178,9 @@ describe('createPromotion', () => {
 		it('does not mark dirty when no relevant mutation occurs', () => {
 			const def = createPromotion();
 			const surface = createMockRuntimeSurface();
-			const instance = def.createInstance({ runtimeSurface: surface });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: surface })
+			);
 			instance.mount!({ slotRoots: createSlotRoots() } as never);
 
 			const { context, markDirty } = createRenderableUpdateContext({
@@ -176,7 +195,9 @@ describe('createPromotion', () => {
 		it('subscribes to transient visuals and events when deferred request becomes non-null', () => {
 			const def = createPromotion();
 			const surface = createMockRuntimeSurface();
-			const instance = def.createInstance({ runtimeSurface: surface });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: surface })
+			);
 			instance.mount!({ slotRoots: createSlotRoots() } as never);
 
 			const { context } = createRenderableUpdateContext({
@@ -193,7 +214,9 @@ describe('createPromotion', () => {
 		it('unsubscribes from transient visuals and events when deferred request becomes null', () => {
 			const def = createPromotion();
 			const surface = createMockRuntimeSurface();
-			const instance = def.createInstance({ runtimeSurface: surface });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: surface })
+			);
 			instance.mount!({ slotRoots: createSlotRoots() } as never);
 
 			const { context } = createRenderableUpdateContext({
@@ -226,7 +249,9 @@ describe('createPromotion', () => {
 		it('calls defer when request is unresolved and cannot be auto-resolved', () => {
 			const def = createPromotion();
 			const surface = createMockRuntimeSurface();
-			const instance = def.createInstance({ runtimeSurface: surface });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: surface })
+			);
 
 			const { context, defer } = createFakeRequest({
 				status: 'unresolved',
@@ -241,7 +266,9 @@ describe('createPromotion', () => {
 		it('does not call defer when request status is already deferred', () => {
 			const def = createPromotion();
 			const surface = createMockRuntimeSurface();
-			const instance = def.createInstance({ runtimeSurface: surface });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: surface })
+			);
 
 			const { context, defer } = createFakeRequest({
 				status: 'deferred',
@@ -256,7 +283,9 @@ describe('createPromotion', () => {
 		it('does not call defer when request status is resolved', () => {
 			const def = createPromotion();
 			const surface = createMockRuntimeSurface();
-			const instance = def.createInstance({ runtimeSurface: surface });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: surface })
+			);
 
 			const { context, defer } = createFakeRequest({
 				status: 'resolved',
@@ -271,7 +300,9 @@ describe('createPromotion', () => {
 		it('does not call defer when request can be auto-resolved', () => {
 			const def = createPromotion();
 			const surface = createMockRuntimeSurface();
-			const instance = def.createInstance({ runtimeSurface: surface });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: surface })
+			);
 
 			const { context, defer } = createFakeRequest({
 				status: 'unresolved',

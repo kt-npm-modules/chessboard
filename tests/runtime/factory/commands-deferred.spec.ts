@@ -108,7 +108,7 @@ function dispatchPointerUp(container: HTMLElement, x: number, y: number) {
  */
 function createFreeModeRuntime(): { runtime: Runtime; container: HTMLElement } {
 	const runtime = createRuntime({
-		doc: document,
+		element: document.createElement('div'),
 		extensions: [createDeferringExtension()]
 	});
 	activeRuntime = runtime;
@@ -125,7 +125,7 @@ function createFreeModeRuntime(): { runtime: Runtime; container: HTMLElement } {
  */
 function createPromotionRuntime(): { runtime: Runtime; container: HTMLElement } {
 	const runtime = createRuntime({
-		doc: document,
+		element: document.createElement('div'),
 		extensions: [createDeferringExtension()]
 	});
 	activeRuntime = runtime;
@@ -166,7 +166,7 @@ function triggerPromotionDeferredMove(container: HTMLElement) {
 describe('runtime deferred UI move commands', () => {
 	describe('resolveDeferredUIMoveRequest', () => {
 		it('throws without pending deferred request', () => {
-			const runtime = createRuntime({ doc: document });
+			const runtime = createRuntime({ element: document.createElement('div') });
 			activeRuntime = runtime;
 			expect(() => runtime.resolveDeferredUIMoveRequest({ promotedTo: RoleCode.Queen })).toThrow();
 		});
@@ -222,7 +222,7 @@ describe('runtime deferred UI move commands', () => {
 
 	describe('cancelDeferredUIMoveRequest', () => {
 		it('throws without pending deferred request', () => {
-			const runtime = createRuntime({ doc: document });
+			const runtime = createRuntime({ element: document.createElement('div') });
 			activeRuntime = runtime;
 			expect(() => runtime.cancelDeferredUIMoveRequest()).toThrow();
 		});

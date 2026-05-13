@@ -4,6 +4,7 @@ import { MainRendererAnimation } from '../animation/types.js';
 import { MainRendererBoard } from '../board/types.js';
 import { MainRendererCoordinates } from '../coordinates/types.js';
 import { MainRendererDrag } from '../drag/types.js';
+import type { PieceSymbolResolver } from '../piece-symbols.js';
 import { MainRendererPieces } from '../pieces/types.js';
 import { ExtensionSlotsType } from './extension.js';
 
@@ -14,4 +15,5 @@ export interface MainRendererInstanceInternal extends ExtensionInternalBase<Exte
 	readonly drag: MainRendererDrag;
 	readonly animation: MainRendererAnimation;
 	readonly runtimeSurface: ExtensionRuntimeSurface;
+	readonly pieceSymbolResolver: PieceSymbolResolver;
 }

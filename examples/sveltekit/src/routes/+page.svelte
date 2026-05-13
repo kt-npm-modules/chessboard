@@ -5,20 +5,33 @@
 	let boardEl: HTMLDivElement;
 	let board: ReturnType<typeof createBoard> | null = null;
 	let snapshotText = $state('');
+	let orientation: 'white' | 'black' = $state('white');
+	let drawButton = $state(2);
+	let drawModifier: 'ctrl' | 'shift' | 'alt' | 'meta' | null = $state(null);
 
-	function setWhite() {
+	function setAnnotationModifier(modifier: typeof drawModifier) {
 		if (!board) return;
-		board.setOrientation('white');
+		drawModifier = modifier;
+		board.extensions.annotations.drawModifier = modifier;
 	}
 
-	function setBlack() {
+	function toggleOrientation() {
 		if (!board) return;
-		board.setOrientation('black');
+		orientation = orientation === 'white' ? 'black' : 'white';
+		board.setOrientation(orientation);
+	}
+
+	function toggleAnnotationsDrawButton() {
+		if (!board) return;
+		const currentValue = board.extensions.annotations.drawButton;
+		drawButton = currentValue === 0 ? 2 : 0;
+		board.extensions.annotations.drawButton = drawButton;
 	}
 
 	function resetPosition() {
 		if (!board) return;
 		board.setPosition('start');
+		board.extensions.annotations.clear();
 	}
 
 	function clearSelection() {
@@ -86,6 +99,37 @@
 			snapshotText = JSON.stringify(currentFrame, replacer, 2);
 		});
 
+		const annotationColors = {
+			none: '#15781B',
+			ctrl: '#882020',
+			shift: '#e68f00',
+			alt: '#003088',
+			meta: '#6f2da8'
+		};
+
+		// Circles: each color on one light square and one dark square.
+		board.extensions.annotations.circle('d4', { color: annotationColors.none }); // green, light
+		board.extensions.annotations.circle('e4', { color: annotationColors.none }); // green, dark
+
+		board.extensions.annotations.circle('c4', { color: annotationColors.ctrl }); // red, dark
+		board.extensions.annotations.circle('f4', { color: annotationColors.ctrl }); // red, light
+
+		board.extensions.annotations.circle('b4', { color: annotationColors.shift }); // orange, light
+		board.extensions.annotations.circle('g4', { color: annotationColors.shift }); // orange, dark
+
+		board.extensions.annotations.circle('a4', { color: annotationColors.alt }); // blue, dark
+		board.extensions.annotations.circle('h4', { color: annotationColors.alt }); // blue, light
+
+		board.extensions.annotations.circle('d5', { color: annotationColors.meta }); // purple, dark
+		board.extensions.annotations.circle('e5', { color: annotationColors.meta }); // purple, light
+
+		// Arrows: each default color once.
+		board.extensions.annotations.arrow('a2', 'a4', { color: annotationColors.none });
+		board.extensions.annotations.arrow('b2', 'b4', { color: annotationColors.ctrl });
+		board.extensions.annotations.arrow('c2', 'c4', { color: annotationColors.shift });
+		board.extensions.annotations.arrow('d2', 'd4', { color: annotationColors.alt });
+		board.extensions.annotations.arrow('e2', 'e4', { color: annotationColors.meta });
+
 		return () => {};
 	});
 
@@ -105,11 +149,52 @@
 		<p class="subtitle">Internal runtime smoke page · movable free · both colors</p>
 
 		<div class="controls">
-			<button onclick={setWhite}>Orientation: white</button>
-			<button onclick={setBlack}>Orientation: black</button>
+			<button onclick={toggleOrientation}>Orientation: {orientation}</button>
 			<button onclick={resetPosition}>Reset position</button>
 			<button onclick={clearSelection}>Clear selection</button>
 			<button onclick={randomMove}>Random move</button>
+
+			<button onclick={toggleAnnotationsDrawButton}>
+				Annotation: {drawButton === 0 ? 'on' : 'off'}
+			</button>
+
+			<div class="segmented" aria-label="Annotation color modifier">
+				<button
+					class:active={drawModifier === null}
+					aria-pressed={drawModifier === null}
+					onclick={() => setAnnotationModifier(null)}
+				>
+					None
+				</button>
+				<button
+					class:active={drawModifier === 'ctrl'}
+					aria-pressed={drawModifier === 'ctrl'}
+					onclick={() => setAnnotationModifier('ctrl')}
+				>
+					Ctrl
+				</button>
+				<button
+					class:active={drawModifier === 'shift'}
+					aria-pressed={drawModifier === 'shift'}
+					onclick={() => setAnnotationModifier('shift')}
+				>
+					Shift
+				</button>
+				<button
+					class:active={drawModifier === 'alt'}
+					aria-pressed={drawModifier === 'alt'}
+					onclick={() => setAnnotationModifier('alt')}
+				>
+					Alt
+				</button>
+				<button
+					class:active={drawModifier === 'meta'}
+					aria-pressed={drawModifier === 'meta'}
+					onclick={() => setAnnotationModifier('meta')}
+				>
+					Meta
+				</button>
+			</div>
 		</div>
 
 		<div class="board-wrap">
@@ -217,5 +302,28 @@
 		.board-wrap {
 			width: min(92vw, 640px);
 		}
+	}
+
+	.segmented {
+		display: inline-flex;
+		gap: 0;
+	}
+
+	.segmented button {
+		border-radius: 0;
+	}
+
+	.segmented button:first-child {
+		border-top-left-radius: 6px;
+		border-bottom-left-radius: 6px;
+	}
+
+	.segmented button:last-child {
+		border-top-right-radius: 6px;
+		border-bottom-right-radius: 6px;
+	}
+
+	.segmented button.active {
+		font-weight: 700;
 	}
 </style>

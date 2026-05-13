@@ -137,7 +137,7 @@ describe('createExtensionSystem – onUpdate dispatch', () => {
 		expect(ctx.invalidation.markDirty).toBeDefined();
 	});
 
-	it('does not include invalidation in context when frame is unmounted', () => {
+	it('includes invalidation in context when frame is unmounted', () => {
 		const onUpdate = vi.fn();
 		const def: AnyExtensionDefinition = {
 			id: 'ext-a',
@@ -149,7 +149,8 @@ describe('createExtensionSystem – onUpdate dispatch', () => {
 		system.onUpdate(createUpdateRequest(createUnmountedFrame()));
 
 		const ctx = onUpdate.mock.calls[0][0];
-		expect(ctx.invalidation).toBeUndefined();
+		expect(ctx.invalidation).toBeDefined();
+		expect(ctx.invalidation.markDirty).toBeDefined();
 	});
 
 	it('each extension receives its own invalidation state in the context', () => {
@@ -174,5 +175,82 @@ describe('createExtensionSystem – onUpdate dispatch', () => {
 		const ctxA = onUpdateA.mock.calls[0][0];
 		const ctxB = onUpdateB.mock.calls[0][0];
 		expect(ctxA.invalidation).not.toBe(ctxB.invalidation);
+	});
+
+	it('layout is available on mounted context currentFrame', () => {
+		const onUpdate = vi.fn();
+		const def: AnyExtensionDefinition = {
+			id: 'ext-a',
+			slots: [],
+			createInstance: () => ({ id: 'ext-a', onUpdate }) as unknown as AnyExtensionInstance
+		};
+		const system = createExtensionSystem(createExtensionSystemOptions([def]));
+
+		system.onUpdate(createUpdateRequest(createMountedFrame()));
+
+		const ctx = onUpdate.mock.calls[0][0];
+		expect(ctx.currentFrame.isMounted).toBe(true);
+		expect(ctx.currentFrame.layout).toBeDefined();
+	});
+
+	it('layout is not available on unmounted context currentFrame', () => {
+		const onUpdate = vi.fn();
+		const def: AnyExtensionDefinition = {
+			id: 'ext-a',
+			slots: [],
+			createInstance: () => ({ id: 'ext-a', onUpdate }) as unknown as AnyExtensionInstance
+		};
+		const system = createExtensionSystem(createExtensionSystemOptions([def]));
+
+		system.onUpdate(createUpdateRequest(createUnmountedFrame()));
+
+		const ctx = onUpdate.mock.calls[0][0];
+		expect(ctx.currentFrame.isMounted).toBe(false);
+		expect(ctx.currentFrame.layout).toBeUndefined();
+	});
+
+	it('marking dirty from unmounted onUpdate affects only that extension invalidation bucket', () => {
+		const onUpdateA = vi.fn((ctx) => {
+			ctx.invalidation.markDirty(0b0101);
+		});
+		const onUpdateB = vi.fn();
+		const defA: AnyExtensionDefinition = {
+			id: 'ext-a',
+			slots: [],
+			createInstance: () =>
+				({ id: 'ext-a', onUpdate: onUpdateA }) as unknown as AnyExtensionInstance
+		};
+		const defB: AnyExtensionDefinition = {
+			id: 'ext-b',
+			slots: [],
+			createInstance: () =>
+				({ id: 'ext-b', onUpdate: onUpdateB }) as unknown as AnyExtensionInstance
+		};
+		const system = createExtensionSystem(createExtensionSystemOptions([defA, defB]));
+		const shared = system.getSharedDataForRenderSystem();
+
+		system.onUpdate(createUpdateRequest(createUnmountedFrame()));
+
+		expect(shared.extensions.get('ext-a')!.invalidation.dirtyLayers).toBe(0b0101);
+		expect(shared.extensions.get('ext-b')!.invalidation.dirtyLayers).toBe(0);
+	});
+
+	it('render hook is not called merely because an unmounted extension marked dirty', () => {
+		const render = vi.fn();
+		const onUpdate = vi.fn((ctx) => {
+			ctx.invalidation.markDirty(0b0001);
+		});
+		const def: AnyExtensionDefinition = {
+			id: 'ext-a',
+			slots: [],
+			createInstance: () => ({ id: 'ext-a', onUpdate, render }) as unknown as AnyExtensionInstance
+		};
+		const system = createExtensionSystem(createExtensionSystemOptions([def]));
+
+		system.onUpdate(createUpdateRequest(createUnmountedFrame()));
+
+		// render is never called by the extension system update path
+		// render is only called by the render system when mounted
+		expect(render).not.toHaveBeenCalled();
 	});
 });

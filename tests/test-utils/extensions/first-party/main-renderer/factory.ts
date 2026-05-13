@@ -30,10 +30,11 @@ export function createMainRendererRuntimeSurface() {
 
 /**
  * Creates slot roots matching the main-renderer EXTENSION_SLOTS:
- * ['board', 'coordinates', 'pieces', 'animation', 'drag']
+ * ['defs', 'board', 'coordinates', 'pieces', 'animation', 'drag']
  */
 export function createMainRendererSlotRoots() {
 	return {
+		defs: createSvgElement('defs'),
 		board: createSvgElement('g'),
 		coordinates: createSvgElement('g'),
 		pieces: createSvgElement('g'),

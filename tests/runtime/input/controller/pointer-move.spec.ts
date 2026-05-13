@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { ScenePointerEvent } from '../../../../src/extensions/types/basic/events.js';
-import { handlePointerMove } from '../../../../src/runtime/input/controller/pointer.js';
+import { determineActionPointerMove } from '../../../../src/runtime/input/controller/pointer.js';
 import { PieceCode, type Square } from '../../../../src/state/board/types/internal.js';
 import { createEventContext, createMockSurface } from '../../../test-utils/runtime/controller.js';
 
@@ -17,17 +17,17 @@ function makeContext(targetSquare: number | null) {
 	});
 }
 
-describe('handlePointerMove', () => {
-	it('does nothing when no active drag session', () => {
+describe('determineActionPointerMove', () => {
+	it('returns null when no active drag session', () => {
 		const surface = createMockSurface();
 		const context = makeContext(28);
 
-		handlePointerMove({ surface }, context);
+		const result = determineActionPointerMove({ surface }, context);
 
-		expect(surface.updateDragSessionCurrentTarget).not.toHaveBeenCalled();
+		expect(result).toBeNull();
 	});
 
-	it('updates drag target when drag session is active and target is a square', () => {
+	it('returns updateDragSessionCurrentTarget when drag session is active and target is a square', () => {
 		const surface = createMockSurface({
 			snapshot: {
 				dragSession: {
@@ -41,12 +41,12 @@ describe('handlePointerMove', () => {
 		});
 		const context = makeContext(28);
 
-		handlePointerMove({ surface }, context);
+		const result = determineActionPointerMove({ surface }, context);
 
-		expect(surface.updateDragSessionCurrentTarget).toHaveBeenCalledWith(28);
+		expect(result).toEqual({ type: 'updateDragSessionCurrentTarget', target: 28 });
 	});
 
-	it('updates drag target to null when drag session is active and target is null', () => {
+	it('returns updateDragSessionCurrentTarget with null target when drag session is active and target is null', () => {
 		const surface = createMockSurface({
 			snapshot: {
 				dragSession: {
@@ -69,8 +69,8 @@ describe('handlePointerMove', () => {
 			} as ScenePointerEvent
 		});
 
-		handlePointerMove({ surface }, context);
+		const result = determineActionPointerMove({ surface }, context);
 
-		expect(surface.updateDragSessionCurrentTarget).toHaveBeenCalledWith(null);
+		expect(result).toEqual({ type: 'updateDragSessionCurrentTarget', target: null });
 	});
 });

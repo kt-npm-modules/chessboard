@@ -20,32 +20,63 @@ export type SvgElementNames = keyof SVGElementTagNameMap;
 // Helper to create SVG elements with attributes.
 // We need to exclude 'id' from generic attributes to enforce its presence for uniqueness in the document.
 export type SvgElementAttributes = Record<string, string>;
-export type SvgElementOtherAttributes = SvgElementAttributes;
 export type SvgElementWithIdAttributes = SvgElementAttributes & { 'data-chessboard-id': string };
+export type SvgElementOtherAttributes = SvgElementAttributes & {
+	'data-chessboard-id'?: never;
+};
 
-export function createSvgElement<K extends SvgElementNames>(
-	parentOrDoc: Element | Document,
-	name: K,
-	attrs: SvgElementWithIdAttributes
-): SVGElementTagNameMap[K] {
-	const doc = parentOrDoc instanceof Document ? parentOrDoc : parentOrDoc.ownerDocument;
-	const el = doc.createElementNS(SVG_NS, name);
-	for (const [key, value] of Object.entries(attrs)) {
-		el.setAttribute(key, value);
-	}
-	if (parentOrDoc instanceof Element) {
-		parentOrDoc.appendChild(el);
-	}
-	return el;
-}
-
-export function updateElementAttributes(element: Element, attrs: SvgElementOtherAttributes): void {
+function _updateElementAttributes(element: SVGElement, attrs: SvgElementAttributes): void {
 	for (const [key, value] of Object.entries(attrs)) {
 		element.setAttribute(key, value);
 	}
 }
 
-export function clearElementChildren(element: Element): void {
+export function createSvgRootElement(
+	parent: HTMLElement,
+	attrs: SvgElementWithIdAttributes
+): SVGSVGElement {
+	const doc = parent.ownerDocument;
+	const el = doc.createElementNS(SVG_NS, 'svg');
+	_updateElementAttributes(el, attrs);
+	parent.appendChild(el);
+	return el;
+}
+
+export function createSvgDefsElement(
+	parent: SVGSVGElement,
+	attrs: SvgElementWithIdAttributes
+): SVGDefsElement {
+	const doc = parent.ownerDocument;
+	const el = doc.createElementNS(SVG_NS, 'defs');
+	_updateElementAttributes(el, attrs);
+	// Keep extension-owned defs roots before visual roots.
+	const firstNonDefsChild = Array.from(parent.children).find(
+		(child) => child.tagName.toLowerCase() !== 'defs'
+	);
+	parent.insertBefore(el, firstNonDefsChild ?? null);
+	return el;
+}
+
+export function createSvgElement<K extends Exclude<SvgElementNames, 'svg' | 'defs'>>(
+	parent: SVGElement,
+	name: K,
+	attrs: SvgElementWithIdAttributes
+): SVGElementTagNameMap[K] {
+	const doc = parent.ownerDocument;
+	const el = doc.createElementNS(SVG_NS, name);
+	_updateElementAttributes(el, attrs);
+	parent.appendChild(el);
+	return el;
+}
+
+export function updateSvgElementAttributes(
+	element: SVGElement,
+	attrs: SvgElementOtherAttributes
+): void {
+	_updateElementAttributes(element, attrs);
+}
+
+export function clearSvgElementChildren(element: SVGElement): void {
 	while (element.firstChild) {
 		element.removeChild(element.firstChild);
 	}

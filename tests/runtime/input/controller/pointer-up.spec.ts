@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { ScenePointerEvent } from '../../../../src/extensions/types/basic/events.js';
-import { handlePointerUp } from '../../../../src/runtime/input/controller/pointer.js';
+import { determineActionPointerUp } from '../../../../src/runtime/input/controller/pointer.js';
 import { PieceCode, type Square } from '../../../../src/state/board/types/internal.js';
 import { MovabilityModeCode } from '../../../../src/state/interaction/types/internal.js';
 import { createEventContext, createMockSurface } from '../../../test-utils/runtime/controller.js';
@@ -18,20 +18,17 @@ function makeContext(targetSquare: number | null) {
 	});
 }
 
-describe('handlePointerUp', () => {
-	it('does nothing when no active drag session', () => {
+describe('determineActionPointerUp', () => {
+	it('returns null when no active drag session', () => {
 		const surface = createMockSurface();
 		const context = makeContext(28);
 
-		handlePointerUp({ surface }, context);
+		const result = determineActionPointerUp({ surface }, context);
 
-		expect(surface.completeCoreDragTo).not.toHaveBeenCalled();
-		expect(surface.completeExtensionDrag).not.toHaveBeenCalled();
-		expect(surface.cancelActiveInteraction).not.toHaveBeenCalled();
-		expect(surface.cancelInteraction).not.toHaveBeenCalled();
+		expect(result).toBeNull();
 	});
 
-	it('calls completeExtensionDrag for extension-owned drag session', () => {
+	it('returns completeExtensionDrag for extension-owned drag session', () => {
 		const surface = createMockSurface({
 			snapshot: {
 				dragSession: {
@@ -45,12 +42,12 @@ describe('handlePointerUp', () => {
 		});
 		const context = makeContext(28);
 
-		handlePointerUp({ surface }, context);
+		const result = determineActionPointerUp({ surface }, context);
 
-		expect(surface.completeExtensionDrag).toHaveBeenCalledWith(28);
+		expect(result).toEqual({ type: 'completeExtensionDrag', target: 28 });
 	});
 
-	it('calls cancelActiveInteraction when core drag target equals source', () => {
+	it('returns cancelActiveInteraction when core drag target equals source', () => {
 		const surface = createMockSurface({
 			snapshot: {
 				dragSession: {
@@ -64,12 +61,12 @@ describe('handlePointerUp', () => {
 		});
 		const context = makeContext(12);
 
-		handlePointerUp({ surface }, context);
+		const result = determineActionPointerUp({ surface }, context);
 
-		expect(surface.cancelActiveInteraction).toHaveBeenCalledOnce();
+		expect(result).toEqual({ type: 'cancelActiveInteraction' });
 	});
 
-	it('calls completeCoreDragTo when core drag has valid target (free mode)', () => {
+	it('returns completeCoreDragTo when core drag has valid target (free mode)', () => {
 		const surface = createMockSurface({
 			snapshot: {
 				selected: { square: 12 as Square, pieceCode: PieceCode.WhitePawn },
@@ -85,12 +82,12 @@ describe('handlePointerUp', () => {
 		});
 		const context = makeContext(28);
 
-		handlePointerUp({ surface }, context);
+		const result = determineActionPointerUp({ surface }, context);
 
-		expect(surface.completeCoreDragTo).toHaveBeenCalledWith(28);
+		expect(result).toEqual({ type: 'completeCoreDragTo', target: 28 });
 	});
 
-	it('calls cancelActiveInteraction for lifted-piece-drag with invalid target', () => {
+	it('returns cancelActiveInteraction for lifted-piece-drag with invalid target', () => {
 		const surface = createMockSurface({
 			snapshot: {
 				selected: { square: 12 as Square, pieceCode: PieceCode.WhitePawn },
@@ -106,13 +103,12 @@ describe('handlePointerUp', () => {
 		});
 		const context = makeContext(28);
 
-		handlePointerUp({ surface }, context);
+		const result = determineActionPointerUp({ surface }, context);
 
-		expect(surface.cancelActiveInteraction).toHaveBeenCalledOnce();
-		expect(surface.cancelInteraction).not.toHaveBeenCalled();
+		expect(result).toEqual({ type: 'cancelActiveInteraction' });
 	});
 
-	it('calls cancelInteraction for release-targeting drag with invalid target', () => {
+	it('returns cancelInteraction for release-targeting drag with invalid target', () => {
 		const surface = createMockSurface({
 			snapshot: {
 				selected: { square: 12 as Square, pieceCode: PieceCode.WhitePawn },
@@ -128,13 +124,12 @@ describe('handlePointerUp', () => {
 		});
 		const context = makeContext(28);
 
-		handlePointerUp({ surface }, context);
+		const result = determineActionPointerUp({ surface }, context);
 
-		expect(surface.cancelInteraction).toHaveBeenCalledOnce();
-		expect(surface.cancelActiveInteraction).not.toHaveBeenCalled();
+		expect(result).toEqual({ type: 'cancelInteraction' });
 	});
 
-	it('calls cancelActiveInteraction for lifted-piece-drag when targetSquare is null', () => {
+	it('returns cancelActiveInteraction for lifted-piece-drag when targetSquare is null', () => {
 		const surface = createMockSurface({
 			snapshot: {
 				selected: { square: 12 as Square, pieceCode: PieceCode.WhitePawn },
@@ -150,12 +145,12 @@ describe('handlePointerUp', () => {
 		});
 		const context = makeContext(null);
 
-		handlePointerUp({ surface }, context);
+		const result = determineActionPointerUp({ surface }, context);
 
-		expect(surface.cancelActiveInteraction).toHaveBeenCalledOnce();
+		expect(result).toEqual({ type: 'cancelActiveInteraction' });
 	});
 
-	it('calls cancelInteraction for release-targeting when targetSquare is null', () => {
+	it('returns cancelInteraction for release-targeting when targetSquare is null', () => {
 		const surface = createMockSurface({
 			snapshot: {
 				selected: { square: 12 as Square, pieceCode: PieceCode.WhitePawn },
@@ -171,8 +166,8 @@ describe('handlePointerUp', () => {
 		});
 		const context = makeContext(null);
 
-		handlePointerUp({ surface }, context);
+		const result = determineActionPointerUp({ surface }, context);
 
-		expect(surface.cancelInteraction).toHaveBeenCalledOnce();
+		expect(result).toEqual({ type: 'cancelInteraction' });
 	});
 });

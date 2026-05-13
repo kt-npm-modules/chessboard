@@ -7,6 +7,7 @@ import {
 } from '../../../../src/extensions/types/wrapper.js';
 import type { RuntimeReadonlyMutationSession } from '../../../../src/runtime/mutation/types.js';
 import { createTestContainer } from '../../../test-utils/wrapper/factory.js';
+import { createMockExtensionCreateInstanceOptions } from '../../../test-utils/extensions/factory.js';
 
 function createMockMutation(hasCauses: string[] = []): RuntimeReadonlyMutationSession {
 	return {
@@ -100,7 +101,9 @@ describe('createWatermark', () => {
 
 	it('createInstance returns an instance with expected hooks', () => {
 		const def = createWatermark();
-		const instance = def.createInstance({ runtimeSurface: {} as never });
+		const instance = def.createInstance(
+			createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
+		);
 		expect(instance.id).toBe(EXTENSION_ID);
 		expect(instance.mount).toBeDefined();
 		expect(instance.unmount).toBeDefined();
@@ -119,18 +122,19 @@ describe('createWatermark', () => {
 			expect(DefaultBuiltinChessboardExtensions).toContain('watermark');
 		});
 
-		it('watermark appears immediately after renderer and before other extensions', () => {
+		it('watermark appears immediately after renderer', () => {
 			const idx = DefaultBuiltinChessboardExtensions.indexOf('watermark');
 			expect(idx).toBe(1);
 			expect(DefaultBuiltinChessboardExtensions[0]).toBe('renderer');
-			expect(DefaultBuiltinChessboardExtensions[2]).toBe('selectedSquare');
 		});
 	});
 
 	describe('onUpdate invalidation', () => {
 		it('marks dirty on layout.refreshGeometry when frame is renderable', () => {
 			const def = createWatermark();
-			const instance = def.createInstance({ runtimeSurface: {} as never });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
+			);
 			instance.mount!({ slotRoots: createSlotRoots() } as never);
 
 			const { context, markDirty } = createRenderableUpdateContext({
@@ -144,7 +148,9 @@ describe('createWatermark', () => {
 
 		it('does not mark dirty when no relevant mutation occurs', () => {
 			const def = createWatermark();
-			const instance = def.createInstance({ runtimeSurface: {} as never });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
+			);
 			instance.mount!({ slotRoots: createSlotRoots() } as never);
 
 			const { context, markDirty } = createRenderableUpdateContext({
@@ -160,7 +166,9 @@ describe('createWatermark', () => {
 	describe('render output', () => {
 		it('renders an SVG image with data-chessboard-id="watermark"', () => {
 			const def = createWatermark();
-			const instance = def.createInstance({ runtimeSurface: {} as never });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
+			);
 			const roots = createSlotRoots();
 			instance.mount!({ slotRoots: roots } as never);
 
@@ -172,7 +180,9 @@ describe('createWatermark', () => {
 
 		it('has opacity="0.3" and pointer-events="none"', () => {
 			const def = createWatermark();
-			const instance = def.createInstance({ runtimeSurface: {} as never });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
+			);
 			const roots = createSlotRoots();
 			instance.mount!({ slotRoots: roots } as never);
 
@@ -185,7 +195,9 @@ describe('createWatermark', () => {
 
 		it('has width/height based on square size and ratio 0.8', () => {
 			const def = createWatermark();
-			const instance = def.createInstance({ runtimeSurface: {} as never });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
+			);
 			const roots = createSlotRoots();
 			instance.mount!({ slotRoots: roots } as never);
 
@@ -199,7 +211,9 @@ describe('createWatermark', () => {
 
 		it('has a non-empty href attribute', () => {
 			const def = createWatermark();
-			const instance = def.createInstance({ runtimeSurface: {} as never });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
+			);
 			const roots = createSlotRoots();
 			instance.mount!({ slotRoots: roots } as never);
 
@@ -215,7 +229,9 @@ describe('createWatermark', () => {
 	describe('white orientation placement', () => {
 		it('watermark is centered on h1 (visual bottom-right) for white orientation', () => {
 			const def = createWatermark();
-			const instance = def.createInstance({ runtimeSurface: {} as never });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
+			);
 			const roots = createSlotRoots();
 			instance.mount!({ slotRoots: roots } as never);
 
@@ -233,7 +249,9 @@ describe('createWatermark', () => {
 	describe('black orientation placement', () => {
 		it('watermark is centered on a8 (visual bottom-right for black) for black orientation', () => {
 			const def = createWatermark();
-			const instance = def.createInstance({ runtimeSurface: {} as never });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
+			);
 			const roots = createSlotRoots();
 			instance.mount!({ slotRoots: roots } as never);
 
@@ -251,7 +269,9 @@ describe('createWatermark', () => {
 	describe('no duplicate watermark on rerender', () => {
 		it('still has exactly one watermark image after multiple renders', () => {
 			const def = createWatermark();
-			const instance = def.createInstance({ runtimeSurface: {} as never });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
+			);
 			const roots = createSlotRoots();
 			instance.mount!({ slotRoots: roots } as never);
 
@@ -267,10 +287,8 @@ describe('createWatermark', () => {
 	describe('explicit extension list can omit watermark', () => {
 		it('no watermark image rendered when extension list omits watermark', async () => {
 			const { createBoard } = await import('../../../../src/index.js');
-			const board = createBoard({ document, extensions: ['renderer'] as const });
 			const container = createTestContainer();
-
-			board.mount(container);
+			const board = createBoard({ element: container, extensions: ['renderer'] as const });
 
 			const img = container.querySelector('image[data-chessboard-id="watermark"]');
 			expect(img).toBeNull();
@@ -282,7 +300,9 @@ describe('createWatermark', () => {
 	describe('lifecycle', () => {
 		it('unmount clears slot root children', () => {
 			const def = createWatermark();
-			const instance = def.createInstance({ runtimeSurface: {} as never });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
+			);
 			const roots = createSlotRoots();
 			instance.mount!({ slotRoots: roots } as never);
 			instance.render!(createRenderContext({}));
@@ -294,7 +314,9 @@ describe('createWatermark', () => {
 
 		it('destroy clears slot root children', () => {
 			const def = createWatermark();
-			const instance = def.createInstance({ runtimeSurface: {} as never });
+			const instance = def.createInstance(
+				createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
+			);
 			const roots = createSlotRoots();
 			instance.mount!({ slotRoots: roots } as never);
 			instance.render!(createRenderContext({}));

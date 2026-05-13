@@ -38,19 +38,13 @@ export function createBoard<
 		// assume it's already a definition
 		return ext;
 	});
-	const doc =
-		'document' in options && options.document ? options.document : options.element.ownerDocument;
 	const runtime = createRuntime({
-		doc,
+		element: options.element,
 		state: options.state,
 		extensions
 	});
-	if ('element' in options && options.element) {
-		runtime.mount(options.element);
-	}
+	runtime.mount(options.element);
 	return {
-		mount: runtime.mount,
-		unmount: runtime.unmount,
 		destroy: runtime.destroy,
 		setPosition: runtime.setPosition,
 		setPiecePosition: runtime.setPiecePosition,

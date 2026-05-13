@@ -35,7 +35,7 @@ describe('runtime factory events surface', () => {
 		vi.stubGlobal('ResizeObserver', ResizeObserverStub);
 		capturedEvents = null;
 		const ext = createEventCapturingExtension('evt-ext');
-		runtime = createRuntime({ doc: document, extensions: [ext] });
+		runtime = createRuntime({ element: document.createElement('div'), extensions: [ext] });
 		container = document.createElement('div');
 	});
 

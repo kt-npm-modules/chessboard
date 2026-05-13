@@ -3,17 +3,14 @@ import { getAnimationSuppressedSquares } from '../../../../../src/extensions/fir
 import { PieceCode, type Square } from '../../../../../src/state/board/types/internal.js';
 import {
 	createAnimationInternalState,
-	createAnimationTestPieceUrls,
 	createMockAnimationRuntimeSurface,
 	createSimpleMovePlan
 } from '../../../../test-utils/extensions/first-party/main-renderer/animation.js';
 
-const pieceUrls = createAnimationTestPieceUrls();
-
 describe('getAnimationSuppressedSquares – empty cases', () => {
 	it('returns empty set when getAll returns no sessions', () => {
 		const { surface, getAll } = createMockAnimationRuntimeSurface();
-		const state = createAnimationInternalState(surface, pieceUrls);
+		const state = createAnimationInternalState(surface);
 		getAll.mockReturnValue([]);
 
 		const result = getAnimationSuppressedSquares(state);
@@ -23,7 +20,7 @@ describe('getAnimationSuppressedSquares – empty cases', () => {
 
 	it('returns empty set when returned sessions have no matching entries', () => {
 		const { surface, getAll } = createMockAnimationRuntimeSurface();
-		const state = createAnimationInternalState(surface, pieceUrls);
+		const state = createAnimationInternalState(surface);
 		getAll.mockReturnValue([{ id: 99, startTime: 0, duration: 180, status: 'submitted' }]);
 
 		const result = getAnimationSuppressedSquares(state);
@@ -35,7 +32,7 @@ describe('getAnimationSuppressedSquares – empty cases', () => {
 describe('getAnimationSuppressedSquares – returns squares from entries', () => {
 	it('returns suppressed squares from a submitted session entry', () => {
 		const { surface, getAll } = createMockAnimationRuntimeSurface();
-		const state = createAnimationInternalState(surface, pieceUrls);
+		const state = createAnimationInternalState(surface);
 		const plan = createSimpleMovePlan(12 as Square, 28 as Square, PieceCode.WhitePawn);
 		state.entries.set(1, { plan, nodes: null });
 
@@ -50,7 +47,7 @@ describe('getAnimationSuppressedSquares – returns squares from entries', () =>
 
 	it('returns suppressed squares from an active session entry', () => {
 		const { surface, getAll } = createMockAnimationRuntimeSurface();
-		const state = createAnimationInternalState(surface, pieceUrls);
+		const state = createAnimationInternalState(surface);
 		const plan = createSimpleMovePlan(0 as Square, 7 as Square, PieceCode.WhiteRook);
 		state.entries.set(1, { plan, nodes: null });
 
@@ -64,7 +61,7 @@ describe('getAnimationSuppressedSquares – returns squares from entries', () =>
 
 	it('combines suppression from multiple sessions without duplicates', () => {
 		const { surface, getAll } = createMockAnimationRuntimeSurface();
-		const state = createAnimationInternalState(surface, pieceUrls);
+		const state = createAnimationInternalState(surface);
 
 		const plan1 = createSimpleMovePlan(0 as Square, 7 as Square, PieceCode.WhiteRook);
 		const plan2 = createSimpleMovePlan(7 as Square, 63 as Square, PieceCode.BlackKing);
@@ -87,7 +84,7 @@ describe('getAnimationSuppressedSquares – returns squares from entries', () =>
 
 	it('calls getAll with submitted and active statuses', () => {
 		const { surface, getAll } = createMockAnimationRuntimeSurface();
-		const state = createAnimationInternalState(surface, pieceUrls);
+		const state = createAnimationInternalState(surface);
 		getAll.mockReturnValue([]);
 
 		getAnimationSuppressedSquares(state);
@@ -97,7 +94,7 @@ describe('getAnimationSuppressedSquares – returns squares from entries', () =>
 
 	it('ignores sessions without stored entries in the map', () => {
 		const { surface, getAll } = createMockAnimationRuntimeSurface();
-		const state = createAnimationInternalState(surface, pieceUrls);
+		const state = createAnimationInternalState(surface);
 		const plan = createSimpleMovePlan(4 as Square, 5 as Square, PieceCode.WhiteKing);
 		state.entries.set(1, { plan, nodes: null });
 

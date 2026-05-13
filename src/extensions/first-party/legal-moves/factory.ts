@@ -1,10 +1,11 @@
 import assert from '@ktarmyshov/assert';
 import { toMerged } from 'es-toolkit';
-import { clearElementChildren, createSvgElement } from '../../../render/svg/helpers.js';
+import { clearSvgElementChildren, createSvgElement } from '../../../render/svg/helpers.js';
 import { isNonEmptyPieceCode } from '../../../state/board/check.js';
 import { fromPieceCode } from '../../../state/board/piece.js';
 import { MovabilityModeCode } from '../../../state/interaction/types/internal.js';
 import { isUpdateContextRenderable } from '../../types/context/update.js';
+import type { ExtensionCreateInstanceOptions } from '../../types/extension.js';
 import {
 	extensionCreateInternalBase,
 	extensionDestroyBase,
@@ -29,15 +30,18 @@ export function createLegalMoves(config: LegalMovesInitConfig = {}): LegalMovesD
 	return {
 		id: EXTENSION_ID,
 		slots: EXTENSION_SLOTS,
-		createInstance() {
-			return createLegalMovesInstance(mergedConfig);
+		createInstance(options) {
+			return createLegalMovesInstance(options, mergedConfig);
 		}
 	};
 }
 
-function createLegalMovesInternal(config: LegalMovesConfig): LegalMovesInstanceInternal {
+function createLegalMovesInternal(
+	options: ExtensionCreateInstanceOptions,
+	config: LegalMovesConfig
+): LegalMovesInstanceInternal {
 	return {
-		...extensionCreateInternalBase<ExtensionSlotsType>(),
+		...extensionCreateInternalBase<ExtensionSlotsType>(options),
 		svgCircles: [],
 		config
 	};
@@ -47,8 +51,11 @@ function extensionClean(state: LegalMovesInstanceInternal) {
 	state.svgCircles = [];
 }
 
-function createLegalMovesInstance(config: LegalMovesConfig): LegalMovesInstance {
-	const internalState = createLegalMovesInternal(config);
+function createLegalMovesInstance(
+	options: ExtensionCreateInstanceOptions,
+	config: LegalMovesConfig
+): LegalMovesInstance {
+	const internalState = createLegalMovesInternal(options, config);
 	return {
 		id: EXTENSION_ID,
 		mount(env) {
@@ -73,7 +80,7 @@ function createLegalMovesInstance(config: LegalMovesConfig): LegalMovesInstance 
 			);
 
 			assert(internalState.slotRoots, 'Slot roots should be available when render is called');
-			clearElementChildren(internalState.slotRoots.overPieces);
+			clearSvgElementChildren(internalState.slotRoots.overPieces);
 			internalState.svgCircles = [];
 
 			const interaction = context.currentFrame.state.interaction;

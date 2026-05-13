@@ -1,17 +1,19 @@
 import { describe, expect, it } from 'vitest';
 import { allocateExtensionSlotRoots, createSvgRoots } from '../../../src/render/svg/factory.js';
 import { SVG_NS } from '../../../src/render/svg/helpers.js';
-import type { SvgRoots } from '../../../src/render/types.js';
+import type { RenderSystemInitOptionsInternal, SvgRoots } from '../../../src/render/types.js';
+import { createHostElement } from '../../test-utils/render/factory.js';
 
 function makeSvgRoots(): SvgRoots {
-	return createSvgRoots({
-		doc: document,
+	const options: RenderSystemInitOptionsInternal = {
+		element: createHostElement(),
 		sharedDataFromExtensionSystem: {
 			extensions: new Map(),
 			transientVisualsSubscribers: new Set()
 		},
 		performRender: () => {}
-	});
+	};
+	return createSvgRoots(options);
 }
 
 describe('createSvgRoots', () => {
@@ -19,7 +21,6 @@ describe('createSvgRoots', () => {
 		const roots = makeSvgRoots();
 		const expectedKeys = [
 			'svgRoot',
-			'defs',
 			'board',
 			'coordinates',
 			'underPieces',
@@ -54,7 +55,6 @@ describe('createSvgRoots', () => {
 	it('all layer elements are children of svgRoot', () => {
 		const roots = makeSvgRoots();
 		const layers = [
-			roots.defs,
 			roots.board,
 			roots.coordinates,
 			roots.underPieces,
@@ -74,7 +74,6 @@ describe('createSvgRoots', () => {
 		const roots = makeSvgRoots();
 		const children = Array.from(roots.svgRoot.children);
 		const expectedOrder = [
-			'defs-root',
 			'board-root',
 			'coordinates-root',
 			'under-pieces-root',
@@ -91,7 +90,6 @@ describe('createSvgRoots', () => {
 
 	it('each layer has its expected data-chessboard-id', () => {
 		const roots = makeSvgRoots();
-		expect(roots.defs.getAttribute('data-chessboard-id')).toBe('defs-root');
 		expect(roots.board.getAttribute('data-chessboard-id')).toBe('board-root');
 		expect(roots.pieces.getAttribute('data-chessboard-id')).toBe('pieces-root');
 		expect(roots.drag.getAttribute('data-chessboard-id')).toBe('drag-root');
@@ -129,5 +127,36 @@ describe('allocateExtensionSlotRoots', () => {
 		allocateExtensionSlotRoots(roots, 'ext-a', ['board']);
 		allocateExtensionSlotRoots(roots, 'ext-b', ['board']);
 		expect(roots.board.children).toHaveLength(2);
+	});
+
+	it('defs slot creates a per-extension <defs> element under svgRoot', () => {
+		const roots = makeSvgRoots();
+		const allocated = allocateExtensionSlotRoots(roots, 'ext-a', ['defs']);
+		expect(allocated.defs).toBeDefined();
+		expect(allocated.defs!.tagName.toLowerCase()).toBe('defs');
+		expect(allocated.defs!.parentNode).toBe(roots.svgRoot);
+	});
+
+	it('defs slot element has data-chessboard-id containing extension id', () => {
+		const roots = makeSvgRoots();
+		const allocated = allocateExtensionSlotRoots(roots, 'ext-a', ['defs']);
+		const id = allocated.defs!.getAttribute('data-chessboard-id');
+		expect(id).toContain('ext-a');
+	});
+
+	it('defs slot element is inserted before the first non-defs child', () => {
+		const roots = makeSvgRoots();
+		allocateExtensionSlotRoots(roots, 'ext-a', ['defs']);
+		const firstChild = roots.svgRoot.children[0];
+		expect(firstChild.tagName.toLowerCase()).toBe('defs');
+	});
+
+	it('multiple extensions each get their own separate defs element', () => {
+		const roots = makeSvgRoots();
+		const allocA = allocateExtensionSlotRoots(roots, 'ext-a', ['defs']);
+		const allocB = allocateExtensionSlotRoots(roots, 'ext-b', ['defs']);
+		expect(allocA.defs).not.toBe(allocB.defs);
+		expect(allocA.defs!.parentNode).toBe(roots.svgRoot);
+		expect(allocB.defs!.parentNode).toBe(roots.svgRoot);
 	});
 });

@@ -27,7 +27,7 @@ export function createMockCommandsSurface(): ExtensionRuntimeSurfaceCommandsInte
 		clearInteraction: vi.fn(() => true),
 		resolveDeferredUIMoveRequest: vi.fn(),
 		cancelDeferredUIMoveRequest: vi.fn(() => true),
-		requestRender: vi.fn(),
+		requestRender: vi.fn(() => true),
 		getSnapshot: vi.fn()
 	} as unknown as ExtensionRuntimeSurfaceCommandsInternalSurface;
 }

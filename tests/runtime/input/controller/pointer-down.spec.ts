@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { ScenePointerEvent } from '../../../../src/extensions/types/basic/events.js';
-import { handlePointerDown } from '../../../../src/runtime/input/controller/pointer.js';
+import { determineActionPointerDown } from '../../../../src/runtime/input/controller/pointer.js';
 import { PieceCode, type Square } from '../../../../src/state/board/types/internal.js';
 import { MovabilityModeCode } from '../../../../src/state/interaction/types/internal.js';
 import { createEventContext, createMockSurface } from '../../../test-utils/runtime/controller.js';
@@ -18,20 +18,19 @@ function makeContext(targetSquare: number | null, button = 0) {
 	});
 }
 
-describe('handlePointerDown', () => {
-	it('does nothing for non-left button', () => {
+describe('determineActionPointerDown', () => {
+	it('returns null for non-left button', () => {
 		const surface = createMockSurface({
 			getPieceCodeAt: () => PieceCode.WhitePawn
 		});
 		const context = makeContext(12, 2); // right-click
 
-		handlePointerDown({ surface }, context);
+		const result = determineActionPointerDown({ surface }, context);
 
-		expect(surface.startLiftedDrag).not.toHaveBeenCalled();
-		expect(surface.startReleaseTargetingDrag).not.toHaveBeenCalled();
+		expect(result).toBeNull();
 	});
 
-	it('does nothing when drag session is already active', () => {
+	it('returns null when drag session is already active', () => {
 		const surface = createMockSurface({
 			snapshot: {
 				dragSession: {
@@ -46,48 +45,45 @@ describe('handlePointerDown', () => {
 		});
 		const context = makeContext(20);
 
-		handlePointerDown({ surface }, context);
+		const result = determineActionPointerDown({ surface }, context);
 
-		expect(surface.startLiftedDrag).not.toHaveBeenCalled();
-		expect(surface.startReleaseTargetingDrag).not.toHaveBeenCalled();
+		expect(result).toBeNull();
 	});
 
-	it('does nothing when targetSquare is null', () => {
+	it('returns null when targetSquare is null', () => {
 		const surface = createMockSurface({
 			getPieceCodeAt: () => PieceCode.WhitePawn
 		});
 		const context = makeContext(null);
 
-		handlePointerDown({ surface }, context);
+		const result = determineActionPointerDown({ surface }, context);
 
-		expect(surface.startLiftedDrag).not.toHaveBeenCalled();
-		expect(surface.startReleaseTargetingDrag).not.toHaveBeenCalled();
+		expect(result).toBeNull();
 	});
 
-	it('starts lifted drag when no selection and target has a piece', () => {
+	it('returns startLiftedDrag when no selection and target has a piece', () => {
 		const surface = createMockSurface({
 			getPieceCodeAt: () => PieceCode.WhitePawn
 		});
 		const context = makeContext(12);
 
-		handlePointerDown({ surface }, context);
+		const result = determineActionPointerDown({ surface }, context);
 
-		expect(surface.startLiftedDrag).toHaveBeenCalledWith(12, 12);
+		expect(result).toEqual({ type: 'startLiftedDrag', source: 12, target: 12 });
 	});
 
-	it('does nothing when no selection and target is empty', () => {
+	it('returns null when no selection and target is empty', () => {
 		const surface = createMockSurface({
 			getPieceCodeAt: () => PieceCode.Empty
 		});
 		const context = makeContext(28);
 
-		handlePointerDown({ surface }, context);
+		const result = determineActionPointerDown({ surface }, context);
 
-		expect(surface.startLiftedDrag).not.toHaveBeenCalled();
-		expect(surface.startReleaseTargetingDrag).not.toHaveBeenCalled();
+		expect(result).toBeNull();
 	});
 
-	it('starts release-targeting when selected and target is empty', () => {
+	it('returns startReleaseTargetingDrag when selected and target is empty', () => {
 		const surface = createMockSurface({
 			snapshot: {
 				selected: { square: 12 as Square, pieceCode: PieceCode.WhitePawn }
@@ -96,12 +92,12 @@ describe('handlePointerDown', () => {
 		});
 		const context = makeContext(28);
 
-		handlePointerDown({ surface }, context);
+		const result = determineActionPointerDown({ surface }, context);
 
-		expect(surface.startReleaseTargetingDrag).toHaveBeenCalledWith(12, 28);
+		expect(result).toEqual({ type: 'startReleaseTargetingDrag', source: 12, target: 28 });
 	});
 
-	it('starts lifted drag when selected and target is same square (re-lift)', () => {
+	it('returns startLiftedDrag when selected and target is same square (re-lift)', () => {
 		const surface = createMockSurface({
 			snapshot: {
 				selected: { square: 12 as Square, pieceCode: PieceCode.WhitePawn }
@@ -110,12 +106,12 @@ describe('handlePointerDown', () => {
 		});
 		const context = makeContext(12);
 
-		handlePointerDown({ surface }, context);
+		const result = determineActionPointerDown({ surface }, context);
 
-		expect(surface.startLiftedDrag).toHaveBeenCalledWith(12, 12);
+		expect(result).toEqual({ type: 'startLiftedDrag', source: 12, target: 12 });
 	});
 
-	it('starts lifted drag when selected and target has same-color piece', () => {
+	it('returns startLiftedDrag when selected and target has same-color piece', () => {
 		const surface = createMockSurface({
 			snapshot: {
 				selected: { square: 12 as Square, pieceCode: PieceCode.WhitePawn }
@@ -124,12 +120,12 @@ describe('handlePointerDown', () => {
 		});
 		const context = makeContext(6);
 
-		handlePointerDown({ surface }, context);
+		const result = determineActionPointerDown({ surface }, context);
 
-		expect(surface.startLiftedDrag).toHaveBeenCalledWith(6, 6);
+		expect(result).toEqual({ type: 'startLiftedDrag', source: 6, target: 6 });
 	});
 
-	it('starts release-targeting when selected and target has opposite-color piece that is a legal move target (free mode)', () => {
+	it('returns startReleaseTargetingDrag when selected and target has opposite-color piece that is a legal move target (free mode)', () => {
 		const surface = createMockSurface({
 			snapshot: {
 				selected: { square: 12 as Square, pieceCode: PieceCode.WhitePawn },
@@ -139,12 +135,12 @@ describe('handlePointerDown', () => {
 		});
 		const context = makeContext(28);
 
-		handlePointerDown({ surface }, context);
+		const result = determineActionPointerDown({ surface }, context);
 
-		expect(surface.startReleaseTargetingDrag).toHaveBeenCalledWith(12, 28);
+		expect(result).toEqual({ type: 'startReleaseTargetingDrag', source: 12, target: 28 });
 	});
 
-	it('starts release-targeting when selected and target has opposite-color piece in strict mode with target in destinations', () => {
+	it('returns startReleaseTargetingDrag when selected and target has opposite-color piece in strict mode with target in destinations', () => {
 		const destinations = new Map([[28 as Square, { to: 28 as Square }]] as const);
 		const surface = createMockSurface({
 			snapshot: {
@@ -156,12 +152,12 @@ describe('handlePointerDown', () => {
 		});
 		const context = makeContext(28);
 
-		handlePointerDown({ surface }, context);
+		const result = determineActionPointerDown({ surface }, context);
 
-		expect(surface.startReleaseTargetingDrag).toHaveBeenCalledWith(12, 28);
+		expect(result).toEqual({ type: 'startReleaseTargetingDrag', source: 12, target: 28 });
 	});
 
-	it('starts lifted drag when selected and target has opposite-color piece but is NOT a legal target (disabled mode)', () => {
+	it('returns startLiftedDrag when selected and target has opposite-color piece but is NOT a legal target (disabled mode)', () => {
 		const surface = createMockSurface({
 			snapshot: {
 				selected: { square: 12 as Square, pieceCode: PieceCode.WhitePawn },
@@ -171,9 +167,8 @@ describe('handlePointerDown', () => {
 		});
 		const context = makeContext(28);
 
-		handlePointerDown({ surface }, context);
+		const result = determineActionPointerDown({ surface }, context);
 
-		expect(surface.startLiftedDrag).toHaveBeenCalledWith(28, 28);
-		expect(surface.startReleaseTargetingDrag).not.toHaveBeenCalled();
+		expect(result).toEqual({ type: 'startLiftedDrag', source: 28, target: 28 });
 	});
 });

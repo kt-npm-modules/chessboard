@@ -2,14 +2,14 @@ import { Square } from '../../../../state/board/types/internal.js';
 import { ExtensionCleanAnimationContext } from '../../../types/context/animation.js';
 import { ExtensionRenderContext } from '../../../types/context/render.js';
 import { ExtensionUpdateContext } from '../../../types/context/update.js';
-import { PieceUrls } from '../types/internal.js';
+import type { PieceSymbolResolver } from '../piece-symbols.js';
 
 type PieceNodeRecord = {
-	root: SVGImageElement; // per-piece <image> — locally bounded piece node
+	root: SVGUseElement; // per-piece <use> referencing a symbol definition
 };
 
 export interface MainRendererPiecesInternal {
-	readonly config: PieceUrls;
+	readonly resolver: PieceSymbolResolver;
 	readonly pieceNodes: Map<Square, PieceNodeRecord>;
 	suppressedSquares: ReadonlySet<Square>;
 }
@@ -20,6 +20,6 @@ export interface MainRendererPieces {
 		context: ExtensionCleanAnimationContext,
 		animationSuppressedSquares: ReadonlySet<Square>
 	): void;
-	render(context: ExtensionRenderContext, layer: SVGElement): void;
+	render(context: ExtensionRenderContext, slot: SVGGElement): void;
 	unmount(): void;
 }

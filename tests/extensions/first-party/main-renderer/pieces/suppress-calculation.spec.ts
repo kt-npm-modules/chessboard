@@ -4,16 +4,16 @@ import type { MainRendererPiecesInternal } from '../../../../../src/extensions/f
 import { PieceCode, type Square } from '../../../../../src/state/board/types/internal.js';
 import {
 	createPiecesCleanAnimationContext,
-	createTestPieceUrls
+	createTestPieceSymbolResolver
 } from '../../../../test-utils/extensions/first-party/main-renderer/pieces.js';
 
-const pieceUrls = createTestPieceUrls();
+const resolver = createTestPieceSymbolResolver();
 
 function createInternalState(): MainRendererPiecesInternal {
 	return {
-		config: pieceUrls,
 		pieceNodes: new Map(),
-		suppressedSquares: new Set()
+		suppressedSquares: new Set(),
+		resolver
 	};
 }
 

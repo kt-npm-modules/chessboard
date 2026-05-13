@@ -1,6 +1,8 @@
-import { SceneEvent, ScenePointerEvent } from '../../../extensions/types/basic/events.js';
-import { ExtensionOnEventContext } from '../../../extensions/types/context/events.js';
-import { InteractionControllerInternal } from './types.js';
+import type { SceneEvent, ScenePointerEvent } from '../../../extensions/types/basic/events.js';
+import type {
+	InteractionControllerInternal,
+	InteractionControllerOnEventContext
+} from './types.js';
 
 function isPointerEvent(event: SceneEvent): event is ScenePointerEvent {
 	return event.type.startsWith('pointer');
@@ -12,7 +14,7 @@ function isRawPointerEvent(event: Event): event is PointerEvent {
 
 export function transmitTransientInput(
 	state: InteractionControllerInternal,
-	context: ExtensionOnEventContext
+	context: InteractionControllerOnEventContext
 ): void {
 	if (
 		context.sceneEvent &&

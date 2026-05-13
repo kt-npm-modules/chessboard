@@ -1,5 +1,7 @@
 import { createActiveTarget } from '../first-party/active-target/factory.js';
 import { EXTENSION_ID as EXTENSION_ID_ACTIVE_TARGET } from '../first-party/active-target/types.js';
+import { createAnnotations } from '../first-party/annotations/factory.js';
+import { EXTENSION_ID as EXTENSION_ID_ANNOTATIONS } from '../first-party/annotations/types/main.js';
 import { createAutoPromote } from '../first-party/auto-promote/factory.js';
 import { EXTENSION_ID as EXTENSION_ID_AUTO_PROMOTE } from '../first-party/auto-promote/types.js';
 import { createBoardEvents } from '../first-party/board-events/factory.js';
@@ -26,7 +28,8 @@ export const builtInExtensionFactoryMap = {
 	[EXTENSION_ID_LEGAL_MOVES]: createLegalMoves,
 	[EXTENSION_ID_BOARD_EVENTS]: createBoardEvents,
 	[EXTENSION_ID_AUTO_PROMOTE]: createAutoPromote,
-	[EXTENSION_ID_PROMOTION]: createPromotion
+	[EXTENSION_ID_PROMOTION]: createPromotion,
+	[EXTENSION_ID_ANNOTATIONS]: createAnnotations
 };
 export type BuiltInExtensionId = keyof typeof builtInExtensionFactoryMap;
 export type BuiltInExtensionDefinitionMap = {
@@ -42,6 +45,7 @@ export const DefaultBuiltinChessboardExtensions = [
 	EXTENSION_ID_LEGAL_MOVES,
 	EXTENSION_ID_BOARD_EVENTS,
 	EXTENSION_ID_AUTO_PROMOTE,
-	EXTENSION_ID_PROMOTION
+	EXTENSION_ID_PROMOTION,
+	EXTENSION_ID_ANNOTATIONS
 ] as const;
 export type DefaultBuiltinChessboardExtensions = typeof DefaultBuiltinChessboardExtensions;

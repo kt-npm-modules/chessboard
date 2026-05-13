@@ -1,51 +1,113 @@
 import { describe, expect, it } from 'vitest';
 import {
-	clearElementChildren,
+	clearSvgElementChildren,
+	createSvgDefsElement,
 	createSvgElement,
+	createSvgRootElement,
 	isLightSquare,
 	SVG_NS,
-	updateElementAttributes
+	updateSvgElementAttributes
 } from '../../../src/render/svg/helpers.js';
 import { normalizeSquare } from '../../../src/state/board/normalize.js';
 
 describe('SVG helpers', () => {
-	describe('createSvgElement', () => {
-		it('creates an element in the SVG namespace', () => {
-			const el = createSvgElement(document, 'g', { 'data-chessboard-id': 'test' });
+	describe('createSvgRootElement', () => {
+		it('creates an SVGSVGElement in the SVG namespace', () => {
+			const parent = document.createElement('div');
+			const el = createSvgRootElement(parent, { 'data-chessboard-id': 'root' });
 			expect(el.namespaceURI).toBe(SVG_NS);
+			expect(el.tagName.toLowerCase()).toBe('svg');
 		});
 
-		it('creates element with the specified tag name', () => {
-			const el = createSvgElement(document, 'rect', { 'data-chessboard-id': 'r1' });
-			expect(el.tagName.toLowerCase()).toBe('rect');
+		it('appends to the parent HTMLElement', () => {
+			const parent = document.createElement('div');
+			const el = createSvgRootElement(parent, { 'data-chessboard-id': 'root' });
+			expect(el.parentNode).toBe(parent);
+			expect(parent.children).toHaveLength(1);
 		});
 
-		it('sets all provided attributes', () => {
-			const el = createSvgElement(document, 'g', {
-				'data-chessboard-id': 'my-id',
-				class: 'foo'
+		it('sets provided attributes', () => {
+			const parent = document.createElement('div');
+			const el = createSvgRootElement(parent, {
+				'data-chessboard-id': 'my-svg',
+				class: 'board'
 			});
-			expect(el.getAttribute('data-chessboard-id')).toBe('my-id');
-			expect(el.getAttribute('class')).toBe('foo');
-		});
-
-		it('with Document as parent does not append to document', () => {
-			const el = createSvgElement(document, 'g', { 'data-chessboard-id': 'orphan' });
-			expect(el.parentNode).toBeNull();
-		});
-
-		it('with Element as parent appends as child', () => {
-			const svg = document.createElementNS(SVG_NS, 'svg');
-			const child = createSvgElement(svg, 'g', { 'data-chessboard-id': 'child' });
-			expect(child.parentNode).toBe(svg);
-			expect(svg.children).toHaveLength(1);
+			expect(el.getAttribute('data-chessboard-id')).toBe('my-svg');
+			expect(el.getAttribute('class')).toBe('board');
 		});
 	});
 
-	describe('updateElementAttributes', () => {
+	describe('createSvgDefsElement', () => {
+		it('creates a <defs> element as a direct child of the SVG root', () => {
+			const parent = document.createElement('div');
+			const svgRoot = createSvgRootElement(parent, { 'data-chessboard-id': 'svg' });
+			const defs = createSvgDefsElement(svgRoot, { 'data-chessboard-id': 'defs-root' });
+			expect(defs.tagName.toLowerCase()).toBe('defs');
+			expect(defs.parentNode).toBe(svgRoot);
+		});
+
+		it('does not create nested <svg><defs> — defs is direct child of parent SVG', () => {
+			const parent = document.createElement('div');
+			const svgRoot = createSvgRootElement(parent, { 'data-chessboard-id': 'svg' });
+			createSvgDefsElement(svgRoot, { 'data-chessboard-id': 'defs' });
+			expect(svgRoot.querySelectorAll('svg')).toHaveLength(0);
+			expect(svgRoot.querySelector(':scope > defs')).not.toBeNull();
+		});
+
+		it('sets provided attributes', () => {
+			const parent = document.createElement('div');
+			const svgRoot = createSvgRootElement(parent, { 'data-chessboard-id': 'svg' });
+			const defs = createSvgDefsElement(svgRoot, { 'data-chessboard-id': 'my-defs' });
+			expect(defs.getAttribute('data-chessboard-id')).toBe('my-defs');
+		});
+
+		it('inserts before the first non-defs child', () => {
+			const parent = document.createElement('div');
+			const svgRoot = createSvgRootElement(parent, { 'data-chessboard-id': 'svg' });
+			createSvgElement(svgRoot, 'g', { 'data-chessboard-id': 'layer' });
+			const defs = createSvgDefsElement(svgRoot, { 'data-chessboard-id': 'defs' });
+			expect(svgRoot.children[0]).toBe(defs);
+		});
+	});
+
+	describe('createSvgElement', () => {
+		it('creates a <g> element as child of SVG root', () => {
+			const parent = document.createElement('div');
+			const svgRoot = createSvgRootElement(parent, { 'data-chessboard-id': 'svg' });
+			const g = createSvgElement(svgRoot, 'g', { 'data-chessboard-id': 'layer' });
+			expect(g.tagName.toLowerCase()).toBe('g');
+			expect(g.parentNode).toBe(svgRoot);
+		});
+
+		it('creates an element with the specified tag under a <g> parent', () => {
+			const parent = document.createElement('div');
+			const svgRoot = createSvgRootElement(parent, { 'data-chessboard-id': 'svg' });
+			const g = createSvgElement(svgRoot, 'g', { 'data-chessboard-id': 'layer' });
+			const rect = createSvgElement(g, 'rect', { 'data-chessboard-id': 'r1' });
+			expect(rect.tagName.toLowerCase()).toBe('rect');
+			expect(rect.parentNode).toBe(g);
+		});
+
+		it('sets all provided attributes', () => {
+			const parent = document.createElement('div');
+			const svgRoot = createSvgRootElement(parent, { 'data-chessboard-id': 'svg' });
+			const g = createSvgElement(svgRoot, 'g', { 'data-chessboard-id': 'layer' });
+			const el = createSvgElement(g, 'circle', {
+				'data-chessboard-id': 'c1',
+				cx: '50',
+				cy: '50',
+				r: '25'
+			});
+			expect(el.getAttribute('cx')).toBe('50');
+			expect(el.getAttribute('cy')).toBe('50');
+			expect(el.getAttribute('r')).toBe('25');
+		});
+	});
+
+	describe('updateSvgElementAttributes', () => {
 		it('sets multiple attributes on an element', () => {
 			const el = document.createElementNS(SVG_NS, 'rect');
-			updateElementAttributes(el, { x: '10', y: '20', width: '50' });
+			updateSvgElementAttributes(el, { x: '10', y: '20', width: '50' });
 			expect(el.getAttribute('x')).toBe('10');
 			expect(el.getAttribute('y')).toBe('20');
 			expect(el.getAttribute('width')).toBe('50');
@@ -54,25 +116,34 @@ describe('SVG helpers', () => {
 		it('overwrites existing attributes', () => {
 			const el = document.createElementNS(SVG_NS, 'rect');
 			el.setAttribute('x', '0');
-			updateElementAttributes(el, { x: '99' });
+			updateSvgElementAttributes(el, { x: '99' });
 			expect(el.getAttribute('x')).toBe('99');
 		});
 	});
 
-	describe('clearElementChildren', () => {
-		it('removes all child nodes', () => {
-			const parent = document.createElementNS(SVG_NS, 'g');
-			parent.appendChild(document.createElementNS(SVG_NS, 'rect'));
-			parent.appendChild(document.createElementNS(SVG_NS, 'circle'));
-			expect(parent.childNodes).toHaveLength(2);
-			clearElementChildren(parent);
-			expect(parent.childNodes).toHaveLength(0);
+	describe('clearSvgElementChildren', () => {
+		it('removes all child nodes from a <g> element', () => {
+			const g = document.createElementNS(SVG_NS, 'g') as SVGGElement;
+			g.appendChild(document.createElementNS(SVG_NS, 'rect'));
+			g.appendChild(document.createElementNS(SVG_NS, 'circle'));
+			expect(g.childNodes).toHaveLength(2);
+			clearSvgElementChildren(g);
+			expect(g.childNodes).toHaveLength(0);
 		});
 
 		it('on empty element is a no-op', () => {
-			const parent = document.createElementNS(SVG_NS, 'g');
-			expect(() => clearElementChildren(parent)).not.toThrow();
-			expect(parent.childNodes).toHaveLength(0);
+			const g = document.createElementNS(SVG_NS, 'g') as SVGGElement;
+			expect(() => clearSvgElementChildren(g)).not.toThrow();
+			expect(g.childNodes).toHaveLength(0);
+		});
+
+		it('removes all child nodes from a <defs> element', () => {
+			const defs = document.createElementNS(SVG_NS, 'defs') as SVGDefsElement;
+			defs.appendChild(document.createElementNS(SVG_NS, 'pattern'));
+			defs.appendChild(document.createElementNS(SVG_NS, 'linearGradient'));
+			expect(defs.childNodes).toHaveLength(2);
+			clearSvgElementChildren(defs);
+			expect(defs.childNodes).toHaveLength(0);
 		});
 	});
 

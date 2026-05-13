@@ -1,15 +1,3 @@
-export type ExtensionSlotName =
-	| 'defs'
-	| 'board'
-	| 'coordinates'
-	| 'underPieces'
-	| 'pieces'
-	| 'overPieces'
-	| 'animation'
-	| 'underDrag'
-	| 'drag'
-	| 'overDrag';
-
 export const ALL_EXTENSION_SLOTS = [
 	'defs',
 	'board',
@@ -21,22 +9,16 @@ export const ALL_EXTENSION_SLOTS = [
 	'underDrag',
 	'drag',
 	'overDrag'
-] as const satisfies readonly ExtensionSlotName[];
+] as const;
 
-type _CheckAllExtensionSlotsExact = [ExtensionSlotName] extends [
-	(typeof ALL_EXTENSION_SLOTS)[number]
-]
-	? [(typeof ALL_EXTENSION_SLOTS)[number]] extends [ExtensionSlotName]
-		? true
-		: false
-	: false;
+export type ExtensionSlotName = (typeof ALL_EXTENSION_SLOTS)[number];
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const _checkAllExtensionSlotsExact: _CheckAllExtensionSlotsExact = true;
-
-export type ExtensionSlotSvgRoots<TSlots extends readonly ExtensionSlotName[]> = Readonly<
-	Record<TSlots[number], SVGGElement>
->;
+export type ExtensionSlotSvgRoot<TSlot extends ExtensionSlotName> = TSlot extends 'defs'
+	? SVGDefsElement
+	: SVGGElement;
+export type ExtensionSlotSvgRoots<TSlots extends readonly ExtensionSlotName[]> = Readonly<{
+	[TSlot in TSlots[number]]: ExtensionSlotSvgRoot<TSlot>;
+}>;
 
 export type ExtensionAllocatedSlotsInternal = Partial<
 	ExtensionSlotSvgRoots<readonly ExtensionSlotName[]>

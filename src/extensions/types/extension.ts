@@ -1,3 +1,4 @@
+import type { SvgIdResolver } from '../../render/svg/ids.js';
 import { ExtensionDragSessionSnapshot } from './basic/interaction.js';
 import { ExtensionInstanceMountOptions, ExtensionSlotName } from './basic/mount.js';
 import {
@@ -29,6 +30,7 @@ interface ExtensionInstanceBase<TId extends string, TSlots extends readonly Exte
 	cleanAnimation?(context: ExtensionCleanAnimationContext): void;
 	// Interaction
 	completeDrag?(session: ExtensionDragSessionSnapshot): void;
+	cancelDrag?(session: ExtensionDragSessionSnapshot): void;
 	// Transient Visuals
 	renderTransientVisuals?(context: ExtensionRenderTransientVisualsContext): void;
 	// Events
@@ -52,6 +54,7 @@ export type AnyExtensionInstance = ExtensionInstance<string, readonly ExtensionS
 
 export interface ExtensionCreateInstanceOptions {
 	runtimeSurface: ExtensionRuntimeSurface;
+	svgIds: SvgIdResolver;
 }
 export interface ExtensionDefinition<
 	TId extends string,

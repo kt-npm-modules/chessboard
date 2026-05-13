@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { createActiveTarget } from '../../../../src/extensions/first-party/active-target/factory.js';
 import { EXTENSION_ID } from '../../../../src/extensions/first-party/active-target/types.js';
 import type { RuntimeReadonlyMutationSession } from '../../../../src/runtime/mutation/types.js';
+import { createMockExtensionCreateInstanceOptions } from '../../../test-utils/extensions/factory.js';
 
 function createMockMutation(
 	opts: { causes?: string[]; prefixes?: string[] } = {}
@@ -48,12 +49,29 @@ function createGeometry() {
 	};
 }
 
+function createCoreDragSession(targetSquare: number) {
+	return {
+		owner: 'core',
+		type: 'lifted-piece-drag',
+		sourceSquare: 0,
+		sourcePieceCode: 1,
+		targetSquare
+	};
+}
+
 function createRenderableUpdateContext(opts: {
 	causes?: string[];
 	prefixes?: string[];
 	targetSquare?: number | null;
+	dragSession?: unknown;
 }) {
 	const markDirty = vi.fn();
+	const dragSession =
+		opts.dragSession !== undefined
+			? opts.dragSession
+			: opts.targetSquare != null
+				? createCoreDragSession(opts.targetSquare)
+				: null;
 	return {
 		context: {
 			previousFrame: null,
@@ -62,7 +80,7 @@ function createRenderableUpdateContext(opts: {
 				isMounted: true,
 				state: {
 					interaction: {
-						dragSession: opts.targetSquare != null ? { targetSquare: opts.targetSquare } : null
+						dragSession
 					}
 				},
 				layout: {
@@ -78,18 +96,35 @@ function createRenderableUpdateContext(opts: {
 	};
 }
 
-function createRenderContext(opts: { targetSquare?: number | null; dirtyLayers?: number }) {
+function createRenderContext(opts: {
+	targetSquare?: number | null;
+	dirtyLayers?: number;
+	dragSession?: unknown;
+}) {
+	const dragSession =
+		opts.dragSession !== undefined
+			? opts.dragSession
+			: opts.targetSquare != null
+				? createCoreDragSession(opts.targetSquare)
+				: null;
 	return {
 		currentFrame: {
 			state: {
 				interaction: {
-					dragSession: opts.targetSquare != null ? { targetSquare: opts.targetSquare } : null
+					dragSession
 				}
 			},
 			layout: { geometry: createGeometry() }
 		},
 		invalidation: { dirtyLayers: opts.dirtyLayers ?? 1 }
 	} as never;
+}
+
+function createInstance() {
+	const def = createActiveTarget();
+	return def.createInstance(
+		createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
+	);
 }
 
 describe('createActiveTarget', () => {
@@ -100,8 +135,7 @@ describe('createActiveTarget', () => {
 	});
 
 	it('createInstance returns an instance with expected hooks', () => {
-		const def = createActiveTarget();
-		const instance = def.createInstance({ runtimeSurface: {} as never });
+		const instance = createInstance();
 		expect(instance.id).toBe(EXTENSION_ID);
 		expect(instance.mount).toBeDefined();
 		expect(instance.unmount).toBeDefined();
@@ -112,8 +146,7 @@ describe('createActiveTarget', () => {
 
 	describe('onUpdate invalidation', () => {
 		it('marks dirty when interaction prefix mutation occurs and frame is renderable', () => {
-			const def = createActiveTarget();
-			const instance = def.createInstance({ runtimeSurface: {} as never });
+			const instance = createInstance();
 			instance.mount!({ slotRoots: createSlotRoots() } as never);
 
 			const { context, markDirty } = createRenderableUpdateContext({
@@ -126,9 +159,8 @@ describe('createActiveTarget', () => {
 			expect(markDirty).toHaveBeenCalledWith(1);
 		});
 
-		it('marks dirty on layout.refreshGeometry', () => {
-			const def = createActiveTarget();
-			const instance = def.createInstance({ runtimeSurface: {} as never });
+		it('marks dirty on layout.refreshGeometry with core drag session', () => {
+			const instance = createInstance();
 			instance.mount!({ slotRoots: createSlotRoots() } as never);
 
 			const { context, markDirty } = createRenderableUpdateContext({
@@ -141,9 +173,22 @@ describe('createActiveTarget', () => {
 			expect(markDirty).toHaveBeenCalledWith(1);
 		});
 
+		it('marks dirty when drag session is null (cleanup case)', () => {
+			const instance = createInstance();
+			instance.mount!({ slotRoots: createSlotRoots() } as never);
+
+			const { context, markDirty } = createRenderableUpdateContext({
+				prefixes: ['state.interaction.clear'],
+				targetSquare: null
+			});
+
+			instance.onUpdate!(context);
+
+			expect(markDirty).toHaveBeenCalledWith(1);
+		});
+
 		it('does not mark dirty when no relevant mutation occurs', () => {
-			const def = createActiveTarget();
-			const instance = def.createInstance({ runtimeSurface: {} as never });
+			const instance = createInstance();
 			instance.mount!({ slotRoots: createSlotRoots() } as never);
 
 			const { context, markDirty } = createRenderableUpdateContext({
@@ -155,12 +200,31 @@ describe('createActiveTarget', () => {
 
 			expect(markDirty).not.toHaveBeenCalled();
 		});
+
+		it('does not mark dirty for extension-owned drag session', () => {
+			const instance = createInstance();
+			instance.mount!({ slotRoots: createSlotRoots() } as never);
+
+			const { context, markDirty } = createRenderableUpdateContext({
+				prefixes: ['state.interaction.setDrag'],
+				dragSession: {
+					owner: 'annotations',
+					type: 'ext:idle-clear',
+					sourceSquare: 4,
+					sourcePieceCode: null,
+					targetSquare: 4
+				}
+			});
+
+			instance.onUpdate!(context);
+
+			expect(markDirty).not.toHaveBeenCalled();
+		});
 	});
 
 	describe('render', () => {
 		it('renders nothing when there is no active target', () => {
-			const def = createActiveTarget();
-			const instance = def.createInstance({ runtimeSurface: {} as never });
+			const instance = createInstance();
 			const roots = createSlotRoots();
 			instance.mount!({ slotRoots: roots } as never);
 
@@ -171,8 +235,7 @@ describe('createActiveTarget', () => {
 		});
 
 		it('renders a rect and circle when active target exists', () => {
-			const def = createActiveTarget();
-			const instance = def.createInstance({ runtimeSurface: {} as never });
+			const instance = createInstance();
 			const roots = createSlotRoots();
 			instance.mount!({ slotRoots: roots } as never);
 
@@ -191,8 +254,7 @@ describe('createActiveTarget', () => {
 		});
 
 		it('removes visuals when active target becomes null', () => {
-			const def = createActiveTarget();
-			const instance = def.createInstance({ runtimeSurface: {} as never });
+			const instance = createInstance();
 			const roots = createSlotRoots();
 			instance.mount!({ slotRoots: roots } as never);
 
@@ -205,8 +267,7 @@ describe('createActiveTarget', () => {
 		});
 
 		it('updates positions when target square changes', () => {
-			const def = createActiveTarget();
-			const instance = def.createInstance({ runtimeSurface: {} as never });
+			const instance = createInstance();
 			const roots = createSlotRoots();
 			instance.mount!({ slotRoots: roots } as never);
 
@@ -217,12 +278,32 @@ describe('createActiveTarget', () => {
 			instance.render!(createRenderContext({ targetSquare: 3 }));
 			expect(rect.getAttribute('x')).toBe('150');
 		});
+
+		it('renders nothing for extension-owned drag session', () => {
+			const instance = createInstance();
+			const roots = createSlotRoots();
+			instance.mount!({ slotRoots: roots } as never);
+
+			instance.render!(
+				createRenderContext({
+					dragSession: {
+						owner: 'annotations',
+						type: 'ext:idle-clear',
+						sourceSquare: 4,
+						sourcePieceCode: null,
+						targetSquare: 4
+					}
+				})
+			);
+
+			expect(roots.underPieces.children.length).toBe(0);
+			expect(roots.overPieces.children.length).toBe(0);
+		});
 	});
 
 	describe('lifecycle', () => {
 		it('unmount clears slot root children', () => {
-			const def = createActiveTarget();
-			const instance = def.createInstance({ runtimeSurface: {} as never });
+			const instance = createInstance();
 			const roots = createSlotRoots();
 			instance.mount!({ slotRoots: roots } as never);
 			instance.render!(createRenderContext({ targetSquare: 4 }));
@@ -234,8 +315,7 @@ describe('createActiveTarget', () => {
 		});
 
 		it('destroy clears slot root children', () => {
-			const def = createActiveTarget();
-			const instance = def.createInstance({ runtimeSurface: {} as never });
+			const instance = createInstance();
 			const roots = createSlotRoots();
 			instance.mount!({ slotRoots: roots } as never);
 			instance.render!(createRenderContext({ targetSquare: 4 }));

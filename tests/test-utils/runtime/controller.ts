@@ -1,7 +1,9 @@
 import { vi } from 'vitest';
 import type { ScenePointerEvent } from '../../../src/extensions/types/basic/events.js';
-import type { ExtensionOnEventContext } from '../../../src/extensions/types/context/events.js';
-import type { RuntimeInteractionSurface } from '../../../src/runtime/input/controller/types.js';
+import type {
+	InteractionControllerOnEventContext,
+	RuntimeInteractionSurface
+} from '../../../src/runtime/input/controller/types.js';
 import { type PieceCode, type Square } from '../../../src/state/board/types/internal.js';
 import { MovabilityModeCode } from '../../../src/state/interaction/types/internal.js';
 import type { InteractionStateSnapshot } from '../../../src/state/interaction/types/main.js';
@@ -40,14 +42,15 @@ export function createMockSurface(
 }
 
 /**
- * Creates an ExtensionOnEventContext with controllable properties.
+ * Creates an InteractionControllerOnEventContext with controllable properties.
+ * This is the context shape used by the controller's onEvent and pointer decision functions.
  */
 export function createEventContext(
 	overrides?: Partial<{
 		rawEvent: Event;
 		sceneEvent: ScenePointerEvent | null;
 	}>
-): ExtensionOnEventContext {
+): InteractionControllerOnEventContext {
 	return {
 		rawEvent: overrides?.rawEvent ?? new Event('unknown'),
 		sceneEvent: overrides?.sceneEvent ?? null

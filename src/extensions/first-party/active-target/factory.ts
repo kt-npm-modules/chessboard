@@ -1,7 +1,8 @@
 import assert from '@ktarmyshov/assert';
 import { toMerged } from 'es-toolkit';
-import { createSvgElement, updateElementAttributes } from '../../../render/svg/helpers.js';
+import { createSvgElement, updateSvgElementAttributes } from '../../../render/svg/helpers.js';
 import { isUpdateContextRenderable } from '../../types/context/update.js';
+import type { ExtensionCreateInstanceOptions } from '../../types/extension.js';
 import {
 	extensionCreateInternalBase,
 	extensionDestroyBase,
@@ -26,15 +27,18 @@ export function createActiveTarget(config: ActiveTargetInitConfig = {}): ActiveT
 	return {
 		id: EXTENSION_ID,
 		slots: EXTENSION_SLOTS,
-		createInstance() {
-			return createActiveTargetInstance(mergedConfig);
+		createInstance(options) {
+			return createActiveTargetInstance(options, mergedConfig);
 		}
 	};
 }
 
-function createActiveTargetInternal(config: ActiveTargetConfig): ActiveTargetInstanceInternal {
+function createActiveTargetInternal(
+	options: ExtensionCreateInstanceOptions,
+	config: ActiveTargetConfig
+): ActiveTargetInstanceInternal {
 	return {
-		...extensionCreateInternalBase<ExtensionSlotsType>(),
+		...extensionCreateInternalBase<ExtensionSlotsType>(options),
 		svgRect: null,
 		svgCircle: null,
 		config
@@ -46,8 +50,11 @@ function extensionClean(state: ActiveTargetInstanceInternal) {
 	state.svgCircle = null;
 }
 
-function createActiveTargetInstance(config: ActiveTargetConfig): ActiveTargetInstance {
-	const internalState = createActiveTargetInternal(config);
+function createActiveTargetInstance(
+	options: ExtensionCreateInstanceOptions,
+	config: ActiveTargetConfig
+): ActiveTargetInstance {
+	const internalState = createActiveTargetInternal(options, config);
 	return {
 		id: EXTENSION_ID,
 		mount(env) {
@@ -59,7 +66,11 @@ function createActiveTargetInstance(config: ActiveTargetConfig): ActiveTargetIns
 					causes: ['layout.refreshGeometry'],
 					// we really need almost all: setDrag, updateTarget, clear, clearActive, so just take all interaction mutations
 					prefixes: ['state.interaction.']
-				}) && isUpdateContextRenderable(context);
+				}) &&
+				isUpdateContextRenderable(context) &&
+				(context.currentFrame.state.interaction.dragSession?.type === 'lifted-piece-drag' ||
+					context.currentFrame.state.interaction.dragSession?.type === 'release-targeting' ||
+					context.currentFrame.state.interaction.dragSession === null);
 			if (!needsRender) {
 				return; // no-op
 			}
@@ -73,7 +84,11 @@ function createActiveTargetInstance(config: ActiveTargetConfig): ActiveTargetIns
 
 			// For AI: `release-targeting` is also represented by `dragSession`.
 			// `dragSession` here is the active interaction session, not only lifted-piece drag.
-			const square = context.currentFrame.state.interaction.dragSession?.targetSquare;
+			const square =
+				context.currentFrame.state.interaction.dragSession?.type === 'lifted-piece-drag' ||
+				context.currentFrame.state.interaction.dragSession?.type === 'release-targeting'
+					? context.currentFrame.state.interaction.dragSession.targetSquare
+					: null;
 			if (square === undefined || square === null) {
 				if (internalState.svgRect !== null) {
 					internalState.svgRect.remove();
@@ -116,9 +131,9 @@ function createActiveTargetInstance(config: ActiveTargetConfig): ActiveTargetIns
 					...haloAttributes
 				});
 			} else {
-				updateElementAttributes(internalState.svgRect, rectAttributes);
+				updateSvgElementAttributes(internalState.svgRect, rectAttributes);
 				assert(internalState.svgCircle, 'svgCircle should be available if svgRect is available');
-				updateElementAttributes(internalState.svgCircle, haloAttributes);
+				updateSvgElementAttributes(internalState.svgCircle, haloAttributes);
 			}
 		},
 		unmount() {

@@ -1,11 +1,11 @@
-import { PieceUrls } from '../types/internal.js';
+import type { PieceSymbolResolver } from '../piece-symbols.js';
 import { rendererPiecesRender } from './render.js';
 import { MainRendererPieces, MainRendererPiecesInternal } from './types.js';
 import { rendererPiecesOnUpdate, rendererPiecesRefreshSuppressedSquares } from './update.js';
 
-export function createMainRendererPieces(config: PieceUrls): MainRendererPieces {
+export function createMainRendererPieces(resolver: PieceSymbolResolver): MainRendererPieces {
 	const state: MainRendererPiecesInternal = {
-		config,
+		resolver,
 		pieceNodes: new Map(),
 		suppressedSquares: new Set()
 	};
@@ -16,8 +16,8 @@ export function createMainRendererPieces(config: PieceUrls): MainRendererPieces 
 		refreshSuppressedSquares(context, animationSuppressedSquares) {
 			rendererPiecesRefreshSuppressedSquares(state, context, animationSuppressedSquares);
 		},
-		render(context, layer) {
-			rendererPiecesRender(state, context, layer);
+		render(context, slot) {
+			rendererPiecesRender(state, context, slot);
 		},
 		unmount() {
 			for (const nodeRecord of state.pieceNodes.values()) {

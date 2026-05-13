@@ -4,7 +4,7 @@
 
 This document defines the library's normalized baseline interaction model for constrained move interaction.
 
-The primary UX reference for this baseline is Chess.com-like behavior, especially for source pickup, reselection, and board-owned interaction flow. However, this document is the source of truth for the library model and does not attempt to mirror any external product exactly in every edge case.
+This baseline follows common chessboard interaction behavior, especially source pickup, reselection, and board-owned interaction flow. This document is the source of truth for the library model and does not attempt to mirror any external product exactly in every edge case.
 
 In this model, move completion is resolved on `pointerup`, not on `pointerdown`. `pointerdown` may start, redirect, or re-own board interaction, but it does not commit a move.
 

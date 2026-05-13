@@ -16,7 +16,7 @@ const EMPTY_SQUARES: ReadonlySet<Square> = new Set();
 export function rendererAnimationPrepare(
 	state: MainRendererAnimationInternal,
 	context: ExtensionPrepareAnimationContext,
-	layer: SVGElement
+	slot: SVGGElement
 ): void {
 	for (const session of context.submittedSessions) {
 		const entry = state.entries.get(session.id);
@@ -24,8 +24,8 @@ export function rendererAnimationPrepare(
 			entry.nodes = prepareAnimationPlan(
 				entry.plan,
 				context.currentFrame.layout.geometry,
-				state.config,
-				layer
+				state.resolver.getHref,
+				slot
 			);
 		}
 	}

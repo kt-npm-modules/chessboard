@@ -8,14 +8,14 @@ import {
 	createLiftedPieceDragSession,
 	createMockRuntimeSurface
 } from '../../../../test-utils/extensions/first-party/main-renderer/drag.js';
-import { createTestPieceUrls } from '../../../../test-utils/extensions/first-party/main-renderer/pieces.js';
+import { createTestPieceSymbolResolver } from '../../../../test-utils/extensions/first-party/main-renderer/pieces.js';
 
-const pieceUrls = createTestPieceUrls();
+const resolver = createTestPieceSymbolResolver();
 
 describe('drag update – no-op when inactive', () => {
 	it('does not subscribe or unsubscribe when no drag and was inactive', () => {
 		const { surface, subscribe, unsubscribe } = createMockRuntimeSurface();
-		const drag = createMainRendererDrag(pieceUrls, surface);
+		const drag = createMainRendererDrag(surface, resolver);
 
 		const ctx = createDragUpdateContext({ dragSession: null });
 		drag.onUpdate(ctx);
@@ -26,7 +26,7 @@ describe('drag update – no-op when inactive', () => {
 
 	it('does not activate for release-targeting drag type', () => {
 		const { surface, subscribe } = createMockRuntimeSurface();
-		const drag = createMainRendererDrag(pieceUrls, surface);
+		const drag = createMainRendererDrag(surface, resolver);
 
 		const ctx = createDragUpdateContext({
 			dragSession: {
@@ -47,7 +47,7 @@ describe('drag update – no-op when inactive', () => {
 describe('drag update – drag start', () => {
 	it('subscribes to transient visuals on lifted-piece drag start', () => {
 		const { surface, subscribe } = createMockRuntimeSurface();
-		const drag = createMainRendererDrag(pieceUrls, surface);
+		const drag = createMainRendererDrag(surface, resolver);
 
 		const ctx = createDragUpdateContext({ dragSession: createLiftedPieceDragSession() });
 		drag.onUpdate(ctx);
@@ -57,7 +57,7 @@ describe('drag update – drag start', () => {
 
 	it('stores piece URL observable via subsequent transient render', () => {
 		const { surface } = createMockRuntimeSurface();
-		const drag = createMainRendererDrag(pieceUrls, surface);
+		const drag = createMainRendererDrag(surface, resolver);
 		const layer = createDragLayer();
 
 		// Start drag
@@ -71,12 +71,12 @@ describe('drag update – drag start', () => {
 		drag.renderTransientVisuals(renderCtx, layer);
 
 		expect(layer.children.length).toBe(1);
-		expect(layer.children[0].getAttribute('href')).toBe(pieceUrls[PieceCode.WhiteKing]);
+		expect(layer.children[0].getAttribute('href')).toBe(resolver.getHref(PieceCode.WhiteKing));
 	});
 
 	it('does not resubscribe on repeated update during same active drag', () => {
 		const { surface, subscribe } = createMockRuntimeSurface();
-		const drag = createMainRendererDrag(pieceUrls, surface);
+		const drag = createMainRendererDrag(surface, resolver);
 
 		const ctx = createDragUpdateContext({ dragSession: createLiftedPieceDragSession() });
 		drag.onUpdate(ctx);
@@ -90,7 +90,7 @@ describe('drag update – drag start', () => {
 describe('drag update – drag end', () => {
 	it('unsubscribes from transient visuals when drag ends', () => {
 		const { surface, unsubscribe } = createMockRuntimeSurface();
-		const drag = createMainRendererDrag(pieceUrls, surface);
+		const drag = createMainRendererDrag(surface, resolver);
 
 		// Start drag
 		const startCtx = createDragUpdateContext({ dragSession: createLiftedPieceDragSession() });
@@ -105,7 +105,7 @@ describe('drag update – drag end', () => {
 
 	it('removes existing drag image node from layer', () => {
 		const { surface } = createMockRuntimeSurface();
-		const drag = createMainRendererDrag(pieceUrls, surface);
+		const drag = createMainRendererDrag(surface, resolver);
 		const layer = createDragLayer();
 
 		// Start drag and render
@@ -123,7 +123,7 @@ describe('drag update – drag end', () => {
 
 	it('after drag end, subsequent transient render does not create node', () => {
 		const { surface } = createMockRuntimeSurface();
-		const drag = createMainRendererDrag(pieceUrls, surface);
+		const drag = createMainRendererDrag(surface, resolver);
 		const layer = createDragLayer();
 
 		// Start and end drag

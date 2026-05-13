@@ -21,7 +21,7 @@ afterEach(() => {
 function createTestRuntime(
 	extensions?: Parameters<typeof createRuntime>[0]['extensions']
 ): Runtime {
-	return createRuntime({ doc: document, extensions });
+	return createRuntime({ element: document.createElement('div'), extensions });
 }
 
 describe('createRuntime', () => {

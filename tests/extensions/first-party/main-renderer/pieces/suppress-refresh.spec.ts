@@ -12,18 +12,18 @@ import {
 	createPiecesCleanAnimationContext,
 	createPiecesLayer,
 	createPiecesRenderContext,
-	createTestPieceUrls
+	createTestPieceSymbolResolver
 } from '../../../../test-utils/extensions/first-party/main-renderer/pieces.js';
 
-const pieceUrls = createTestPieceUrls();
+const resolver = createTestPieceSymbolResolver();
 
 function createInternalState(
 	suppressedSquares: ReadonlySet<Square> = new Set()
 ): MainRendererPiecesInternal {
 	return {
-		config: pieceUrls,
 		pieceNodes: new Map(),
-		suppressedSquares
+		suppressedSquares,
+		resolver
 	};
 }
 

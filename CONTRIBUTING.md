@@ -11,6 +11,19 @@ In the PR description:
 
 Small and focused PRs are appreciated.
 
+For non-trivial features, please discuss a short implementation plan before opening a PR.
+
+Generic issue-claiming comments without project-specific context may be hidden or reported as spam.
+
+Good first comments usually include at least one of:
+
+- a concrete implementation question
+- relevant files, APIs, or contracts you have looked at
+- a short proposed plan
+- a small clarification request about scope or expected behavior
+
+Please do not add new dependencies, package scripts, GitHub Actions, release workflow changes, or broad architectural changes without prior discussion.
+
 Good candidates for direct PRs include:
 
 - focused fixes

@@ -41,7 +41,7 @@ export interface ExtensionRuntimeSurfaceCommands {
 	resolveDeferredUIMoveRequest(details: DeferredUIMoveResolutionDetails): Move;
 	cancelDeferredUIMoveRequest(): boolean;
 	// Render
-	requestRender(request: ExtensionRuntimeSurfaceCommandsRenderRequest): void;
+	requestRender(request: ExtensionRuntimeSurfaceCommandsRenderRequest): boolean;
 	// Snapshot
 	getSnapshot(): ExtensionRuntimeSurfaceCommandsSnapshot;
 }

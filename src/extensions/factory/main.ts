@@ -1,4 +1,5 @@
 import assert from '@ktarmyshov/assert';
+import { createSvgIdResolver } from '../../render/svg/ids.js';
 import { createExtensionAnimationController } from '../animation/factory.js';
 import { createExtensionInvalidationState } from '../invalidation/factory.js';
 import {
@@ -14,6 +15,7 @@ function createExtensionSystemInternal(
 	getInternalState: () => ExtensionSystemInternal,
 	options: ExtensionSystemInitOptions
 ): ExtensionSystemInternal {
+	const svgIds = createSvgIdResolver();
 	const extensions = new Map<string, ExtensionSystemExtensionRecord>();
 	const extensionsArray = options.extensions ?? [];
 	for (const extensionDef of extensionsArray) {
@@ -29,7 +31,8 @@ function createExtensionSystemInternal(
 				options.extensionRuntimeSurfaceCommands,
 				options.extensionRuntimeSurfaceEvents,
 				extensionDef
-			)
+			),
+			svgIds
 		});
 		const record: ExtensionSystemExtensionRecord = {
 			id: extensionDef.id,
@@ -116,23 +119,27 @@ export function createExtensionSystem(options: ExtensionSystemInitOptions): Exte
 			);
 			extensionRec.instance.completeDrag(session);
 		},
+		cancelDrag(session) {
+			const extensionRec = internalState.extensions.get(session.owner);
+			assert(
+				extensionRec,
+				`Extension record not found for cancelling drag session with owner ${session.owner}`
+			);
+			extensionRec.instance.cancelDrag?.(session);
+		},
 		onUnmount() {
 			internalState.transientVisualsSubscribers.clear();
 			internalState.eventSubscribers.clear();
 			internalState.currentFrame = null;
 			for (const extensionRec of internalState.extensions.values()) {
-				extensionRec.invalidation.clear();
 				extensionRec.animation.clear();
 			}
 		},
 		onDestroy() {
-			// We assume that the onUnmout was already called by runtime, but let's still validate
+			// We assume that the onUnmount was already called by runtime, but let's still validate
 			for (const extensionRec of internalState.extensions.values()) {
 				extensionRec.instance.destroy?.();
-				const onUnmountCalled = [
-					extensionRec.invalidation.dirtyLayers === 0,
-					extensionRec.animation.getAll().length === 0
-				].every(Boolean);
+				const onUnmountCalled = extensionRec.animation.getAll().length === 0;
 				if (!onUnmountCalled) {
 					throw new Error(
 						`Extension ${extensionRec.id} was not properly unmounted before destroy. Please make sure to call onUnmount before onDestroy to allow the extension to clean up its state and resources.`

@@ -1,14 +1,16 @@
 import assert from '@ktarmyshov/assert';
-import { clearElementChildren } from '../../../render/svg/helpers.js';
+import { clearSvgElementChildren } from '../../../render/svg/helpers.js';
 import { ExtensionSlotName } from '../../types/basic/mount.js';
+import type { ExtensionCreateInstanceOptions } from '../../types/extension.js';
 import { ExtensionInternalBase } from './types.js';
 
-export function extensionCreateInternalBase<
-	TSlots extends readonly ExtensionSlotName[]
->(): ExtensionInternalBase<TSlots> {
+export function extensionCreateInternalBase<TSlots extends readonly ExtensionSlotName[]>(
+	options: ExtensionCreateInstanceOptions
+): ExtensionInternalBase<TSlots> {
 	return {
 		slotRoots: null,
-		destroyed: false
+		destroyed: false,
+		svgIds: options.svgIds
 	};
 }
 
@@ -37,8 +39,8 @@ export function extensionUnmountBase<TSlots extends readonly ExtensionSlotName[]
 	state: ExtensionInternalBase<TSlots>
 ): void {
 	assert(extensionIsMountedBase(state), 'Extension is not mounted');
-	for (const slotRoot of Object.values<SVGGElement>(state.slotRoots ?? {})) {
-		clearElementChildren(slotRoot);
+	for (const [, slotRoot] of Object.entries(state.slotRoots ?? {})) {
+		clearSvgElementChildren(slotRoot as SVGElement);
 	}
 	state.slotRoots = null;
 }

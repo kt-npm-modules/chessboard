@@ -14,7 +14,7 @@ export function rendererDragOnUpdate(
 		if (!state.isDragActive) {
 			const pieceCode = context.currentFrame.state.interaction.dragSession.sourcePieceCode;
 			assert(isNonEmptyPieceCode(pieceCode), 'Invalid piece code in drag session');
-			state.pieceUrl = state.config[pieceCode];
+			state.pieceCode = pieceCode;
 			state.runtimeSurface.transientVisuals.subscribe();
 		}
 		state.isDragActive = true;
@@ -23,7 +23,7 @@ export function rendererDragOnUpdate(
 			state.runtimeSurface.transientVisuals.unsubscribe();
 			state.pieceNode?.remove();
 			state.pieceNode = null;
-			state.pieceUrl = null;
+			state.pieceCode = null;
 		}
 		state.isDragActive = false;
 	}
