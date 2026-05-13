@@ -205,7 +205,7 @@ describe('annotations contextmenu suppression — handleAnnotationsEvent', () =>
 
 		expect(rawEvent.preventDefault).toHaveBeenCalledTimes(1);
 		expect(
-			(state.runtimeSurface.commands.startDrag as ReturnType<typeof vi.fn>)
+			state.runtimeSurface.commands.startDrag as ReturnType<typeof vi.fn>
 		).not.toHaveBeenCalled();
 	});
 });
