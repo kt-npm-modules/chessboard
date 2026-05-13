@@ -54,3 +54,53 @@ describe('resolveAnnotationColor', () => {
 		expect(resolveAnnotationColor(config, event)).toBe(config.colors.shift);
 	});
 });
+
+describe('resolveAnnotationColor — drawModifier', () => {
+	it('null drawModifier preserves event-modifier resolution (no modifiers)', () => {
+		const config: AnnotationsConfig = { ...DEFAULT_CONFIG, drawModifier: null };
+		const event = createPointerDownEvent(2);
+		expect(resolveAnnotationColor(config, event)).toBe(config.colors.none);
+	});
+
+	it('null drawModifier preserves event-modifier resolution (ctrlKey)', () => {
+		const config: AnnotationsConfig = { ...DEFAULT_CONFIG, drawModifier: null };
+		const event = createPointerDownEvent(2, { ctrlKey: true });
+		expect(resolveAnnotationColor(config, event)).toBe(config.colors.ctrl);
+	});
+
+	it('drawModifier = "shift" resolves shift color without physical shift key', () => {
+		const config: AnnotationsConfig = { ...DEFAULT_CONFIG, drawModifier: 'shift' };
+		const event = createPointerDownEvent(2);
+		expect(resolveAnnotationColor(config, event)).toBe(config.colors.shift);
+	});
+
+	it('drawModifier = "ctrl" resolves ctrl color without physical ctrl key', () => {
+		const config: AnnotationsConfig = { ...DEFAULT_CONFIG, drawModifier: 'ctrl' };
+		const event = createPointerDownEvent(2);
+		expect(resolveAnnotationColor(config, event)).toBe(config.colors.ctrl);
+	});
+
+	it('drawModifier = "alt" resolves alt color', () => {
+		const config: AnnotationsConfig = { ...DEFAULT_CONFIG, drawModifier: 'alt' };
+		const event = createPointerDownEvent(2);
+		expect(resolveAnnotationColor(config, event)).toBe(config.colors.alt);
+	});
+
+	it('drawModifier = "meta" resolves meta color', () => {
+		const config: AnnotationsConfig = { ...DEFAULT_CONFIG, drawModifier: 'meta' };
+		const event = createPointerDownEvent(2);
+		expect(resolveAnnotationColor(config, event)).toBe(config.colors.meta);
+	});
+
+	it('drawModifier wins over actual event modifier keys', () => {
+		const config: AnnotationsConfig = { ...DEFAULT_CONFIG, drawModifier: 'shift' };
+		const event = createPointerDownEvent(2, { ctrlKey: true });
+		expect(resolveAnnotationColor(config, event)).toBe(config.colors.shift);
+	});
+
+	it('drawModifier = "ctrl" wins over altKey and metaKey on event', () => {
+		const config: AnnotationsConfig = { ...DEFAULT_CONFIG, drawModifier: 'ctrl' };
+		const event = createPointerDownEvent(2, { altKey: true, metaKey: true });
+		expect(resolveAnnotationColor(config, event)).toBe(config.colors.ctrl);
+	});
+});
