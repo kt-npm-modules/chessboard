@@ -8,7 +8,7 @@
 
 A framework-agnostic TypeScript chessboard platform with real chess interaction built in and an extension-driven architecture.
 
-## Try it live
+## Try it live (including annotations)
 
 - [Play a chess.js game](https://mirasen.io/chessboard/examples/chessjs.html)
 - [Try the promotion flow](https://mirasen.io/chessboard/examples/promotion.html)
@@ -16,7 +16,7 @@ A framework-agnostic TypeScript chessboard platform with real chess interaction 
 
 ## Using React?
 
-Use [`@mirasen/react-chessboard`](https://www.npmjs.com/package/@mirasen/react-chessboard) for a React component with the same built-in interaction, promotion, animation, and chess.js integration.
+Use [`@mirasen/react-chessboard`](https://www.npmjs.com/package/@mirasen/react-chessboard) for a React component with the same built-in interaction, annotations, promotion, animation, and chess.js integration.
 
 ## Why this exists
 
@@ -36,7 +36,7 @@ This is not just a board renderer. It is a chessboard platform designed for real
 
 ## What you get out of the box
 
-The default first-party extension baseline includes rendering, events, selection, active target feedback, legal move hints, last move feedback, promotion UI, and optional auto-promotion.
+The default first-party extension baseline includes rendering, events, selection, active target feedback, legal move hints, last move feedback, annotations, promotion UI, and optional auto-promotion.
 
 - `renderer` — the first-party rendering extension that validates the same extension architecture used for board features
 - `events`
@@ -44,16 +44,17 @@ The default first-party extension baseline includes rendering, events, selection
 - `activeTarget`
 - `legalMoves`
 - `lastMove`
+- `annotations`
 - `promotion`
 - `autoPromote`
 
 The package also includes `chess.js` adapter helpers for connecting legal destinations, UI moves, external moves, promotion, castling, and en passant without writing special-move glue code by hand.
 
-That means the board already covers a meaningful baseline chess UX instead of stopping at “draw squares and pieces”.
+That means the board already covers a meaningful baseline chess UX instead of stopping at “draw squares and pieces”: users can move pieces, see legal targets, promote naturally, animate state changes, and draw circles and arrows without rebuilding common board behavior in app code.
 
 ### Built-in chessboard behavior
 
-Mirasen Chessboard provides a complete modern interaction and visual baseline out of the box: selection, deselection, reselection, drag-to-move, release targeting, legal destinations, promotion, auto-promotion, and state-diff animation.
+Mirasen Chessboard provides a complete modern interaction and visual baseline out of the box: selection, deselection, reselection, drag-to-move, release targeting, legal destinations, circles and arrows, promotion, auto-promotion, and state-diff animation.
 
 Moves are resolved on release rather than committed immediately on press, giving users a more forgiving interaction flow. Because animation is driven by board-state transitions, pieces can move, appear, disappear, promote, castle, or return smoothly without app-level rendering glue code.
 
@@ -62,6 +63,7 @@ Rules and legality still belong to your game layer. Use the built-in `chess.js` 
 ## Highlights
 
 - Real built-in chess interaction
+- Built-in circles and arrows with live add/remove previews
 - **Easy game/rules integration** — connect your own game model, or use the built-in `chess.js` adapter
 - Works on desktop and mobile out of the box, with pointer-based mouse and touch interaction
 - State-diff animation beyond simple move events
@@ -104,7 +106,7 @@ board.setMovability({
 
 ### Connect to chess.js
 
-`@mirasen/chessboard` owns board interaction, rendering, promotion UI, and animation.  
+`@mirasen/chessboard` owns board interaction, rendering, annotations, promotion UI, and animation.  
 Your game/rules layer owns legality and game state.
 
 For `chess.js`, use the built-in adapter:
@@ -193,7 +195,7 @@ The adapter exposes three small conversion helpers:
 This keeps the boundary explicit:
 
 - `chess.js` decides which moves are legal.
-- The board handles interaction, legal targets, promotion UI, castling/en-passant board updates, and animation.
+- The board handles interaction, legal targets, annotations, promotion UI, castling/en-passant board updates, and animation.
 - User moves flow from the board into `chess.js`.
 - External moves flow from `chess.js` back into the board.
 
@@ -237,6 +239,16 @@ const board = createBoard({
 board.extensions.autoPromote.toQueen = true;
 ```
 
+### Annotations
+
+The default extension baseline includes built-in board annotations.
+
+Users can draw circles and arrows directly on the board. Desktop users can right-click to annotate by default, while touch or mobile-style UIs can switch annotation drawing to the primary pointer button with `drawButton`.
+
+Annotation gestures show live previews before commit. Repeating the same-color circle or arrow removes it, with a low-opacity remove preview so users can see that release will delete the existing annotation.
+
+Color selection can come from keyboard modifiers, or be forced through `drawModifier` for on-screen controls.
+
 ### Movability modes
 
 Movability controls how the board accepts user-initiated moves.
@@ -251,14 +263,44 @@ Most users can rely on the default first-party extension baseline. Use an explic
 
 ```ts
 import { createBoard, type Chessboard, type ChessboardExtensionInput } from '@mirasen/chessboard';
+import { builtInExtensionFactoryMap } from '@mirasen/chessboard/extensions';
+
+const pieceUrls = {
+	wK: '/pieces/wK.svg',
+	wQ: '/pieces/wQ.svg',
+	wR: '/pieces/wR.svg',
+	wB: '/pieces/wB.svg',
+	wN: '/pieces/wN.svg',
+	wP: '/pieces/wP.svg',
+	bK: '/pieces/bK.svg',
+	bQ: '/pieces/bQ.svg',
+	bR: '/pieces/bR.svg',
+	bB: '/pieces/bB.svg',
+	bN: '/pieces/bN.svg',
+	bP: '/pieces/bP.svg'
+};
 
 const extensionList = [
-	// Always add renderer first, otherwise nothing will be rendered
-	'renderer',
+	// Always add renderer first, otherwise nothing will be rendered.
+	{
+		builtin: 'renderer',
+		options: {
+			pieceUrls,
+			colors: {
+				board: {
+					light: '#d7dde5',
+					dark: '#707a8a'
+				}
+			}
+		}
+	},
 	'lastMove',
-	// Keep autoPromote before promotion, otherwise promotion may defer the move first
+	'annotations',
+	// Keep autoPromote before promotion, otherwise promotion may defer the move first.
 	'autoPromote',
-	'promotion'
+	builtInExtensionFactoryMap.promotion({
+		pieceUrls
+	})
 	// customExtensionDefinition
 ] as const satisfies readonly ChessboardExtensionInput[];
 let board: Chessboard<typeof extensionList> | null = null;
@@ -275,11 +317,17 @@ board = createBoard({
 });
 ```
 
+Configured built-in extensions can be provided either as declarative `{ builtin, options }` objects or through the built-in extension factory map. If you use custom piece assets, pass the same `pieceUrls` map to renderer and promotion when you want the board and promotion UI to use the same piece set.
+
 ### Default visual identity
 
 The default first-party extension baseline includes a subtle Mirasen board watermark.
 
 If you want full control over the visual baseline, use an explicit extension list and omit the `watermark` extension.
+
+## Documentation
+
+See [Documentation](./documentation.md) for the documentation hub.
 
 ## Architecture
 
@@ -304,7 +352,7 @@ A board that only renders pieces and leaves everything else to app code often fo
 
 A board that handles everything internally without clean boundaries becomes difficult to evolve, customize, or extend.
 
-### Opt out, not build up
+### Opt out, don’t build up, focus on your app
 
 `@mirasen/chessboard` aims for a middle path:
 
@@ -312,7 +360,7 @@ A board that handles everything internally without clean boundaries becomes diff
 - clean internal architecture
 - extension-driven feature growth
 
-Common chessboard behavior is included by default: rendering, interaction, selection, legal target feedback, promotion, and animation. You start from a working interaction baseline and remove or replace extensions only when you want less or need something different.
+Common chessboard behavior is included by default: rendering, interaction, selection, legal target feedback, annotations, promotion, and animation. You start from a working interaction baseline, remove or replace extensions only when you need something different, and keep your own code focused on your application domain.
 
 ## Project direction
 
