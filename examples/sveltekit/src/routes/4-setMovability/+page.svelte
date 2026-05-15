@@ -6,11 +6,11 @@
 	let snapshotText = $state('');
 
 	function refreshSnapshot() {
-		if (!board) return;
-		snapshotText = JSON.stringify(board.getSnapshot(), null, 2);
+		if (!board.current) return;
+		snapshotText = JSON.stringify(board.current.getSnapshot(), null, 2);
 	}
 
-	const { current: board } = useBoard(
+	const board = useBoard(
 		() => boardEl,
 		(b) => {
 			b.setMovability({
@@ -38,28 +38,28 @@
 	);
 
 	function setWhite() {
-		board?.setOrientation('white');
+		board.current?.setOrientation('white');
 		refreshSnapshot();
 	}
 
 	function setBlack() {
-		board?.setOrientation('black');
+		board.current?.setOrientation('black');
 		refreshSnapshot();
 	}
 
 	function resetPosition() {
-		board?.setPosition('start');
+		board.current?.setPosition('start');
 		refreshSnapshot();
 	}
 
 	function clearSelection() {
-		board?.select(null);
+		board.current?.select(null);
 		refreshSnapshot();
 	}
 
 	function doRandomMove() {
-		if (!board) return;
-		randomMove(board);
+		if (!board.current) return;
+		randomMove(board.current);
 		refreshSnapshot();
 	}
 </script>

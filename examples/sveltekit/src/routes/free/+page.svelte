@@ -5,7 +5,7 @@
 	let boardEl: HTMLDivElement;
 	let orientation: 'white' | 'black' = $state('white');
 
-	const { current: board } = useBoard(
+	const board = useBoard(
 		() => boardEl,
 		(b) => {
 			b.setMovability({ mode: 'free' });
@@ -13,24 +13,24 @@
 	);
 
 	function toggleOrientation() {
-		if (!board) return;
+		if (!board.current) return;
 		orientation = orientation === 'white' ? 'black' : 'white';
-		board.setOrientation(orientation);
+		board.current.setOrientation(orientation);
 	}
 
 	function resetPosition() {
-		if (!board) return;
-		board.setPosition('start');
+		if (!board.current) return;
+		board.current.setPosition('start');
 	}
 
 	function clearSelection() {
-		if (!board) return;
-		board.select(null);
+		if (!board.current) return;
+		board.current.select(null);
 	}
 
 	function doRandomMove() {
-		if (!board) return;
-		randomMove(board);
+		if (!board.current) return;
+		randomMove(board.current);
 	}
 </script>
 

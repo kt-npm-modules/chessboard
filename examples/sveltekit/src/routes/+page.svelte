@@ -32,7 +32,7 @@
 		['e2', 'e4', 'meta']
 	] as const;
 
-	const { current: board } = useBoard(
+	const board = useBoard(
 		() => boardEl,
 		(b) => {
 			b.setMovability({ mode: 'free' });
@@ -61,38 +61,38 @@
 	);
 
 	function setAnnotationModifier(modifier: typeof drawModifier) {
-		if (!board) return;
+		if (!board.current) return;
 		drawModifier = modifier;
-		board.extensions.annotations.drawModifier = modifier;
+		board.current.extensions.annotations.drawModifier = modifier;
 	}
 
 	function toggleOrientation() {
-		if (!board) return;
+		if (!board.current) return;
 		orientation = orientation === 'white' ? 'black' : 'white';
-		board.setOrientation(orientation);
+		board.current.setOrientation(orientation);
 	}
 
 	function toggleAnnotationsDrawButton() {
-		if (!board) return;
-		const currentValue = board.extensions.annotations.drawButton;
+		if (!board.current) return;
+		const currentValue = board.current.extensions.annotations.drawButton;
 		drawButton = currentValue === 0 ? 2 : 0;
-		board.extensions.annotations.drawButton = drawButton;
+		board.current.extensions.annotations.drawButton = drawButton;
 	}
 
 	function resetPosition() {
-		if (!board) return;
-		board.setPosition('start');
-		board.extensions.annotations.clear();
+		if (!board.current) return;
+		board.current.setPosition('start');
+		board.current.extensions.annotations.clear();
 	}
 
 	function clearSelection() {
-		if (!board) return;
-		board.select(null);
+		if (!board.current) return;
+		board.current.select(null);
 	}
 
 	function doRandomMove() {
-		if (!board) return;
-		randomMove(board);
+		if (!board.current) return;
+		randomMove(board.current);
 	}
 </script>
 
