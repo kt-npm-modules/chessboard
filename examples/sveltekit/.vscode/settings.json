@@ -1,4 +1,7 @@
 {
+	"files.associations": {
+		"*.css": "tailwindcss"
+	},
 	"editor.codeActionsOnSave": {
 		"source.organizeImports": "explicit"
 	},

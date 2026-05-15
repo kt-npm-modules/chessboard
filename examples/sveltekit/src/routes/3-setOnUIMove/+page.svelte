@@ -1,119 +1,67 @@
 <script lang="ts">
-	import { createBoard } from '@mirasen/chessboard';
-	import { onDestroy, onMount } from 'svelte';
+	import { useBoard } from '$lib/use-board.svelte';
+	import { randomMove } from '$lib/board-utils';
 
 	let boardEl: HTMLDivElement;
-	let board: ReturnType<typeof createBoard> | null = null;
 	let snapshotText = $state('');
 
-	// 1 - minimal example of chessboard runtime usage
-
 	function refreshSnapshot() {
-		if (!board) return;
-		snapshotText = JSON.stringify(board.getSnapshot(), null, 2);
+		if (!board.current) return;
+		snapshotText = JSON.stringify(board.current.getSnapshot(), null, 2);
 	}
 
+	const board = useBoard(
+		() => boardEl,
+		(b) => {
+			b.setMovability({ mode: 'free' });
+			b.extensions.events.setOnUIMove((move) => {
+				console.log('Move played:', move);
+			});
+			b.extensions.events.setOnRawUpdate((context) => {
+				console.log('Raw update:', context);
+			});
+			refreshSnapshot();
+
+			const intervalId = window.setInterval(refreshSnapshot, 100);
+			return () => window.clearInterval(intervalId);
+		}
+	);
+
 	function setWhite() {
-		if (!board) return;
-		board.setOrientation('white');
+		board.current?.setOrientation('white');
 		refreshSnapshot();
 	}
 
 	function setBlack() {
-		if (!board) return;
-		board.setOrientation('black');
+		board.current?.setOrientation('black');
 		refreshSnapshot();
 	}
 
 	function resetPosition() {
-		if (!board) return;
-		board.setPosition('start');
+		board.current?.setPosition('start');
 		refreshSnapshot();
 	}
 
 	function clearSelection() {
-		if (!board) return;
-		board.select(null);
+		board.current?.select(null);
 		refreshSnapshot();
 	}
 
-	function fileOf(square: number) {
-		return 'abcdefgh'[square % 8];
-	}
-
-	function rankOf(square: number) {
-		return Math.floor(square / 8) + 1;
-	}
-
-	function algebraic(square: number): string {
-		return `${fileOf(square)}${rankOf(square)}`;
-	}
-
-	function randomMove() {
-		if (!board) return;
-		const snapshot = board.getSnapshot();
-		// find random piece on random square
-		let pieceCode = 0;
-		let fromSquare = '';
-		while (pieceCode <= 0) {
-			const square = Math.floor(Math.random() * 64);
-			pieceCode = snapshot.state.board.pieces[square];
-			fromSquare = algebraic(square);
-		}
-		let toSquare = fromSquare;
-		while (toSquare === fromSquare) {
-			toSquare = algebraic(Math.floor(Math.random() * 64));
-		}
-		board.move({
-			from: fromSquare,
-			to: toSquare
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		} as any);
-
+	function doRandomMove() {
+		if (!board.current) return;
+		randomMove(board.current);
 		refreshSnapshot();
 	}
-
-	onMount(() => {
-		board = createBoard({
-			element: boardEl,
-			state: {
-				board: 'start',
-				interaction: {
-					movability: {
-						mode: 'free'
-					}
-				}
-			}
-		});
-		board.extensions.events.setOnUIMove((move) => {
-			console.log('Move played:', move);
-		});
-		board.extensions.events.setOnRawUpdate((context) => {
-			console.log('Raw update:', context);
-		});
-		refreshSnapshot();
-
-		const intervalId = window.setInterval(refreshSnapshot, 100);
-
-		return () => {
-			window.clearInterval(intervalId);
-		};
-	});
-
-	onDestroy(() => {
-		board?.destroy();
-		board = null;
-	});
 </script>
 
 <svelte:head>
-	<title>Chessboard Runtime Manual</title>
+	<title>setOnUIMove</title>
 </svelte:head>
 
 <div class="page">
 	<div class="panel">
-		<h1>Chessboard Runtime Manual</h1>
-		<p class="subtitle">Internal runtime smoke page · movable free · both colors</p>
+		<h1>setOnUIMove</h1>
+		<p class="subtitle">Event handler registration · movable free · both colors</p>
 
 		<div class="controls">
 			<button onclick={setWhite}>Orientation: white</button>
@@ -121,7 +69,7 @@
 			<button onclick={resetPosition}>Reset position</button>
 			<button onclick={clearSelection}>Clear selection</button>
 			<button onclick={refreshSnapshot}>Refresh snapshot</button>
-			<button onclick={randomMove}>Random move</button>
+			<button onclick={doRandomMove}>Random move</button>
 		</div>
 
 		<div class="board-wrap">
@@ -131,103 +79,6 @@
 
 	<div class="panel">
 		<h2>Interaction snapshot</h2>
-		<pre>{snapshotText}</pre>
+		<pre class="snapshot">{snapshotText}</pre>
 	</div>
 </div>
-
-<style>
-	:global(body) {
-		margin: 0;
-		font-family:
-			Inter,
-			ui-sans-serif,
-			system-ui,
-			-apple-system,
-			BlinkMacSystemFont,
-			'Segoe UI',
-			sans-serif;
-		background: #f5f5f5;
-		color: #111827;
-	}
-
-	.page {
-		display: grid;
-		grid-template-columns: minmax(360px, 720px) minmax(320px, 1fr);
-		gap: 24px;
-		padding: 24px;
-		align-items: start;
-	}
-
-	.panel {
-		background: white;
-		border-radius: 16px;
-		padding: 20px;
-		box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
-	}
-
-	h1,
-	h2 {
-		margin: 0 0 12px;
-	}
-
-	.subtitle {
-		margin: 0 0 16px;
-		color: #4b5563;
-	}
-
-	.controls {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 12px;
-		margin-bottom: 20px;
-	}
-
-	button {
-		border: 0;
-		border-radius: 10px;
-		padding: 10px 14px;
-		font: inherit;
-		cursor: pointer;
-		background: #111827;
-		color: white;
-	}
-
-	button:hover {
-		opacity: 0.92;
-	}
-
-	.board-wrap {
-		width: min(80vw, 640px);
-	}
-
-	.board {
-		width: 100%;
-		aspect-ratio: 1 / 1;
-		background: #e5e7eb;
-		overflow: hidden;
-		touch-action: pinch-zoom;
-		user-select: none;
-	}
-
-	pre {
-		margin: 0;
-		padding: 16px;
-		border-radius: 12px;
-		background: #111827;
-		color: #e5e7eb;
-		font-size: 12px;
-		line-height: 1.45;
-		overflow: auto;
-		max-height: 70vh;
-	}
-
-	@media (max-width: 1100px) {
-		.page {
-			grid-template-columns: 1fr;
-		}
-
-		.board-wrap {
-			width: min(92vw, 640px);
-		}
-	}
-</style>
