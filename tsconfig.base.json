@@ -1,0 +1,15 @@
+{
+	"compilerOptions": {
+		"lib": ["es2023", "DOM"],
+		"target": "es2022",
+		"module": "nodenext",
+		"moduleResolution": "nodenext",
+		"allowJs": true,
+		"checkJs": true,
+		"esModuleInterop": true,
+		"forceConsistentCasingInFileNames": true,
+		"resolveJsonModule": true,
+		"skipLibCheck": true,
+		"strict": true
+	}
+}
