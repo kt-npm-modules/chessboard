@@ -63,7 +63,7 @@
 			b.setInteractionConfig({
 				drag: {
 					liftedActivation: {
-						thresholdPx: 3
+						thresholdPx: 5
 					}
 				}
 			});

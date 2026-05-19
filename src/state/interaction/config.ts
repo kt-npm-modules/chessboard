@@ -15,7 +15,7 @@ export const DefaultInteractionDesktopConfig: InteractionConfig = {
 export const DefaultInteractionMobileConfig: InteractionConfig = {
 	drag: {
 		liftedActivation: {
-			thresholdPx: 3
+			thresholdPx: 5
 		}
 	}
 };
