@@ -4,6 +4,7 @@ import { DefaultInteractionDesktopConfig, normalizeInteractionConfig } from './c
 import { updateActiveDestinations } from './helpers.js';
 import { normalizeMovability } from './normalize.js';
 import {
+	interactionActivatePendingLiftedDragSession,
 	interactionClear,
 	interactionClearActive,
 	interactionSetConfig,
@@ -80,7 +81,7 @@ export function createInteractionState(options: InteractionStateInitOptions): In
 			return updateActiveDestinations(internalState, mutationSession);
 		},
 		get dragSession() {
-			return internalState.dragSession ? { ...internalState.dragSession } : null;
+			return cloneDeep(internalState.dragSession);
 		},
 
 		setDragSession(session, mutationSession) {
@@ -110,6 +111,13 @@ export function createInteractionState(options: InteractionStateInitOptions): In
 			return mutationSession.addMutation(
 				'state.interaction.setDragSession',
 				interactionSetDragSession(internalState, session)
+			);
+		},
+
+		activatePendingLiftedDragSession(targetSquare, mutationSession) {
+			return mutationSession.addMutation(
+				'state.interaction.activatePendingLiftedDragSession',
+				interactionActivatePendingLiftedDragSession(internalState, targetSquare)
 			);
 		},
 

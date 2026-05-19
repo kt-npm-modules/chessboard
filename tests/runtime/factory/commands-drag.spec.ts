@@ -51,6 +51,7 @@ describe('runtime startDrag (extension-facing boundary)', () => {
 
 		const result = commands.startDrag({
 			type: 'lifted-piece-drag',
+			phase: 'active',
 			sourceSquare: normalizeSquare('e2'),
 			sourcePieceCode: PieceCode.WhitePawn,
 			targetSquare: normalizeSquare('e4'),
@@ -65,6 +66,7 @@ describe('runtime startDrag (extension-facing boundary)', () => {
 
 		commands.startDrag({
 			type: 'lifted-piece-drag',
+			phase: 'active',
 			sourceSquare: normalizeSquare('e2'),
 			sourcePieceCode: PieceCode.WhitePawn,
 			targetSquare: normalizeSquare('e4'),
@@ -84,6 +86,7 @@ describe('runtime startDrag (extension-facing boundary)', () => {
 
 		commands.startDrag({
 			type: 'lifted-piece-drag',
+			phase: 'active',
 			sourceSquare: normalizeSquare('e2'),
 			sourcePieceCode: PieceCode.WhitePawn,
 			targetSquare: normalizeSquare('e4'),
@@ -106,6 +109,7 @@ describe('runtime startDrag (extension-facing boundary)', () => {
 
 		commands.startDrag({
 			type: 'lifted-piece-drag',
+			phase: 'active',
 			sourceSquare: normalizeSquare('e2'),
 			sourcePieceCode: PieceCode.WhitePawn,
 			targetSquare: normalizeSquare('e4'),
@@ -134,6 +138,7 @@ describe('runtime startDrag (extension-facing boundary)', () => {
 		expect(() =>
 			commands.startDrag({
 				type: 'lifted-piece-drag',
+				phase: 'active',
 				sourceSquare: normalizeSquare('e2'),
 				sourcePieceCode: PieceCode.WhitePawn,
 				targetSquare: normalizeSquare('e4'),
@@ -186,6 +191,7 @@ describe('runtime cancelDrag notification on clearActiveInteraction', () => {
 		notifyExtensionCancelDragIfOwned({ extensionSystem: mockExtensionSystem } as never, {
 			owner: 'core',
 			type: 'lifted-piece-drag',
+			phase: 'active',
 			sourceSquare: normalizeSquare('e2'),
 			sourcePieceCode: PieceCode.WhitePawn,
 			targetSquare: normalizeSquare('e4'),

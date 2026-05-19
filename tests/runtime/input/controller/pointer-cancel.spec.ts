@@ -33,6 +33,7 @@ describe('determineActionPointerCancel', () => {
 				dragSession: {
 					owner: 'core',
 					type: 'lifted-piece-drag',
+					phase: 'active',
 					sourceSquare: 12 as Square,
 					sourcePieceCode: PieceCode.WhitePawn,
 					targetSquare: 28 as Square,

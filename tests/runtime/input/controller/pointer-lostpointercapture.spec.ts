@@ -32,7 +32,7 @@ describe('determineActionLostPointerCapture', () => {
 	});
 
 	describe('terminal release inside board (button released, valid target)', () => {
-		it('commits move via completeCoreDragTo in free mode', () => {
+		it('commits move via completeCoreDragSessionTo in free mode', () => {
 			const surface = createMockSurface({
 				snapshot: {
 					selected: { square: 12 as Square, pieceCode: PieceCode.WhitePawn },
@@ -40,6 +40,7 @@ describe('determineActionLostPointerCapture', () => {
 					dragSession: {
 						owner: 'core',
 						type: 'lifted-piece-drag',
+						phase: 'active',
 						sourceSquare: 12 as Square,
 						sourcePieceCode: PieceCode.WhitePawn,
 						targetSquare: 28 as Square,
@@ -52,7 +53,7 @@ describe('determineActionLostPointerCapture', () => {
 
 			const result = determineActionLostPointerCapture({ surface }, context);
 
-			expect(result).toEqual({ type: 'completeCoreDragTo', target: 28 });
+			expect(result).toEqual({ type: 'completeCoreDragSessionTo', targetSquare: 28 });
 		});
 
 		it('subsequent pointerup is no-op when drag session already cleared', () => {
@@ -83,6 +84,7 @@ describe('determineActionLostPointerCapture', () => {
 					dragSession: {
 						owner: 'core',
 						type: 'lifted-piece-drag',
+						phase: 'active',
 						sourceSquare: 12 as Square,
 						sourcePieceCode: PieceCode.WhitePawn,
 						targetSquare: 12 as Square,
@@ -107,6 +109,7 @@ describe('determineActionLostPointerCapture', () => {
 					dragSession: {
 						owner: 'core',
 						type: 'lifted-piece-drag',
+						phase: 'active',
 						sourceSquare: 12 as Square,
 						sourcePieceCode: PieceCode.WhitePawn,
 						targetSquare: null,
@@ -153,6 +156,7 @@ describe('determineActionLostPointerCapture', () => {
 					dragSession: {
 						owner: 'core',
 						type: 'lifted-piece-drag',
+						phase: 'active',
 						sourceSquare: 12 as Square,
 						sourcePieceCode: PieceCode.WhitePawn,
 						targetSquare: 28 as Square,
@@ -174,6 +178,7 @@ describe('determineActionLostPointerCapture', () => {
 					dragSession: {
 						owner: 'core',
 						type: 'lifted-piece-drag',
+						phase: 'active',
 						sourceSquare: 12 as Square,
 						sourcePieceCode: PieceCode.WhitePawn,
 						targetSquare: 28 as Square,
@@ -191,7 +196,7 @@ describe('determineActionLostPointerCapture', () => {
 	});
 
 	describe('extension-owned drag lostpointercapture', () => {
-		it('returns completeExtensionDrag when initiating button released', () => {
+		it('returns completeExtensionDragSession when initiating button released', () => {
 			const surface = createMockSurface({
 				snapshot: {
 					dragSession: {
@@ -209,7 +214,7 @@ describe('determineActionLostPointerCapture', () => {
 
 			const result = determineActionLostPointerCapture({ surface }, context);
 
-			expect(result).toEqual({ type: 'completeExtensionDrag', target: 28 });
+			expect(result).toEqual({ type: 'completeExtensionDragSession', targetSquare: 28 });
 		});
 
 		it('returns cancelActiveInteraction when initiating button still pressed', () => {

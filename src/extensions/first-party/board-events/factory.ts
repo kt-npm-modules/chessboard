@@ -60,8 +60,8 @@ function createBoardEventsInstance(options: ExtensionCreateInstanceOptions): Boa
 			});
 			const interactionCompleted = context.mutation.hasMutation({
 				causes: [
-					'runtime.interaction.completeCoreDragTo',
-					'runtime.interaction.completeExtensionDragTo',
+					'runtime.interaction.completeCoreDragSessionTo',
+					'runtime.interaction.completeExtensionDragSession',
 					'runtime.interaction.resolveDeferredUIMoveRequest'
 				]
 			});

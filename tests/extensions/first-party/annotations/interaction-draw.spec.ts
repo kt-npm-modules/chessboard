@@ -229,7 +229,7 @@ describe('annotations draw gesture — idle clear remains unchanged', () => {
 		state.annotations.circles.set(0, { key: 0, square: 0, color: '#ff0000' });
 		const startDrag = state.runtimeSurface.commands.startDrag as ReturnType<typeof vi.fn>;
 		const rawEvent = createPointerDownEvent(0);
-		const context = createEventContext(rawEvent, 28, { type: 'startLiftedDrag' });
+		const context = createEventContext(rawEvent, 28, { type: 'startLiftedDragSession' });
 
 		handleAnnotationsEvent(state, context);
 

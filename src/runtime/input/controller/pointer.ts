@@ -47,9 +47,9 @@ export function determineActionPointerDown(
 
 			if (isEmptyPieceCode(targetPieceCode)) {
 				return {
-					type: 'startReleaseTargetingDrag',
-					source: interaction.selected.square,
-					target: sceneEvent.targetSquare,
+					type: 'startReleaseTargetingDragSession',
+					sourceSquare: interaction.selected.square,
+					targetSquare: sceneEvent.targetSquare,
 					startButton: rawEvent.button
 				};
 			}
@@ -64,9 +64,9 @@ export function determineActionPointerDown(
 				isLegalMoveTarget
 			) {
 				return {
-					type: 'startReleaseTargetingDrag',
-					source: interaction.selected.square,
-					target: sceneEvent.targetSquare,
+					type: 'startReleaseTargetingDragSession',
+					sourceSquare: interaction.selected.square,
+					targetSquare: sceneEvent.targetSquare,
 					startButton: rawEvent.button
 				};
 			}
@@ -78,9 +78,10 @@ export function determineActionPointerDown(
 		const pieceCode = state.surface.getPieceCodeAt(sceneEvent.targetSquare);
 		if (!isEmptyPieceCode(pieceCode)) {
 			return {
-				type: 'startLiftedDrag',
-				source: sceneEvent.targetSquare,
-				target: sceneEvent.targetSquare,
+				type: 'startLiftedDragSession',
+				phase: 'active',
+				sourceSquare: sceneEvent.targetSquare,
+				targetSquare: sceneEvent.targetSquare,
 				startButton: rawEvent.button
 			};
 		}
@@ -101,7 +102,7 @@ export function determineActionPointerMove(
 	if (interaction.dragSession) {
 		return {
 			type: 'updateDragSessionCurrentTarget',
-			target: context.sceneEvent?.targetSquare ?? null
+			targetSquare: context.sceneEvent?.targetSquare ?? null
 		};
 	}
 	return null;
@@ -123,8 +124,8 @@ function determineActionTerminalRelease(
 
 	if (!isDragSessionCoreOwned(dragSession)) {
 		return {
-			type: 'completeExtensionDrag',
-			target: sceneEvent.targetSquare
+			type: 'completeExtensionDragSession',
+			targetSquare: sceneEvent.targetSquare
 		};
 	}
 
@@ -133,7 +134,7 @@ function determineActionTerminalRelease(
 	}
 
 	if (sceneEvent.targetSquare !== null && canMoveTo(interaction, sceneEvent.targetSquare)) {
-		return { type: 'completeCoreDragTo', target: sceneEvent.targetSquare };
+		return { type: 'completeCoreDragSessionTo', targetSquare: sceneEvent.targetSquare };
 	}
 
 	if (dragSession.type === 'lifted-piece-drag') {

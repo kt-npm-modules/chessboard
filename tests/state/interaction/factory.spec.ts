@@ -175,4 +175,96 @@ describe('createInteractionState', () => {
 		expect(state.selected).not.toBeNull();
 		expect(state.selected!.square).toBe(12);
 	});
+
+	describe('activatePendingLiftedDragSession', () => {
+		it('transitions a pending core-owned lifted-piece session to active, preserving identity and dropping pending-only fields', () => {
+			const state = createInteractionState({});
+			const session = createInteractionMutationSession();
+			state.setSelected(makeSelected(), session);
+			const pending = makeDragSessionCoreOwned({
+				phase: 'pending',
+				sourceSquare: 12 as Square,
+				sourcePieceCode: PieceCode.WhitePawn,
+				targetSquare: 12 as Square,
+				startButton: 0,
+				startPoint: { x: 1, y: 2 },
+				thresholdPx: 4
+			});
+			state.setDragSession(pending, session);
+
+			const session2 = createInteractionMutationSession();
+			const changed = state.activatePendingLiftedDragSession(28 as Square, session2);
+
+			expect(changed).toBe(true);
+			expect(
+				session2.hasMutation({
+					causes: ['state.interaction.activatePendingLiftedDragSession']
+				})
+			).toBe(true);
+			const drag = state.dragSession!;
+			expect(drag.owner).toBe('core');
+			expect(drag.type).toBe('lifted-piece-drag');
+			if (drag.type !== 'lifted-piece-drag' || drag.owner !== 'core') {
+				throw new Error('expected core-owned lifted-piece-drag');
+			}
+			expect(drag.phase).toBe('active');
+			expect(drag.sourceSquare).toBe(12);
+			expect(drag.sourcePieceCode).toBe(PieceCode.WhitePawn);
+			expect(drag.targetSquare).toBe(28);
+			expect(drag.startButton).toBe(0);
+			expect((drag as unknown as { startPoint?: unknown }).startPoint).toBeUndefined();
+			expect((drag as unknown as { thresholdPx?: unknown }).thresholdPx).toBeUndefined();
+		});
+
+		it('asserts when current dragSession is null', () => {
+			const state = createInteractionState({});
+			const session = createInteractionMutationSession();
+			expect(() => state.activatePendingLiftedDragSession(28 as Square, session)).toThrow();
+		});
+
+		it('asserts when current dragSession is release-targeting', () => {
+			const state = createInteractionState({});
+			const session = createInteractionMutationSession();
+			state.setSelected(makeSelected(), session);
+			state.setDragSession(
+				makeDragSessionCoreOwned({ type: 'release-targeting', startButton: 0 }),
+				session
+			);
+
+			const session2 = createInteractionMutationSession();
+			expect(() => state.activatePendingLiftedDragSession(28 as Square, session2)).toThrow();
+		});
+
+		it('asserts when current dragSession is extension-owned', () => {
+			const state = createInteractionState({});
+			const session = createInteractionMutationSession();
+			state.setDragSession(
+				{
+					owner: 'my-ext',
+					type: 'lifted-piece-drag',
+					phase: 'pending',
+					sourceSquare: 12 as Square,
+					sourcePieceCode: PieceCode.WhitePawn,
+					targetSquare: 12 as Square,
+					startButton: 0,
+					startPoint: { x: 0, y: 0 },
+					thresholdPx: 4
+				},
+				session
+			);
+
+			const session2 = createInteractionMutationSession();
+			expect(() => state.activatePendingLiftedDragSession(28 as Square, session2)).toThrow();
+		});
+
+		it('asserts when current dragSession is already an active lifted-piece session', () => {
+			const state = createInteractionState({});
+			const session = createInteractionMutationSession();
+			state.setSelected(makeSelected(), session);
+			state.setDragSession(makeDragSessionCoreOwned({ phase: 'active', startButton: 0 }), session);
+
+			const session2 = createInteractionMutationSession();
+			expect(() => state.activatePendingLiftedDragSession(28 as Square, session2)).toThrow();
+		});
+	});
 });

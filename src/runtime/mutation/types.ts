@@ -10,8 +10,8 @@ import type {
 import type { ViewStateMutationPayloadByCause } from '../../state/view/mutation.js';
 
 type RuntimeOwnMutationPayloadByCause = {
-	'runtime.interaction.completeCoreDragTo': DragSessionCoreOwnedSnapshot;
-	'runtime.interaction.completeExtensionDragTo': DragSessionExtensionOwnedSnapshot;
+	'runtime.interaction.completeCoreDragSessionTo': DragSessionCoreOwnedSnapshot;
+	'runtime.interaction.completeExtensionDragSession': DragSessionExtensionOwnedSnapshot;
 	'runtime.interaction.resolveDeferredUIMoveRequest': undefined;
 	'runtime.interaction.cancelDeferredUIMoveRequest': undefined;
 };

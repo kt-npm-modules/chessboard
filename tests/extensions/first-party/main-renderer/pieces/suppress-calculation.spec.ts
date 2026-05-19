@@ -44,6 +44,7 @@ describe('calculateSuppressedSquares – drag session', () => {
 		const dragSession = {
 			owner: 'core',
 			type: 'lifted-piece-drag',
+			phase: 'active',
 			sourceSquare: 4 as Square,
 			sourcePieceCode: PieceCode.WhiteKing,
 			targetSquare: null,
@@ -134,6 +135,7 @@ describe('calculateSuppressedSquares – combined sources', () => {
 		const dragSession = {
 			owner: 'core',
 			type: 'lifted-piece-drag',
+			phase: 'active',
 			sourceSquare: 4 as Square,
 			sourcePieceCode: PieceCode.WhiteKing,
 			targetSquare: null,
@@ -164,6 +166,7 @@ describe('calculateSuppressedSquares – combined sources', () => {
 		const dragSession = {
 			owner: 'core',
 			type: 'lifted-piece-drag',
+			phase: 'active',
 			sourceSquare: 4 as Square,
 			sourcePieceCode: PieceCode.WhiteKing,
 			targetSquare: null,

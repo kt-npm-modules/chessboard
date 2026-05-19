@@ -52,7 +52,7 @@ describe('reconcileInteractionSelectionAfterBoardStateChange', () => {
 		expect(state.interaction.selected).not.toBeNull();
 	});
 
-	it('no-op when session has runtime.interaction.completeCoreDragTo cause', () => {
+	it('no-op when session has runtime.interaction.completeCoreDragSessionTo cause', () => {
 		const state = createRuntimeState({});
 		const context = createMockPipeContext({ state });
 		const session = createSession();
@@ -67,9 +67,10 @@ describe('reconcileInteractionSelectionAfterBoardStateChange', () => {
 			to: normalizeSquare('e4'),
 			piece: PieceCode.WhitePawn
 		});
-		session.addMutation('runtime.interaction.completeCoreDragTo', true, {
+		session.addMutation('runtime.interaction.completeCoreDragSessionTo', true, {
 			owner: 'core' as const,
 			type: 'lifted-piece-drag' as const,
+			phase: 'active' as const,
 			sourceSquare: normalizeSquare('e2'),
 			sourcePieceCode: PieceCode.WhitePawn,
 			targetSquare: normalizeSquare('e4'),
@@ -78,7 +79,7 @@ describe('reconcileInteractionSelectionAfterBoardStateChange', () => {
 
 		reconcileInteractionSelectionAfterBoardStateChange(context, session);
 
-		// Should not touch interaction since completeCoreDragTo handled it
+		// Should not touch interaction since completeCoreDragSessionTo handled it
 		expect(state.interaction.selected).not.toBeNull();
 	});
 

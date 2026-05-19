@@ -128,6 +128,7 @@ export function createLiftedPieceDragSession(
 	return {
 		owner: 'core' as const,
 		type: 'lifted-piece-drag' as const,
+		phase: 'active' as const,
 		sourceSquare,
 		sourcePieceCode,
 		targetSquare: null,

@@ -24,9 +24,38 @@ export function makeDragSessionCoreOwned(
 	overrides: Partial<DragSessionCoreOwnedSnapshot> &
 		Pick<DragSessionCoreOwnedSnapshot, 'startButton'>
 ): DragSessionCoreOwnedSnapshot {
+	const type = overrides.type ?? 'lifted-piece-drag';
+	if (type === 'lifted-piece-drag') {
+		const phase = (overrides as { phase?: 'pending' | 'active' }).phase ?? 'active';
+		if (phase === 'pending') {
+			return {
+				owner: 'core',
+				type: 'lifted-piece-drag',
+				phase: 'pending',
+				sourceSquare: overrides.sourceSquare ?? (12 as Square),
+				sourcePieceCode: overrides.sourcePieceCode ?? PieceCode.WhitePawn,
+				targetSquare: overrides.targetSquare ?? null,
+				startButton: overrides.startButton,
+				startPoint: (overrides as { startPoint?: { x: number; y: number } }).startPoint ?? {
+					x: 0,
+					y: 0
+				},
+				thresholdPx: (overrides as { thresholdPx?: number }).thresholdPx ?? 0
+			};
+		}
+		return {
+			owner: 'core',
+			type: 'lifted-piece-drag',
+			phase: 'active',
+			sourceSquare: overrides.sourceSquare ?? (12 as Square),
+			sourcePieceCode: overrides.sourcePieceCode ?? PieceCode.WhitePawn,
+			targetSquare: overrides.targetSquare ?? null,
+			startButton: overrides.startButton
+		};
+	}
 	return {
 		owner: 'core',
-		type: overrides.type ?? 'lifted-piece-drag',
+		type: 'release-targeting',
 		sourceSquare: overrides.sourceSquare ?? (12 as Square),
 		sourcePieceCode: overrides.sourcePieceCode ?? PieceCode.WhitePawn,
 		targetSquare: overrides.targetSquare ?? null,

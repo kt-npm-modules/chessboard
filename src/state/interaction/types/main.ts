@@ -50,6 +50,10 @@ export interface InteractionState {
 		session: DragSessionSnapshot | null,
 		mutationSession: InteractionStateMutationSession
 	): boolean;
+	activatePendingLiftedDragSession(
+		targetSquare: Square | null,
+		mutationSession: InteractionStateMutationSession
+	): boolean;
 	updateDragSessionCurrentTarget(
 		sq: Square | null,
 		mutationSession: InteractionStateMutationSession

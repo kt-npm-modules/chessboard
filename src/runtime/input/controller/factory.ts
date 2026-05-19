@@ -37,24 +37,45 @@ export function createInteractionController(
 
 			if (action) {
 				switch (action.type) {
-					case 'startLiftedDrag':
-						internalState.surface.startLiftedDrag(action.source, action.target, action.startButton);
-						break;
-					case 'startReleaseTargetingDrag':
-						internalState.surface.startReleaseTargetingDrag(
-							action.source,
-							action.target,
-							action.startButton
+					case 'startLiftedDragSession':
+						internalState.surface.startLiftedDragSession(
+							action.phase === 'pending'
+								? {
+										phase: 'pending',
+										sourceSquare: action.sourceSquare,
+										targetSquare: action.targetSquare,
+										startButton: action.startButton,
+										startPoint: action.startPoint,
+										thresholdPx: action.thresholdPx
+									}
+								: {
+										phase: 'active',
+										sourceSquare: action.sourceSquare,
+										targetSquare: action.targetSquare,
+										startButton: action.startButton
+									}
 						);
 						break;
-					case 'completeCoreDragTo':
-						internalState.surface.completeCoreDragTo(action.target);
+					case 'activatePendingLiftedDragSession':
+						internalState.surface.activatePendingLiftedDragSession({
+							targetSquare: action.targetSquare
+						});
 						break;
-					case 'completeExtensionDrag':
-						internalState.surface.completeExtensionDrag(action.target);
+					case 'startReleaseTargetingDragSession':
+						internalState.surface.startReleaseTargetingDragSession({
+							sourceSquare: action.sourceSquare,
+							targetSquare: action.targetSquare,
+							startButton: action.startButton
+						});
+						break;
+					case 'completeCoreDragSessionTo':
+						internalState.surface.completeCoreDragSessionTo(action.targetSquare);
+						break;
+					case 'completeExtensionDragSession':
+						internalState.surface.completeExtensionDragSession(action.targetSquare);
 						break;
 					case 'updateDragSessionCurrentTarget':
-						internalState.surface.updateDragSessionCurrentTarget(action.target);
+						internalState.surface.updateDragSessionCurrentTarget(action.targetSquare);
 						break;
 					case 'cancelActiveInteraction':
 						internalState.surface.cancelActiveInteraction();

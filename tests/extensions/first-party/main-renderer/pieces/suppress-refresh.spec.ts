@@ -33,6 +33,7 @@ describe('rendererPiecesRefreshSuppressedSquares – dirty marking', () => {
 		const dragSession = {
 			owner: 'core',
 			type: 'lifted-piece-drag',
+			phase: 'active',
 			sourceSquare: 4 as Square,
 			sourcePieceCode: PieceCode.WhiteKing,
 			targetSquare: null,
@@ -51,6 +52,7 @@ describe('rendererPiecesRefreshSuppressedSquares – dirty marking', () => {
 		const dragSession = {
 			owner: 'core',
 			type: 'lifted-piece-drag',
+			phase: 'active',
 			sourceSquare: 4 as Square,
 			sourcePieceCode: PieceCode.WhiteKing,
 			targetSquare: null,
@@ -92,6 +94,7 @@ describe('rendererPiecesRefreshSuppressedSquares – suppression state update', 
 		const dragSession = {
 			owner: 'core',
 			type: 'lifted-piece-drag',
+			phase: 'active',
 			sourceSquare: 0 as Square,
 			sourcePieceCode: PieceCode.WhiteKing,
 			targetSquare: null,

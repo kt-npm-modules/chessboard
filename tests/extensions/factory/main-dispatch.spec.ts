@@ -129,6 +129,7 @@ describe('createExtensionSystem – completeDrag dispatch', () => {
 		const session = {
 			owner: 'ext-a',
 			type: 'lifted-piece-drag' as const,
+			phase: 'active' as const,
 			sourceSquare: 0,
 			sourcePieceCode: 1,
 			targetSquare: 8

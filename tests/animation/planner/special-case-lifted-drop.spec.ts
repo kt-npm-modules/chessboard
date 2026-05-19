@@ -42,6 +42,7 @@ describe('calculateAnimationPlan — special cases', () => {
 						dragSession: {
 							owner: 'core' as const,
 							type: 'lifted-piece-drag' as const,
+							phase: 'active' as const,
 							sourceSquare: e2,
 							sourcePieceCode: PieceCode.WhitePawn,
 							targetSquare: e4,
@@ -102,6 +103,7 @@ describe('calculateAnimationPlan — special cases', () => {
 						dragSession: {
 							owner: 'core' as const,
 							type: 'lifted-piece-drag' as const,
+							phase: 'active' as const,
 							sourceSquare: e1,
 							sourcePieceCode: PieceCode.WhiteKing,
 							targetSquare: g1,
@@ -142,6 +144,7 @@ describe('calculateAnimationPlan — special cases', () => {
 						dragSession: {
 							owner: 'core' as const,
 							type: 'lifted-piece-drag' as const,
+							phase: 'active' as const,
 							sourceSquare: e2,
 							sourcePieceCode: PieceCode.WhitePawn,
 							targetSquare: null,
@@ -158,6 +161,7 @@ describe('calculateAnimationPlan — special cases', () => {
 						dragSession: {
 							owner: 'core' as const,
 							type: 'lifted-piece-drag' as const,
+							phase: 'active' as const,
 							sourceSquare: e4,
 							sourcePieceCode: PieceCode.WhitePawn,
 							targetSquare: null,

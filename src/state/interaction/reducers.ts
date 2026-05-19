@@ -1,13 +1,23 @@
 import assert from '@ktarmyshov/assert';
 import { cloneDeep } from 'es-toolkit/object';
+import { isEqual } from 'es-toolkit/predicate';
 import type { ReadonlyDeep } from 'type-fest';
 import { setsEqual } from '../../helpers/util.js';
 import type { RolePromotionCode, Square } from '../board/types/internal.js';
 import { areInteractionConfigsEqual } from './config.js';
-import { selectedEqual } from './helpers.js';
+import {
+	isDragSessionCoreOwned,
+	isDragSessionPendingLiftedPiece,
+	selectedEqual
+} from './helpers.js';
 import { movabilitiesEqual } from './movability.js';
 import type { InteractionConfig } from './types/config.js';
-import { Movability, type DragSessionSnapshot, type MoveDestination } from './types/internal.js';
+import {
+	Movability,
+	type DragSessionActiveLiftedPieceCoreOwned,
+	type DragSessionSnapshot,
+	type MoveDestination
+} from './types/internal.js';
 import { InteractionStateInternal, InteractionStateSelected } from './types/main.js';
 
 export function interactionSetSelected(
@@ -77,13 +87,36 @@ export function interactionSetDragSession(
 	state: InteractionStateInternal,
 	session: DragSessionSnapshot | null
 ): boolean {
-	const changed =
-		state.dragSession?.type !== session?.type ||
-		state.dragSession?.sourceSquare !== session?.sourceSquare ||
-		state.dragSession?.sourcePieceCode !== session?.sourcePieceCode ||
-		state.dragSession?.targetSquare !== session?.targetSquare;
-	if (!changed) return false; // no-op
+	if (state.dragSession === session) return false;
+	if (isEqual(state.dragSession, session)) return false;
 	state.dragSession = session ? cloneDeep(session) : null;
+	return true;
+}
+
+export function interactionActivatePendingLiftedDragSession(
+	state: InteractionStateInternal,
+	targetSquare: Square | null
+): boolean {
+	const current = state.dragSession;
+	assert(current !== null, 'activatePendingLiftedDragSession requires an active drag session');
+	assert(
+		isDragSessionCoreOwned(current),
+		'activatePendingLiftedDragSession requires a core-owned drag session'
+	);
+	assert(
+		isDragSessionPendingLiftedPiece(current),
+		'activatePendingLiftedDragSession requires a pending lifted-piece drag session'
+	);
+	const next: DragSessionActiveLiftedPieceCoreOwned = {
+		owner: 'core',
+		type: 'lifted-piece-drag',
+		phase: 'active',
+		sourceSquare: current.sourceSquare,
+		sourcePieceCode: current.sourcePieceCode,
+		targetSquare,
+		startButton: current.startButton
+	};
+	state.dragSession = next;
 	return true;
 }
 

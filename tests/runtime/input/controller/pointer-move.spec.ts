@@ -33,6 +33,7 @@ describe('determineActionPointerMove', () => {
 				dragSession: {
 					owner: 'core',
 					type: 'lifted-piece-drag',
+					phase: 'active',
 					sourceSquare: 12 as Square,
 					sourcePieceCode: PieceCode.WhitePawn,
 					targetSquare: 12 as Square,
@@ -44,7 +45,7 @@ describe('determineActionPointerMove', () => {
 
 		const result = determineActionPointerMove({ surface }, context);
 
-		expect(result).toEqual({ type: 'updateDragSessionCurrentTarget', target: 28 });
+		expect(result).toEqual({ type: 'updateDragSessionCurrentTarget', targetSquare: 28 });
 	});
 
 	it('returns updateDragSessionCurrentTarget with null target when drag session is active and target is null', () => {
@@ -53,6 +54,7 @@ describe('determineActionPointerMove', () => {
 				dragSession: {
 					owner: 'core',
 					type: 'lifted-piece-drag',
+					phase: 'active',
 					sourceSquare: 12 as Square,
 					sourcePieceCode: PieceCode.WhitePawn,
 					targetSquare: 12 as Square,
@@ -73,6 +75,6 @@ describe('determineActionPointerMove', () => {
 
 		const result = determineActionPointerMove({ surface }, context);
 
-		expect(result).toEqual({ type: 'updateDragSessionCurrentTarget', target: null });
+		expect(result).toEqual({ type: 'updateDragSessionCurrentTarget', targetSquare: null });
 	});
 });
