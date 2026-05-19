@@ -11,6 +11,7 @@ import {
 	DragSessionSnapshot
 } from '../../state/interaction/types/internal.js';
 import { InteractionStateSelected } from '../../state/interaction/types/main.js';
+import { isStartPendingLiftedDragSessionInput } from '../input/controller/helpers.js';
 import { RuntimeInteractionSurface } from '../input/controller/types.js';
 import { runtimeRunMutationPipeline } from '../mutation/run.js';
 import { GetInternalState, RuntimeInternal } from '../types/main.js';
@@ -53,28 +54,27 @@ export function createRuntimeInteractionSurface(
 			};
 			interaction.setSelected(interactionSource, interactionMutationSession);
 
-			const dragSession: DragSession =
-				input.phase === 'pending'
-					? ({
-							owner: 'core',
-							type: 'lifted-piece-drag',
-							phase: 'pending',
-							sourceSquare: interactionSource.square,
-							sourcePieceCode: interactionSource.pieceCode,
-							targetSquare: input.targetSquare,
-							startButton: input.startButton,
-							startPoint: input.startPoint,
-							thresholdPx: input.thresholdPx
-						} satisfies DragSessionPendingLiftedPieceCoreOwned)
-					: ({
-							owner: 'core',
-							type: 'lifted-piece-drag',
-							phase: 'active',
-							sourceSquare: interactionSource.square,
-							sourcePieceCode: interactionSource.pieceCode,
-							targetSquare: input.targetSquare,
-							startButton: input.startButton
-						} satisfies DragSessionActiveLiftedPieceCoreOwned);
+			const dragSession: DragSession = isStartPendingLiftedDragSessionInput(input)
+				? ({
+						owner: 'core',
+						type: 'lifted-piece-drag',
+						phase: 'pending',
+						sourceSquare: interactionSource.square,
+						sourcePieceCode: interactionSource.pieceCode,
+						targetSquare: input.targetSquare,
+						startButton: input.startButton,
+						startPoint: input.startPoint,
+						thresholdPx: input.thresholdPx
+					} satisfies DragSessionPendingLiftedPieceCoreOwned)
+				: ({
+						owner: 'core',
+						type: 'lifted-piece-drag',
+						phase: 'active',
+						sourceSquare: interactionSource.square,
+						sourcePieceCode: interactionSource.pieceCode,
+						targetSquare: input.targetSquare,
+						startButton: input.startButton
+					} satisfies DragSessionActiveLiftedPieceCoreOwned);
 			interaction.setDragSession(dragSession, interactionMutationSession);
 			runtimeRunMutationPipeline(internalState);
 		},
