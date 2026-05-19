@@ -2,11 +2,13 @@ import assert from '@ktarmyshov/assert';
 import { isEmptyPieceCode } from '../../state/board/check.js';
 import {
 	isDragSessionActiveLiftedPiece,
-	isDragSessionCoreOwned
+	isDragSessionCoreOwned,
+	isDragSessionReleaseTargeting
 } from '../../state/interaction/helpers.js';
 import {
 	DragSession,
 	DragSessionActiveLiftedPieceCoreOwned,
+	DragSessionCoreOwnedSnapshot,
 	DragSessionPendingLiftedPieceCoreOwned,
 	DragSessionSnapshot
 } from '../../state/interaction/types/internal.js';
@@ -97,11 +99,12 @@ export function createRuntimeInteractionSurface(
 			assert(
 				currentDragSession !== null &&
 					isDragSessionCoreOwned(currentDragSession) &&
-					isDragSessionActiveLiftedPiece(currentDragSession),
-				'completeCoreDragSessionTo requires a core-owned active lifted-piece drag session'
+					(isDragSessionActiveLiftedPiece(currentDragSession) ||
+						isDragSessionReleaseTargeting(currentDragSession)),
+				'completeCoreDragSessionTo requires a core-owned active lifted-piece or release-targeting drag session'
 			);
 			interaction.updateDragSessionCurrentTarget(target, mutationSession);
-			const dragSession = interaction.dragSession as DragSessionActiveLiftedPieceCoreOwned;
+			const dragSession = interaction.dragSession as DragSessionCoreOwnedSnapshot;
 
 			uiMoveCompleteTo(internalState, target);
 			mutationSession.addMutation(

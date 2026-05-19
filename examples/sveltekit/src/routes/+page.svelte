@@ -60,6 +60,13 @@
 			for (const [from, to, mod] of arrowData) {
 				b.extensions.annotations.arrow(from, to, { color: annotationColors[mod] });
 			}
+			b.setInteractionConfig({
+				drag: {
+					liftedActivation: {
+						thresholdPx: 3
+					}
+				}
+			});
 		}
 	);
 

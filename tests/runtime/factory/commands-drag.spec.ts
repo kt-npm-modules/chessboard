@@ -262,12 +262,12 @@ describe('createRuntimeInteractionSurface.completeCoreDragSessionTo assertion', 
 		const { surface, interaction } = createSurfaceWithDragSession(dragSession);
 
 		expect(() => surface.completeCoreDragSessionTo(28 as Square)).toThrow(
-			/core-owned active lifted-piece/
+			/core-owned active lifted-piece or release-targeting/
 		);
 		expect(interaction.updateDragSessionCurrentTarget).not.toHaveBeenCalled();
 	});
 
-	it('throws when drag session is release-targeting (core-owned but not active lifted-piece)', () => {
+	it('accepts a release-targeting drag session (core-owned)', () => {
 		const dragSession = makeDragSessionCoreOwned({
 			type: 'release-targeting',
 			sourceSquare: 12 as Square,
@@ -275,12 +275,44 @@ describe('createRuntimeInteractionSurface.completeCoreDragSessionTo assertion', 
 			targetSquare: 28 as Square,
 			startButton: 0
 		});
-		const { surface, interaction } = createSurfaceWithDragSession(dragSession);
+		const mutationSession = { addMutation: vi.fn() };
+		const interaction = {
+			get dragSession() {
+				return { ...dragSession, targetSquare: 28 as Square };
+			},
+			get selected() {
+				return { square: 12 as Square, pieceCode: PieceCode.WhitePawn };
+			},
+			get activeDestinations() {
+				return new Map();
+			},
+			updateDragSessionCurrentTarget: vi.fn(),
+			getSnapshot: vi.fn(() => ({
+				movability: { mode: 1 },
+				selected: { square: 12, pieceCode: PieceCode.WhitePawn },
+				dragSession: { ...dragSession, targetSquare: 28 as Square },
+				activeDestinations: new Map()
+			})),
+			clear: vi.fn()
+		};
+		const fakeInternal = {
+			state: {
+				interaction,
+				board: { move: vi.fn() },
+				change: { setDeferredUIMoveRequest: vi.fn() }
+			},
+			mutation: { getSession: () => mutationSession, run: vi.fn(() => false) },
+			extensionSystem: {
+				onUIMoveRequest: vi.fn(({ request }: { request: { autoresolve: () => void } }) => {
+					request.autoresolve();
+				})
+			},
+			renderSystem: { requestRender: vi.fn() }
+		};
+		const surface = createRuntimeInteractionSurface(() => fakeInternal as never);
 
-		expect(() => surface.completeCoreDragSessionTo(28 as Square)).toThrow(
-			/core-owned active lifted-piece/
-		);
-		expect(interaction.updateDragSessionCurrentTarget).not.toHaveBeenCalled();
+		expect(() => surface.completeCoreDragSessionTo(28 as Square)).not.toThrow();
+		expect(interaction.updateDragSessionCurrentTarget).toHaveBeenCalledWith(28, expect.anything());
 	});
 });
 

@@ -5,7 +5,8 @@ import { fromPieceCode } from '../../../state/board/piece.js';
 import {
 	isDragSessionActiveLiftedPiece,
 	isDragSessionCoreOwned,
-	isDragSessionPendingLiftedPiece
+	isDragSessionPendingLiftedPiece,
+	isDragSessionReleaseTargeting
 } from '../../../state/interaction/helpers.js';
 import { MovabilityModeCode } from '../../../state/interaction/types/internal.js';
 import { buttonToButtonsMask, canMoveTo, isMovementBeyondThreshold } from './helpers.js';
@@ -165,8 +166,8 @@ function determineActionTerminalRelease(
 
 	if (
 		sceneEvent.targetSquare !== null &&
-		isDragSessionActiveLiftedPiece(dragSession) &&
-		canMoveTo(interaction, sceneEvent.targetSquare)
+		canMoveTo(interaction, sceneEvent.targetSquare) &&
+		(isDragSessionActiveLiftedPiece(dragSession) || isDragSessionReleaseTargeting(dragSession))
 	) {
 		return { type: 'completeCoreDragSessionTo', targetSquare: sceneEvent.targetSquare };
 	}

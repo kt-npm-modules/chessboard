@@ -116,6 +116,28 @@ describe('determineActionPointerUp', () => {
 		expect(result).toEqual({ type: 'cancelActiveInteraction' });
 	});
 
+	it('returns completeCoreDragSessionTo for release-targeting drag with legal target (free mode)', () => {
+		const surface = createMockSurface({
+			snapshot: {
+				selected: { square: 12 as Square, pieceCode: PieceCode.WhitePawn },
+				movability: { mode: MovabilityModeCode.Free },
+				dragSession: {
+					owner: 'core',
+					type: 'release-targeting',
+					sourceSquare: 12 as Square,
+					sourcePieceCode: PieceCode.WhitePawn,
+					targetSquare: 28 as Square,
+					startButton: 0
+				}
+			}
+		});
+		const context = makeContext(28);
+
+		const result = determineActionPointerUp({ surface }, context);
+
+		expect(result).toEqual({ type: 'completeCoreDragSessionTo', targetSquare: 28 });
+	});
+
 	it('returns cancelInteraction for release-targeting drag with invalid target', () => {
 		const surface = createMockSurface({
 			snapshot: {
