@@ -69,11 +69,12 @@
 			});
 			b.extensions.renderer.setConfig({
 				animation: {
-					durationMs: 2000
+					durationMs: 180
 				},
 				drag: {
 					pieceAnchor: 'bottom',
-					pieceScale: 1.5
+					pieceScale: 1.5,
+					pieceAnchorOffsetY: 0.14
 				}
 			});
 		}

@@ -1,16 +1,19 @@
 import { ExtensionRuntimeSurface } from '../../../types/surface/main.js';
 import type { PieceSymbolResolver } from '../piece-symbols.js';
+import type { MainRendererConfigDrag } from '../types/template.js';
 import { rendererDragRenderTransientVisuals } from './render.js';
 import { MainRendererDrag, MainRendererDragInternal } from './types.js';
 import { rendererDragOnUpdate } from './update.js';
 
 export function createMainRendererDrag(
 	runtimeSurface: ExtensionRuntimeSurface,
-	resolver: PieceSymbolResolver
+	resolver: PieceSymbolResolver,
+	getDragConfig: () => MainRendererConfigDrag
 ): MainRendererDrag {
 	const internalState: MainRendererDragInternal = {
 		runtimeSurface,
 		resolver,
+		getDragConfig,
 		isDragActive: false,
 		pieceCode: null,
 		pieceNode: null

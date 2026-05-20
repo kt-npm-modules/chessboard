@@ -24,13 +24,14 @@ function normalizePieceUrls(input: PieceUrlsPublic): PieceUrls {
 }
 
 function validateMainRendererConfig(config: MainRendererConfig): void {
-	const { pieceScale, pieceAnchor } = config.drag;
+	const { pieceScale, pieceAnchor, pieceAnchorOffsetY } = config.drag;
 	assert(Number.isFinite(pieceScale), 'drag.pieceScale must be a finite number');
 	assert(pieceScale > 0, 'drag.pieceScale must be > 0');
 	assert(
 		pieceAnchor === 'center' || pieceAnchor === 'bottom',
 		`drag.pieceAnchor must be 'center' or 'bottom', received: ${String(pieceAnchor)}`
 	);
+	assert(Number.isFinite(pieceAnchorOffsetY), 'drag.pieceAnchorOffsetY must be a finite number');
 	const { durationMs } = config.animation;
 	assert(Number.isFinite(durationMs), 'animation.durationMs must be a finite number');
 	assert(durationMs >= 0, 'animation.durationMs must be >= 0');

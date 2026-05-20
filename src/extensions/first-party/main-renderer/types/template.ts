@@ -4,6 +4,7 @@ export type MainRendererConfigDragPieceAnchor = 'center' | 'bottom';
 export interface MainRendererConfigDrag {
 	pieceScale: number;
 	pieceAnchor: MainRendererConfigDragPieceAnchor;
+	pieceAnchorOffsetY: number;
 }
 
 export interface MainRendererConfigAnimation {

@@ -1,6 +1,3 @@
-import { cloneDeep } from 'es-toolkit';
-import { denormalizePieceString } from '../../../state/board/denormalize.js';
-import { NonEmptyPieceCode } from '../../../state/board/types/internal.js';
 import { ExtensionCreateInstanceOptions } from '../../types/extension.js';
 import {
 	extensionCreateInternalBase,
@@ -11,6 +8,7 @@ import {
 import { createMainRendererAnimation } from './animation/factory.js';
 import { createMainRendererBoard } from './board/factory.js';
 import { createMainRendererCoordinates } from './coordinates/factory.js';
+import { denormalizeMainRendererConfig } from './denormalize.js';
 import { createMainRendererDrag } from './drag/factory.js';
 import { normalizeMainRendererConfig } from './normalize.js';
 import { createPieceSymbolResolver, ensurePieceSymbolsDefined } from './piece-symbols.js';
@@ -25,31 +23,9 @@ import {
 	RendererPublicAPI
 } from './types/extension.js';
 import { MainRendererInstanceInternal } from './types/instance.js';
-import type { MainRendererConfig, PieceUrls } from './types/internal.js';
+import type { MainRendererConfig } from './types/internal.js';
 import { DefaultMainRendererDesktopConfig } from './types/internal.js';
-import type {
-	MainRendererConfigPublic,
-	MainRendererInitOptions,
-	PieceUrlsPublic
-} from './types/public.js';
-
-function denormalizePieceUrls(pieceUrls: PieceUrls): PieceUrlsPublic {
-	const result = {} as PieceUrlsPublic;
-	for (const [codeKey, url] of Object.entries(pieceUrls)) {
-		const code = Number(codeKey) as NonEmptyPieceCode;
-		result[denormalizePieceString(code)] = url;
-	}
-	return result;
-}
-
-function configToPublic(config: MainRendererConfig): MainRendererConfigPublic {
-	return {
-		colors: cloneDeep(config.colors),
-		drag: cloneDeep(config.drag),
-		animation: cloneDeep(config.animation),
-		pieceUrls: denormalizePieceUrls(config.pieceUrls)
-	};
-}
+import type { MainRendererInitOptions } from './types/public.js';
 
 export function createMainRenderer(options?: MainRendererInitOptions): MainRendererDefinition {
 	const config = normalizeMainRendererConfig(options, DefaultMainRendererDesktopConfig);
@@ -73,7 +49,11 @@ function createMainRendererInternal(
 	const board = createMainRendererBoard(() => internalState.config.colors.board);
 	const coordinates = createMainRendererCoordinates(() => internalState.config.colors.coordinates);
 	const pieces = createMainRendererPieces(pieceSymbolResolver);
-	const drag = createMainRendererDrag(options.runtimeSurface, pieceSymbolResolver);
+	const drag = createMainRendererDrag(
+		options.runtimeSurface,
+		pieceSymbolResolver,
+		() => internalState.config.drag
+	);
 	const animation = createMainRendererAnimation(
 		options.runtimeSurface,
 		pieceSymbolResolver,
@@ -96,7 +76,7 @@ function createMainRendererInternal(
 function createMainRendererInstancePublic(state: MainRendererInstanceInternal): RendererPublicAPI {
 	return {
 		getConfig() {
-			return configToPublic(state.config);
+			return denormalizeMainRendererConfig(state.config);
 		},
 		setConfig(options) {
 			// Defensively strip pieceUrls so a non-TS caller cannot bypass the lifecycle.

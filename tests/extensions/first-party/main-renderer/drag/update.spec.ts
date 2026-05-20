@@ -6,16 +6,18 @@ import {
 	createDragTransientVisualsContext,
 	createDragUpdateContext,
 	createLiftedPieceDragSession,
-	createMockRuntimeSurface
+	createMockRuntimeSurface,
+	createTestDragConfigGetter
 } from '../../../../test-utils/extensions/first-party/main-renderer/drag.js';
 import { createTestPieceSymbolResolver } from '../../../../test-utils/extensions/first-party/main-renderer/pieces.js';
 
 const resolver = createTestPieceSymbolResolver();
+const getDragConfig = createTestDragConfigGetter();
 
 describe('drag update – no-op when inactive', () => {
 	it('does not subscribe or unsubscribe when no drag and was inactive', () => {
 		const { surface, subscribe, unsubscribe } = createMockRuntimeSurface();
-		const drag = createMainRendererDrag(surface, resolver);
+		const drag = createMainRendererDrag(surface, resolver, getDragConfig);
 
 		const ctx = createDragUpdateContext({ dragSession: null });
 		drag.onUpdate(ctx);
@@ -26,7 +28,7 @@ describe('drag update – no-op when inactive', () => {
 
 	it('does not activate for release-targeting drag type', () => {
 		const { surface, subscribe } = createMockRuntimeSurface();
-		const drag = createMainRendererDrag(surface, resolver);
+		const drag = createMainRendererDrag(surface, resolver, getDragConfig);
 
 		const ctx = createDragUpdateContext({
 			dragSession: {
@@ -45,7 +47,7 @@ describe('drag update – no-op when inactive', () => {
 
 	it('does not activate for pending lifted-piece drag', () => {
 		const { surface, subscribe } = createMockRuntimeSurface();
-		const drag = createMainRendererDrag(surface, resolver);
+		const drag = createMainRendererDrag(surface, resolver, getDragConfig);
 
 		const ctx = createDragUpdateContext({
 			dragSession: {
@@ -69,7 +71,7 @@ describe('drag update – no-op when inactive', () => {
 describe('drag update – drag start', () => {
 	it('subscribes to transient visuals on lifted-piece drag start', () => {
 		const { surface, subscribe } = createMockRuntimeSurface();
-		const drag = createMainRendererDrag(surface, resolver);
+		const drag = createMainRendererDrag(surface, resolver, getDragConfig);
 
 		const ctx = createDragUpdateContext({ dragSession: createLiftedPieceDragSession() });
 		drag.onUpdate(ctx);
@@ -79,7 +81,7 @@ describe('drag update – drag start', () => {
 
 	it('stores piece URL observable via subsequent transient render', () => {
 		const { surface } = createMockRuntimeSurface();
-		const drag = createMainRendererDrag(surface, resolver);
+		const drag = createMainRendererDrag(surface, resolver, getDragConfig);
 		const layer = createDragLayer();
 
 		// Start drag
@@ -98,7 +100,7 @@ describe('drag update – drag start', () => {
 
 	it('does not resubscribe on repeated update during same active drag', () => {
 		const { surface, subscribe } = createMockRuntimeSurface();
-		const drag = createMainRendererDrag(surface, resolver);
+		const drag = createMainRendererDrag(surface, resolver, getDragConfig);
 
 		const ctx = createDragUpdateContext({ dragSession: createLiftedPieceDragSession() });
 		drag.onUpdate(ctx);
@@ -112,7 +114,7 @@ describe('drag update – drag start', () => {
 describe('drag update – drag end', () => {
 	it('unsubscribes from transient visuals when drag ends', () => {
 		const { surface, unsubscribe } = createMockRuntimeSurface();
-		const drag = createMainRendererDrag(surface, resolver);
+		const drag = createMainRendererDrag(surface, resolver, getDragConfig);
 
 		// Start drag
 		const startCtx = createDragUpdateContext({ dragSession: createLiftedPieceDragSession() });
@@ -127,7 +129,7 @@ describe('drag update – drag end', () => {
 
 	it('removes existing drag image node from layer', () => {
 		const { surface } = createMockRuntimeSurface();
-		const drag = createMainRendererDrag(surface, resolver);
+		const drag = createMainRendererDrag(surface, resolver, getDragConfig);
 		const layer = createDragLayer();
 
 		// Start drag and render
@@ -145,7 +147,7 @@ describe('drag update – drag end', () => {
 
 	it('after drag end, subsequent transient render does not create node', () => {
 		const { surface } = createMockRuntimeSurface();
-		const drag = createMainRendererDrag(surface, resolver);
+		const drag = createMainRendererDrag(surface, resolver, getDragConfig);
 		const layer = createDragLayer();
 
 		// Start and end drag

@@ -6,8 +6,27 @@ import {
 	PieceCode,
 	type Square
 } from '../../../../../src/state/board/types/internal.js';
+import type { MainRendererConfigDrag } from '../../../../../src/extensions/first-party/main-renderer/types/template.js';
 import type { RuntimeStateSnapshot } from '../../../../../src/state/types.js';
 import { createSvgElement } from '../../../dom/svg.js';
+
+// ─── Default drag config for tests ────────────────────────────────────────────
+
+export const DEFAULT_TEST_DRAG_CONFIG: MainRendererConfigDrag = {
+	pieceScale: 1,
+	pieceAnchor: 'center',
+	pieceAnchorOffsetY: 0
+};
+
+/**
+ * Creates a getter returning the desktop-default drag config (or an override).
+ */
+export function createTestDragConfigGetter(
+	override?: Partial<MainRendererConfigDrag>
+): () => MainRendererConfigDrag {
+	const config: MainRendererConfigDrag = { ...DEFAULT_TEST_DRAG_CONFIG, ...override };
+	return () => config;
+}
 
 // ─── Mock runtime surface ─────────────────────────────────────────────────────
 

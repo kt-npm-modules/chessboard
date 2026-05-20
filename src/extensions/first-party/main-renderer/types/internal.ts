@@ -90,7 +90,8 @@ export const DefaultMainRendererDesktopConfig: MainRendererConfig = {
 	...cloneDeep(DefaultMainRendererConfigPart),
 	drag: {
 		pieceScale: 1,
-		pieceAnchor: 'center'
+		pieceAnchor: 'center',
+		pieceAnchorOffsetY: 0
 	},
 	animation: {
 		durationMs: 180
@@ -101,7 +102,8 @@ export const DefaultMainRendererMobileConfig: MainRendererConfig = {
 	...cloneDeep(DefaultMainRendererConfigPart),
 	drag: {
 		pieceScale: 1.5,
-		pieceAnchor: 'bottom'
+		pieceAnchor: 'bottom',
+		pieceAnchorOffsetY: 0.14
 	},
 	animation: {
 		durationMs: 180

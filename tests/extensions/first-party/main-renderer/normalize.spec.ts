@@ -25,17 +25,19 @@ const FULL_PUBLIC_PIECE_URLS: PieceUrlsPublic = {
 
 describe('normalizeMainRendererConfig', () => {
 	describe('defaults', () => {
-		it('desktop default has drag { pieceScale: 1, pieceAnchor: "center" }', () => {
+		it('desktop default has drag { pieceScale: 1, pieceAnchor: "center", pieceAnchorOffsetY: 0 }', () => {
 			expect(DefaultMainRendererDesktopConfig.drag).toEqual({
 				pieceScale: 1,
-				pieceAnchor: 'center'
+				pieceAnchor: 'center',
+				pieceAnchorOffsetY: 0
 			});
 		});
 
-		it('mobile default has drag { pieceScale: 1.5, pieceAnchor: "bottom" }', () => {
+		it('mobile default has drag { pieceScale: 1.5, pieceAnchor: "bottom", pieceAnchorOffsetY: 0.14 }', () => {
 			expect(DefaultMainRendererMobileConfig.drag).toEqual({
 				pieceScale: 1.5,
-				pieceAnchor: 'bottom'
+				pieceAnchor: 'bottom',
+				pieceAnchorOffsetY: 0.14
 			});
 		});
 
@@ -61,7 +63,11 @@ describe('normalizeMainRendererConfig', () => {
 		it('honors a custom base when input is undefined', () => {
 			const config = normalizeMainRendererConfig(undefined, DefaultMainRendererMobileConfig);
 			expect(config).toEqual(DefaultMainRendererMobileConfig);
-			expect(config.drag).toEqual({ pieceScale: 1.5, pieceAnchor: 'bottom' });
+			expect(config.drag).toEqual({
+				pieceScale: 1.5,
+				pieceAnchor: 'bottom',
+				pieceAnchorOffsetY: 0.14
+			});
 		});
 	});
 
@@ -99,7 +105,11 @@ describe('normalizeMainRendererConfig', () => {
 				{ drag: { pieceScale: 2 } },
 				DefaultMainRendererMobileConfig
 			);
-			expect(config.drag).toEqual({ pieceScale: 2, pieceAnchor: 'bottom' });
+			expect(config.drag).toEqual({
+				pieceScale: 2,
+				pieceAnchor: 'bottom',
+				pieceAnchorOffsetY: 0.14
+			});
 		});
 
 		it('overrides only pieceAnchor when only that is provided', () => {
@@ -107,7 +117,23 @@ describe('normalizeMainRendererConfig', () => {
 				{ drag: { pieceAnchor: 'bottom' } },
 				DefaultMainRendererDesktopConfig
 			);
-			expect(config.drag).toEqual({ pieceScale: 1, pieceAnchor: 'bottom' });
+			expect(config.drag).toEqual({
+				pieceScale: 1,
+				pieceAnchor: 'bottom',
+				pieceAnchorOffsetY: 0
+			});
+		});
+
+		it('overrides only pieceAnchorOffsetY when only that is provided', () => {
+			const config = normalizeMainRendererConfig(
+				{ drag: { pieceAnchorOffsetY: 0.25 } },
+				DefaultMainRendererDesktopConfig
+			);
+			expect(config.drag).toEqual({
+				pieceScale: 1,
+				pieceAnchor: 'center',
+				pieceAnchorOffsetY: 0.25
+			});
 		});
 
 		it.each([0, -1, Number.NaN, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY])(
@@ -130,6 +156,26 @@ describe('normalizeMainRendererConfig', () => {
 				)
 			).toThrow();
 		});
+
+		it.each([-0.5, 0, 0.14, 0.5, 1])('accepts finite pieceAnchorOffsetY: %s', (value) => {
+			const config = normalizeMainRendererConfig(
+				{ drag: { pieceAnchorOffsetY: value } },
+				DefaultMainRendererDesktopConfig
+			);
+			expect(config.drag.pieceAnchorOffsetY).toBe(value);
+		});
+
+		it.each([Number.NaN, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY])(
+			'throws for non-finite pieceAnchorOffsetY: %s',
+			(value) => {
+				expect(() =>
+					normalizeMainRendererConfig(
+						{ drag: { pieceAnchorOffsetY: value } },
+						DefaultMainRendererDesktopConfig
+					)
+				).toThrow();
+			}
+		);
 	});
 
 	describe('animation', () => {

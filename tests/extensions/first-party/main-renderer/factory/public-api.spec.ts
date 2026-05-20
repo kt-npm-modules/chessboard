@@ -6,6 +6,11 @@ import type {
 	MainRendererSetConfigOptions
 } from '../../../../../src/extensions/first-party/main-renderer/types/public.js';
 import {
+	createDragTransientVisualsContext,
+	createDragUpdateContext,
+	createLiftedPieceDragSession
+} from '../../../../test-utils/extensions/first-party/main-renderer/drag.js';
+import {
 	createMainRendererRuntimeSurface,
 	mountMainRenderer
 } from '../../../../test-utils/extensions/first-party/main-renderer/factory.js';
@@ -201,5 +206,90 @@ describe('main-renderer public API – removed legacy methods', () => {
 		expect(keys).toEqual(['getConfig', 'setConfig']);
 		expect(typeof api.setConfig).toBe('function');
 		expect(typeof api.getConfig).toBe('function');
+	});
+});
+
+describe('main-renderer public API – setConfig({ drag }) propagates to next drag transient render', () => {
+	it('updates dragged-piece SVG attributes on the next renderTransientVisuals after setConfig', () => {
+		const { instance, api, slotRoots } = createMountedInstance();
+
+		// Start a drag session
+		instance.onUpdate!(createDragUpdateContext({ dragSession: createLiftedPieceDragSession() }));
+
+		// First transient render with desktop default config (pieceScale=1, anchor=center)
+		instance.renderTransientVisuals!(
+			createDragTransientVisualsContext({
+				sceneSize: 400,
+				boardClampedPoint: { x: 200, y: 150 }
+			})
+		);
+		const node = slotRoots.drag.children[0];
+		expect(node.getAttribute('width')).toBe('50');
+		expect(node.getAttribute('x')).toBe('175');
+		expect(node.getAttribute('y')).toBe('125');
+
+		// Update drag config at runtime — without remount, without recreating drag subsystem
+		api.setConfig({ drag: { pieceScale: 1.4, pieceAnchor: 'bottom' } });
+
+		// Next transient render reflects the new config on the SAME node (no recreation)
+		instance.renderTransientVisuals!(
+			createDragTransientVisualsContext({
+				sceneSize: 400,
+				boardClampedPoint: { x: 200, y: 150 }
+			})
+		);
+		expect(slotRoots.drag.children.length).toBe(1);
+		expect(slotRoots.drag.children[0]).toBe(node); // same DOM node — no recreation
+		// renderedSize = 50 * 1.4 = 70
+		expect(node.getAttribute('width')).toBe('70');
+		expect(node.getAttribute('height')).toBe('70');
+		expect(node.getAttribute('x')).toBe('165'); // 200 - 35
+		// y = 150 - 70 = 80 (bottom-center anchor)
+		expect(node.getAttribute('y')).toBe('80');
+	});
+
+	it('setConfig({ drag }) does not subscribe or unsubscribe transient visuals', () => {
+		const { instance, api, subscribe, unsubscribe } = createMountedInstance();
+
+		// Start drag — subscribe called once
+		instance.onUpdate!(createDragUpdateContext({ dragSession: createLiftedPieceDragSession() }));
+		const subscribeCallsBefore = subscribe.mock.calls.length;
+		const unsubscribeCallsBefore = unsubscribe.mock.calls.length;
+
+		api.setConfig({ drag: { pieceScale: 1.7, pieceAnchor: 'bottom' } });
+
+		expect(subscribe.mock.calls.length).toBe(subscribeCallsBefore);
+		expect(unsubscribe.mock.calls.length).toBe(unsubscribeCallsBefore);
+	});
+
+	it('setConfig({ drag: { pieceAnchorOffsetY } }) is observed on the next drag transient render', () => {
+		const { instance, api, slotRoots } = createMountedInstance();
+
+		// Start a drag session
+		instance.onUpdate!(createDragUpdateContext({ dragSession: createLiftedPieceDragSession() }));
+
+		// First render with the desktop default offset (0): center anchor, point (200,150)
+		instance.renderTransientVisuals!(
+			createDragTransientVisualsContext({
+				sceneSize: 400,
+				boardClampedPoint: { x: 200, y: 150 }
+			})
+		);
+		const node = slotRoots.drag.children[0];
+		expect(node.getAttribute('y')).toBe('125');
+
+		// Update only the offset at runtime — no remount
+		api.setConfig({ drag: { pieceAnchorOffsetY: 0.2 } });
+
+		// Same DOM node, same anchor, but y shifted by squareSize * 0.2 = 10
+		instance.renderTransientVisuals!(
+			createDragTransientVisualsContext({
+				sceneSize: 400,
+				boardClampedPoint: { x: 200, y: 150 }
+			})
+		);
+		expect(slotRoots.drag.children.length).toBe(1);
+		expect(slotRoots.drag.children[0]).toBe(node);
+		expect(node.getAttribute('y')).toBe('135'); // 125 + 10
 	});
 });
