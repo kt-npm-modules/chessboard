@@ -3,10 +3,12 @@ import { ExtensionRenderTransientVisualsContext } from '../../../types/context/t
 import { ExtensionUpdateContext } from '../../../types/context/update.js';
 import { ExtensionRuntimeSurface } from '../../../types/surface/main.js';
 import type { PieceSymbolResolver } from '../piece-symbols.js';
+import type { MainRendererConfigDrag } from '../types/template.js';
 
 export interface MainRendererDragInternal {
 	readonly runtimeSurface: ExtensionRuntimeSurface;
 	readonly resolver: PieceSymbolResolver;
+	readonly getDragConfig: () => MainRendererConfigDrag;
 	isDragActive: boolean;
 	pieceCode: NonEmptyPieceCode | null;
 	pieceNode: SVGUseElement | null;

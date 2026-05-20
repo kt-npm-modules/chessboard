@@ -1,8 +1,19 @@
 import assert from '@ktarmyshov/assert';
 import { isEmptyPieceCode } from '../../state/board/check.js';
-import { isDragSessionCoreOwned } from '../../state/interaction/helpers.js';
-import { DragSession, DragSessionSnapshot } from '../../state/interaction/types/internal.js';
+import {
+	isDragSessionActiveLiftedPiece,
+	isDragSessionCoreOwned,
+	isDragSessionReleaseTargeting
+} from '../../state/interaction/helpers.js';
+import {
+	DragSession,
+	DragSessionActiveLiftedPieceCoreOwned,
+	DragSessionCoreOwnedSnapshot,
+	DragSessionPendingLiftedPieceCoreOwned,
+	DragSessionSnapshot
+} from '../../state/interaction/types/internal.js';
 import { InteractionStateSelected } from '../../state/interaction/types/main.js';
+import { isStartPendingLiftedDragSessionInput } from '../input/controller/helpers.js';
 import { RuntimeInteractionSurface } from '../input/controller/types.js';
 import { runtimeRunMutationPipeline } from '../mutation/run.js';
 import { GetInternalState, RuntimeInternal } from '../types/main.js';
@@ -29,86 +40,125 @@ export function createRuntimeInteractionSurface(
 			const internalState = state();
 			return internalState.state.board.getPieceCodeAt(square);
 		},
-		startLiftedDrag(source, target, startButton): void {
+		startLiftedDragSession(input): void {
 			const internalState = state();
 			const interactionMutationSession = internalState.mutation.getSession();
 			const interaction = internalState.state.interaction;
 
-			const pieceCode = internalState.state.board.getPieceCodeAt(source);
+			const pieceCode = internalState.state.board.getPieceCodeAt(input.sourceSquare);
 			assert(
 				!isEmptyPieceCode(pieceCode),
 				'Cannot start a lifted-piece-drag session from an empty square'
 			);
 			const interactionSource: InteractionStateSelected = {
-				square: source,
+				square: input.sourceSquare,
 				pieceCode
 			};
 			interaction.setSelected(interactionSource, interactionMutationSession);
 
-			const dragSession: DragSession = {
-				owner: 'core',
-				type: 'lifted-piece-drag',
-				sourceSquare: interactionSource.square,
-				sourcePieceCode: interactionSource.pieceCode,
-				targetSquare: target,
-				startButton
-			};
+			const dragSession: DragSession = isStartPendingLiftedDragSessionInput(input)
+				? ({
+						owner: 'core',
+						type: 'lifted-piece-drag',
+						phase: 'pending',
+						sourceSquare: interactionSource.square,
+						sourcePieceCode: interactionSource.pieceCode,
+						targetSquare: input.targetSquare,
+						startButton: input.startButton,
+						startPoint: input.startPoint,
+						thresholdPx: input.thresholdPx
+					} satisfies DragSessionPendingLiftedPieceCoreOwned)
+				: ({
+						owner: 'core',
+						type: 'lifted-piece-drag',
+						phase: 'active',
+						sourceSquare: interactionSource.square,
+						sourcePieceCode: interactionSource.pieceCode,
+						targetSquare: input.targetSquare,
+						startButton: input.startButton
+					} satisfies DragSessionActiveLiftedPieceCoreOwned);
 			interaction.setDragSession(dragSession, interactionMutationSession);
+			runtimeRunMutationPipeline(internalState);
+		},
+		activatePendingLiftedDragSession(input): void {
+			const internalState = state();
+			const mutationSession = internalState.mutation.getSession();
+			const interaction = internalState.state.interaction;
+			interaction.activatePendingLiftedDragSession(input.targetSquare, mutationSession);
 			runtimeRunMutationPipeline(internalState);
 		},
 		transientInput(input) {
 			const internalState = state();
 			internalState.renderSystem.requestRenderVisuals(input);
 		},
-		completeCoreDragTo(target) {
+		completeCoreDragSessionTo(target) {
 			const internalState = state();
 			const mutationSession = internalState.mutation.getSession();
 			const interaction = internalState.state.interaction;
-			interaction.updateDragSessionCurrentTarget(target, mutationSession);
-			const dragSession = interaction.dragSession!;
+			const currentDragSession = interaction.dragSession;
 			assert(
-				isDragSessionCoreOwned(dragSession),
-				'completeDragTo can only be called for core-owned drag sessions'
+				currentDragSession !== null &&
+					isDragSessionCoreOwned(currentDragSession) &&
+					(isDragSessionActiveLiftedPiece(currentDragSession) ||
+						isDragSessionReleaseTargeting(currentDragSession)),
+				'completeCoreDragSessionTo requires a core-owned active lifted-piece or release-targeting drag session'
 			);
+			interaction.updateDragSessionCurrentTarget(target, mutationSession);
+			const dragSession = interaction.dragSession as DragSessionCoreOwnedSnapshot;
 
 			uiMoveCompleteTo(internalState, target);
-			mutationSession.addMutation('runtime.interaction.completeCoreDragTo', true, dragSession);
+			mutationSession.addMutation(
+				'runtime.interaction.completeCoreDragSessionTo',
+				true,
+				dragSession
+			);
 			runtimeRunMutationPipeline(internalState);
 		},
-		completeExtensionDrag(target) {
+		completeExtensionDragSession(target) {
 			const internalState = state();
 			const mutationSession = internalState.mutation.getSession();
 			const interaction = internalState.state.interaction;
-			interaction.updateDragSessionCurrentTarget(target, mutationSession);
-			const dragSession = interaction.dragSession!;
+			const currentDragSession = interaction.dragSession;
 			assert(
-				!isDragSessionCoreOwned(dragSession),
-				'completeExtensionDrag can only be called for extension-owned drag sessions'
+				currentDragSession !== null && !isDragSessionCoreOwned(currentDragSession),
+				'completeExtensionDragSession can only be called for extension-owned drag sessions'
 			);
+			interaction.updateDragSessionCurrentTarget(target, mutationSession);
+			const dragSession = interaction.dragSession as Exclude<
+				DragSessionSnapshot,
+				{ owner: 'core' }
+			>;
 
 			internalState.extensionSystem.completeDrag(dragSession);
 			internalState.state.interaction.setDragSession(null, mutationSession);
-			mutationSession.addMutation('runtime.interaction.completeExtensionDragTo', true, dragSession);
+			mutationSession.addMutation(
+				'runtime.interaction.completeExtensionDragSession',
+				true,
+				dragSession
+			);
 			runtimeRunMutationPipeline(internalState);
 		},
-		startReleaseTargetingDrag(source, target, startButton): void {
+		startReleaseTargetingDragSession(input): void {
 			const internalState = state();
 			const mutationSession = internalState.mutation.getSession();
 			const interaction = internalState.state.interaction;
 
-			assert(interaction.selected !== null, 'startReleaseTargetingDrag requires a selected piece');
 			assert(
-				interaction.selected.square === source,
-				'startReleaseTargetingDrag source must match selected square'
+				interaction.selected !== null,
+				'startReleaseTargetingDragSession requires a selected piece'
+			);
+			assert(
+				interaction.selected.square === input.sourceSquare,
+				'startReleaseTargetingDragSession source must match selected square'
 			);
 
 			const dragSession: DragSession = {
 				owner: 'core',
 				type: 'release-targeting',
-				sourceSquare: source,
+				sourceSquare: input.sourceSquare,
 				sourcePieceCode: interaction.selected.pieceCode,
-				targetSquare: target,
-				startButton
+				targetSquare: input.targetSquare,
+				startButton: input.startButton
 			};
 			interaction.setDragSession(dragSession, mutationSession);
 			runtimeRunMutationPipeline(internalState);

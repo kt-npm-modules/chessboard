@@ -60,6 +60,23 @@
 			for (const [from, to, mod] of arrowData) {
 				b.extensions.annotations.arrow(from, to, { color: annotationColors[mod] });
 			}
+			b.setInteractionConfig({
+				drag: {
+					liftedActivation: {
+						thresholdPx: 5
+					}
+				}
+			});
+			b.extensions.renderer.setConfig({
+				animation: {
+					durationMs: 180
+				},
+				drag: {
+					pieceAnchor: 'bottom',
+					pieceScale: 1.5,
+					pieceAnchorOffsetY: 0.14
+				}
+			});
 		}
 	);
 

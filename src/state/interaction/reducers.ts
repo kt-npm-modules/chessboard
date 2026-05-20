@@ -1,11 +1,19 @@
 import assert from '@ktarmyshov/assert';
 import { cloneDeep } from 'es-toolkit/object';
+import { isEqual } from 'es-toolkit/predicate';
 import type { ReadonlyDeep } from 'type-fest';
 import { setsEqual } from '../../helpers/util.js';
 import type { RolePromotionCode, Square } from '../board/types/internal.js';
-import { selectedEqual } from './helpers.js';
+import { areInteractionConfigsEqual } from './config.js';
+import { isDragSessionPendingLiftedPiece, selectedEqual } from './helpers.js';
 import { movabilitiesEqual } from './movability.js';
-import { Movability, type DragSessionSnapshot, type MoveDestination } from './types/internal.js';
+import type { InteractionConfig } from './types/config.js';
+import {
+	Movability,
+	type DragSession,
+	type DragSessionSnapshot,
+	type MoveDestination
+} from './types/internal.js';
 import { InteractionStateInternal, InteractionStateSelected } from './types/main.js';
 
 export function interactionSetSelected(
@@ -21,6 +29,15 @@ export function interactionSetSelected(
 export function interactionSetMovability(state: InteractionStateInternal, m: Movability): boolean {
 	if (movabilitiesEqual(state.movability, m)) return false; // no-op
 	state.movability = cloneDeep(m); // Defensive copy to prevent external mutations
+	return true;
+}
+
+export function interactionSetConfig(
+	state: InteractionStateInternal,
+	config: InteractionConfig
+): boolean {
+	if (areInteractionConfigsEqual(state.config, config)) return false; // no-op
+	state.config = cloneDeep(config); // Defensive copy to prevent external mutations
 	return true;
 }
 
@@ -66,13 +83,25 @@ export function interactionSetDragSession(
 	state: InteractionStateInternal,
 	session: DragSessionSnapshot | null
 ): boolean {
-	const changed =
-		state.dragSession?.type !== session?.type ||
-		state.dragSession?.sourceSquare !== session?.sourceSquare ||
-		state.dragSession?.sourcePieceCode !== session?.sourcePieceCode ||
-		state.dragSession?.targetSquare !== session?.targetSquare;
-	if (!changed) return false; // no-op
+	if (state.dragSession === session) return false;
+	if (isEqual(state.dragSession, session)) return false;
 	state.dragSession = session ? cloneDeep(session) : null;
+	return true;
+}
+
+export function interactionActivatePendingLiftedDragSession(
+	state: InteractionStateInternal,
+	targetSquare: Square | null
+): boolean {
+	const current = state.dragSession;
+	assert(current !== null, 'activatePendingLiftedDragSession requires an active drag session');
+	assert(
+		isDragSessionPendingLiftedPiece(current),
+		'activatePendingLiftedDragSession requires a pending lifted-piece drag session'
+	);
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	const { startPoint: _startPoint, thresholdPx: _thresholdPx, ...rest } = current;
+	state.dragSession = { ...rest, phase: 'active', targetSquare } satisfies DragSession;
 	return true;
 }
 

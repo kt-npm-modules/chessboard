@@ -52,9 +52,10 @@ describe('createInteractionController', () => {
 			expect(surface.onEvent).toHaveBeenCalledWith({
 				...context,
 				runtimeInteractionActionPreview: {
-					type: 'startLiftedDrag',
-					source: 12,
-					target: 12,
+					type: 'startLiftedDragSession',
+					phase: 'active',
+					sourceSquare: 12,
+					targetSquare: 12,
 					startButton: 0
 				}
 			});
@@ -73,7 +74,8 @@ describe('createInteractionController', () => {
 			controller.onEvent(context);
 
 			const onEventOrder = (surface.onEvent as Mock).mock.invocationCallOrder[0];
-			const startLiftedDragOrder = (surface.startLiftedDrag as Mock).mock.invocationCallOrder[0];
+			const startLiftedDragOrder = (surface.startLiftedDragSession as Mock).mock
+				.invocationCallOrder[0];
 			expect(onEventOrder).toBeLessThan(startLiftedDragOrder);
 		});
 
@@ -83,6 +85,7 @@ describe('createInteractionController', () => {
 					dragSession: {
 						owner: 'core',
 						type: 'lifted-piece-drag',
+						phase: 'active',
 						sourceSquare: 12,
 						sourcePieceCode: PieceCode.WhitePawn,
 						targetSquare: 28,
@@ -129,14 +132,14 @@ describe('createInteractionController', () => {
 
 			controller.onEvent(context);
 
-			expect(surface.startLiftedDrag).not.toHaveBeenCalled();
+			expect(surface.startLiftedDragSession).not.toHaveBeenCalled();
 			expect(surface.updateDragSessionCurrentTarget).not.toHaveBeenCalled();
 			expect(surface.cancelActiveInteraction).not.toHaveBeenCalled();
 		});
 	});
 
 	describe('pointerdown routing', () => {
-		it('executes startLiftedDrag when target has a piece', () => {
+		it('executes startLiftedDragSession when target has a piece', () => {
 			const surface = createMockSurface({
 				getPieceCodeAt: () => PieceCode.WhitePawn
 			});
@@ -148,7 +151,12 @@ describe('createInteractionController', () => {
 
 			controller.onEvent(context);
 
-			expect(surface.startLiftedDrag).toHaveBeenCalledWith(12, 12, 0);
+			expect(surface.startLiftedDragSession).toHaveBeenCalledWith({
+				phase: 'active',
+				sourceSquare: 12,
+				targetSquare: 12,
+				startButton: 0
+			});
 		});
 	});
 
@@ -159,6 +167,7 @@ describe('createInteractionController', () => {
 					dragSession: {
 						owner: 'core',
 						type: 'lifted-piece-drag',
+						phase: 'active',
 						sourceSquare: 12,
 						sourcePieceCode: PieceCode.WhitePawn,
 						targetSquare: 12,
@@ -179,12 +188,13 @@ describe('createInteractionController', () => {
 	});
 
 	describe('pointerup routing', () => {
-		it('executes completeExtensionDrag for extension-owned drag session', () => {
+		it('executes completeExtensionDragSession for extension-owned drag session', () => {
 			const surface = createMockSurface({
 				snapshot: {
 					dragSession: {
 						owner: 'my-ext',
 						type: 'lifted-piece-drag',
+						phase: 'active',
 						sourceSquare: 12,
 						sourcePieceCode: PieceCode.WhitePawn,
 						targetSquare: 28,
@@ -200,7 +210,7 @@ describe('createInteractionController', () => {
 
 			controller.onEvent(context);
 
-			expect(surface.completeExtensionDrag).toHaveBeenCalledWith(28);
+			expect(surface.completeExtensionDragSession).toHaveBeenCalledWith(28);
 		});
 
 		it('executes cancelActiveInteraction for core drag when target is source', () => {
@@ -209,6 +219,7 @@ describe('createInteractionController', () => {
 					dragSession: {
 						owner: 'core',
 						type: 'lifted-piece-drag',
+						phase: 'active',
 						sourceSquare: 12,
 						sourcePieceCode: PieceCode.WhitePawn,
 						targetSquare: 12,
@@ -227,7 +238,7 @@ describe('createInteractionController', () => {
 			expect(surface.cancelActiveInteraction).toHaveBeenCalledOnce();
 		});
 
-		it('executes completeCoreDragTo for core drag with valid target in free mode', () => {
+		it('executes completeCoreDragSessionTo for core drag with valid target in free mode', () => {
 			const surface = createMockSurface({
 				snapshot: {
 					selected: { square: 12, pieceCode: PieceCode.WhitePawn },
@@ -235,6 +246,7 @@ describe('createInteractionController', () => {
 					dragSession: {
 						owner: 'core',
 						type: 'lifted-piece-drag',
+						phase: 'active',
 						sourceSquare: 12,
 						sourcePieceCode: PieceCode.WhitePawn,
 						targetSquare: 28,
@@ -250,7 +262,7 @@ describe('createInteractionController', () => {
 
 			controller.onEvent(context);
 
-			expect(surface.completeCoreDragTo).toHaveBeenCalledWith(28);
+			expect(surface.completeCoreDragSessionTo).toHaveBeenCalledWith(28);
 		});
 	});
 
@@ -261,6 +273,7 @@ describe('createInteractionController', () => {
 					dragSession: {
 						owner: 'core',
 						type: 'lifted-piece-drag',
+						phase: 'active',
 						sourceSquare: 12,
 						sourcePieceCode: PieceCode.WhitePawn,
 						targetSquare: 28,
@@ -287,6 +300,7 @@ describe('createInteractionController', () => {
 					dragSession: {
 						owner: 'core',
 						type: 'lifted-piece-drag',
+						phase: 'active',
 						sourceSquare: 12,
 						sourcePieceCode: PieceCode.WhitePawn,
 						targetSquare: 28,
@@ -305,7 +319,7 @@ describe('createInteractionController', () => {
 			expect(surface.cancelActiveInteraction).toHaveBeenCalledOnce();
 		});
 
-		it('executes completeCoreDragTo when button released and valid target in free mode', () => {
+		it('executes completeCoreDragSessionTo when button released and valid target in free mode', () => {
 			const surface = createMockSurface({
 				snapshot: {
 					selected: { square: 12, pieceCode: PieceCode.WhitePawn },
@@ -313,6 +327,7 @@ describe('createInteractionController', () => {
 					dragSession: {
 						owner: 'core',
 						type: 'lifted-piece-drag',
+						phase: 'active',
 						sourceSquare: 12,
 						sourcePieceCode: PieceCode.WhitePawn,
 						targetSquare: 28,
@@ -328,7 +343,7 @@ describe('createInteractionController', () => {
 
 			controller.onEvent(context);
 
-			expect(surface.completeCoreDragTo).toHaveBeenCalledWith(28);
+			expect(surface.completeCoreDragSessionTo).toHaveBeenCalledWith(28);
 		});
 
 		it('does not call cancelActiveInteraction when no drag session', () => {
@@ -377,6 +392,7 @@ describe('createInteractionController', () => {
 					dragSession: {
 						owner: 'core',
 						type: 'lifted-piece-drag',
+						phase: 'active',
 						sourceSquare: 12,
 						sourcePieceCode: PieceCode.WhitePawn,
 						targetSquare: 28,
@@ -390,11 +406,11 @@ describe('createInteractionController', () => {
 
 			controller.onEvent(context);
 
-			expect(surface.startLiftedDrag).not.toHaveBeenCalled();
-			expect(surface.startReleaseTargetingDrag).not.toHaveBeenCalled();
+			expect(surface.startLiftedDragSession).not.toHaveBeenCalled();
+			expect(surface.startReleaseTargetingDragSession).not.toHaveBeenCalled();
 			expect(surface.updateDragSessionCurrentTarget).not.toHaveBeenCalled();
-			expect(surface.completeCoreDragTo).not.toHaveBeenCalled();
-			expect(surface.completeExtensionDrag).not.toHaveBeenCalled();
+			expect(surface.completeCoreDragSessionTo).not.toHaveBeenCalled();
+			expect(surface.completeExtensionDragSession).not.toHaveBeenCalled();
 			expect(surface.cancelActiveInteraction).not.toHaveBeenCalled();
 			expect(surface.cancelInteraction).not.toHaveBeenCalled();
 		});
@@ -411,7 +427,7 @@ describe('createInteractionController', () => {
 			controller.onEvent(context);
 
 			expect(surface.onEvent).toHaveBeenCalledOnce();
-			expect(surface.startLiftedDrag).not.toHaveBeenCalled();
+			expect(surface.startLiftedDragSession).not.toHaveBeenCalled();
 			expect(surface.cancelActiveInteraction).not.toHaveBeenCalled();
 		});
 	});

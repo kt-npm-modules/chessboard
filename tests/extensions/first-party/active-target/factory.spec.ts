@@ -53,6 +53,7 @@ function createCoreDragSession(targetSquare: number) {
 	return {
 		owner: 'core',
 		type: 'lifted-piece-drag',
+		phase: 'active',
 		sourceSquare: 0,
 		sourcePieceCode: 1,
 		targetSquare

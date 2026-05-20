@@ -1,6 +1,6 @@
 import type { Square } from '../../../state/board/types/internal.js';
-import { isUpdateContextRenderable } from '../../types/context/update.js';
 import type { ExtensionUpdateContext } from '../../types/context/update.js';
+import { isUpdateContextRenderable } from '../../types/context/update.js';
 import { clearCommittedAnnotations, hasCommittedAnnotations } from './committed.js';
 import { DirtyLayer } from './types/internal.js';
 import type { AnnotationsStateInternal } from './types/main.js';
@@ -14,7 +14,7 @@ export function annotationsOnUpdate(
 		state.config.clearOnCoreInteraction &&
 		hasCommittedAnnotations(state) &&
 		context.mutation.hasMutation({
-			causes: ['runtime.interaction.completeCoreDragTo']
+			causes: ['runtime.interaction.completeCoreDragSessionTo']
 		})
 	) {
 		clearCommittedAnnotations(state);

@@ -1,10 +1,13 @@
 import assert from '@ktarmyshov/assert';
 import { cloneDeep } from 'es-toolkit';
+import { DefaultInteractionDesktopConfig, normalizeInteractionConfig } from './config.js';
 import { updateActiveDestinations } from './helpers.js';
 import { normalizeMovability } from './normalize.js';
 import {
+	interactionActivatePendingLiftedDragSession,
 	interactionClear,
 	interactionClearActive,
+	interactionSetConfig,
 	interactionSetDragSession,
 	interactionSetMovability,
 	interactionSetSelected,
@@ -33,7 +36,8 @@ function createInteractionStateInternal(
 		movability,
 		selected: null,
 		activeDestinations: new Map(),
-		dragSession: null
+		dragSession: null,
+		config: normalizeInteractionConfig(options.config, DefaultInteractionDesktopConfig)
 	};
 }
 
@@ -77,7 +81,7 @@ export function createInteractionState(options: InteractionStateInitOptions): In
 			return updateActiveDestinations(internalState, mutationSession);
 		},
 		get dragSession() {
-			return internalState.dragSession ? { ...internalState.dragSession } : null;
+			return cloneDeep(internalState.dragSession);
 		},
 
 		setDragSession(session, mutationSession) {
@@ -110,6 +114,13 @@ export function createInteractionState(options: InteractionStateInitOptions): In
 			);
 		},
 
+		activatePendingLiftedDragSession(targetSquare, mutationSession) {
+			return mutationSession.addMutation(
+				'state.interaction.activatePendingLiftedDragSession',
+				interactionActivatePendingLiftedDragSession(internalState, targetSquare)
+			);
+		},
+
 		updateDragSessionCurrentTarget(sq, mutationSession) {
 			assert(
 				internalState.dragSession,
@@ -135,6 +146,16 @@ export function createInteractionState(options: InteractionStateInitOptions): In
 				'state.interaction.clearActive',
 				interactionClearActive(internalState)
 			);
+		},
+		setConfig(config, mutationSession) {
+			const nextConfig = normalizeInteractionConfig(config, internalState.config);
+			return mutationSession.addMutation(
+				'state.interaction.setConfig',
+				interactionSetConfig(internalState, nextConfig)
+			);
+		},
+		getConfig() {
+			return cloneDeep(internalState.config);
 		},
 		getSnapshot() {
 			return cloneDeep(internalState);

@@ -11,12 +11,21 @@ A framework-agnostic TypeScript chessboard platform with real chess interaction 
 ## Try it live (including annotations)
 
 - [Play a chess.js game](https://mirasen.io/chessboard/examples/chessjs.html)
+- [Watch 12 live boards](https://mirasen.io/chessboard/examples/live-games-grid.html)
 - [Try the promotion flow](https://mirasen.io/chessboard/examples/promotion.html)
 - [Try the minimal example](https://mirasen.io/chessboard/examples/minimal.html)
 
 ## Using React?
 
 Use [`@mirasen/react-chessboard`](https://www.npmjs.com/package/@mirasen/react-chessboard) for a React component with the same built-in interaction, annotations, promotion, animation, and chess.js integration.
+
+## Native mobile apps
+
+`@mirasen/chessboard` is not tied to React or any other web framework. It is plain TypeScript/JavaScript on top of DOM and SVG, so it should fit WebView-based native iOS or Android integrations.
+
+A common integration pattern is to bundle a WebView host page, mount the board there, and communicate with the native app through the platform bridge.
+
+This keeps the integration model lightweight while avoiding a separate native chessboard UI implementation.
 
 ## Why this exists
 

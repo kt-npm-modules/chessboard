@@ -2,9 +2,14 @@ import assert from '@ktarmyshov/assert';
 import type { RuntimeInteractionAction } from '../../../extensions/types/basic/events.js';
 import { isEmptyPieceCode, isNonEmptyPieceCode } from '../../../state/board/check.js';
 import { fromPieceCode } from '../../../state/board/piece.js';
-import { isDragSessionCoreOwned } from '../../../state/interaction/helpers.js';
+import {
+	isDragSessionActiveLiftedPiece,
+	isDragSessionCoreOwned,
+	isDragSessionPendingLiftedPiece,
+	isDragSessionReleaseTargeting
+} from '../../../state/interaction/helpers.js';
 import { MovabilityModeCode } from '../../../state/interaction/types/internal.js';
-import { buttonToButtonsMask, canMoveTo } from './helpers.js';
+import { buttonToButtonsMask, canMoveTo, isMovementBeyondThreshold } from './helpers.js';
 import type {
 	InteractionControllerInternal,
 	InteractionControllerOnEventContext
@@ -47,9 +52,9 @@ export function determineActionPointerDown(
 
 			if (isEmptyPieceCode(targetPieceCode)) {
 				return {
-					type: 'startReleaseTargetingDrag',
-					source: interaction.selected.square,
-					target: sceneEvent.targetSquare,
+					type: 'startReleaseTargetingDragSession',
+					sourceSquare: interaction.selected.square,
+					targetSquare: sceneEvent.targetSquare,
 					startButton: rawEvent.button
 				};
 			}
@@ -64,9 +69,9 @@ export function determineActionPointerDown(
 				isLegalMoveTarget
 			) {
 				return {
-					type: 'startReleaseTargetingDrag',
-					source: interaction.selected.square,
-					target: sceneEvent.targetSquare,
+					type: 'startReleaseTargetingDragSession',
+					sourceSquare: interaction.selected.square,
+					targetSquare: sceneEvent.targetSquare,
 					startButton: rawEvent.button
 				};
 			}
@@ -77,10 +82,23 @@ export function determineActionPointerDown(
 		 */
 		const pieceCode = state.surface.getPieceCodeAt(sceneEvent.targetSquare);
 		if (!isEmptyPieceCode(pieceCode)) {
+			const thresholdPx = interaction.config.drag.liftedActivation.thresholdPx;
+			if (thresholdPx > 0) {
+				return {
+					type: 'startLiftedDragSession',
+					phase: 'pending',
+					sourceSquare: sceneEvent.targetSquare,
+					targetSquare: sceneEvent.targetSquare,
+					startButton: rawEvent.button,
+					startPoint: sceneEvent.point,
+					thresholdPx
+				};
+			}
 			return {
-				type: 'startLiftedDrag',
-				source: sceneEvent.targetSquare,
-				target: sceneEvent.targetSquare,
+				type: 'startLiftedDragSession',
+				phase: 'active',
+				sourceSquare: sceneEvent.targetSquare,
+				targetSquare: sceneEvent.targetSquare,
 				startButton: rawEvent.button
 			};
 		}
@@ -98,13 +116,27 @@ export function determineActionPointerMove(
 		'determineActionPointerMove should only be called for pointermove events'
 	);
 	const interaction = state.surface.getInteractionStateSnapshot();
-	if (interaction.dragSession) {
-		return {
-			type: 'updateDragSessionCurrentTarget',
-			target: context.sceneEvent?.targetSquare ?? null
-		};
+	const dragSession = interaction.dragSession;
+	if (!dragSession) {
+		return null;
 	}
-	return null;
+	const sceneEvent = context.sceneEvent;
+	assert(sceneEvent, 'pointermove requires a scene event');
+	if (isDragSessionPendingLiftedPiece(dragSession)) {
+		if (
+			isMovementBeyondThreshold(dragSession.startPoint, sceneEvent.point, dragSession.thresholdPx)
+		) {
+			return {
+				type: 'activatePendingLiftedDragSession',
+				targetSquare: sceneEvent.targetSquare
+			};
+		}
+		return { type: 'updateDragSessionCurrentTarget', targetSquare: sceneEvent.targetSquare };
+	}
+	return {
+		type: 'updateDragSessionCurrentTarget',
+		targetSquare: sceneEvent.targetSquare
+	};
 }
 
 function determineActionTerminalRelease(
@@ -123,8 +155,8 @@ function determineActionTerminalRelease(
 
 	if (!isDragSessionCoreOwned(dragSession)) {
 		return {
-			type: 'completeExtensionDrag',
-			target: sceneEvent.targetSquare
+			type: 'completeExtensionDragSession',
+			targetSquare: sceneEvent.targetSquare
 		};
 	}
 
@@ -132,8 +164,12 @@ function determineActionTerminalRelease(
 		return { type: 'cancelActiveInteraction' };
 	}
 
-	if (sceneEvent.targetSquare !== null && canMoveTo(interaction, sceneEvent.targetSquare)) {
-		return { type: 'completeCoreDragTo', target: sceneEvent.targetSquare };
+	if (
+		sceneEvent.targetSquare !== null &&
+		canMoveTo(interaction, sceneEvent.targetSquare) &&
+		(isDragSessionActiveLiftedPiece(dragSession) || isDragSessionReleaseTargeting(dragSession))
+	) {
+		return { type: 'completeCoreDragSessionTo', targetSquare: sceneEvent.targetSquare };
 	}
 
 	if (dragSession.type === 'lifted-piece-drag') {

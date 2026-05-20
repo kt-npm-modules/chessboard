@@ -223,7 +223,7 @@ describe('annotations public API – render invalidation', () => {
 			};
 		}
 
-		it('clears annotations and marks dirty on completeCoreDragTo when clearOnCoreInteraction=true and annotations exist', () => {
+		it('clears annotations and marks dirty on completeCoreDragSessionTo when clearOnCoreInteraction=true and annotations exist', () => {
 			const def = createAnnotations({
 				annotations: {
 					circles: [{ square: 'e4', color: '#ff0000' }],
@@ -242,7 +242,7 @@ describe('annotations public API – render invalidation', () => {
 			expect(api.getArrows()).toHaveLength(1);
 
 			const { context, markDirty } = createUpdateContext([
-				'runtime.interaction.completeCoreDragTo'
+				'runtime.interaction.completeCoreDragSessionTo'
 			]);
 			instance.onUpdate!(context);
 
@@ -251,7 +251,7 @@ describe('annotations public API – render invalidation', () => {
 			expect(markDirty).toHaveBeenCalledWith(DirtyLayer.COMMITTED);
 		});
 
-		it('does not clear annotations on completeCoreDragTo when clearOnCoreInteraction=false', () => {
+		it('does not clear annotations on completeCoreDragSessionTo when clearOnCoreInteraction=false', () => {
 			const def = createAnnotations({
 				config: { clearOnCoreInteraction: false },
 				annotations: {
@@ -266,7 +266,7 @@ describe('annotations public API – render invalidation', () => {
 			const api = instance.getPublic();
 
 			const { context, markDirty } = createUpdateContext([
-				'runtime.interaction.completeCoreDragTo'
+				'runtime.interaction.completeCoreDragSessionTo'
 			]);
 			instance.onUpdate!(context);
 
@@ -275,7 +275,7 @@ describe('annotations public API – render invalidation', () => {
 			expect(markDirty).not.toHaveBeenCalled();
 		});
 
-		it('does not mark dirty on completeCoreDragTo when annotations are empty', () => {
+		it('does not mark dirty on completeCoreDragSessionTo when annotations are empty', () => {
 			const def = createAnnotations();
 			const { surface } = createMockRuntimeSurface();
 			const instance = def.createInstance(
@@ -283,7 +283,7 @@ describe('annotations public API – render invalidation', () => {
 			);
 
 			const { context, markDirty } = createUpdateContext([
-				'runtime.interaction.completeCoreDragTo'
+				'runtime.interaction.completeCoreDragSessionTo'
 			]);
 			instance.onUpdate!(context);
 

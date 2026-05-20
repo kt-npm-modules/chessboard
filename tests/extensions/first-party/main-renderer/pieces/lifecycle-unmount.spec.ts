@@ -75,6 +75,7 @@ describe('pieces factory – unmount cleanup', () => {
 			dragSession: {
 				owner: 'core',
 				type: 'lifted-piece-drag',
+				phase: 'active',
 				sourceSquare: 0 as Square,
 				sourcePieceCode: PieceCode.WhiteKing,
 				targetSquare: null,

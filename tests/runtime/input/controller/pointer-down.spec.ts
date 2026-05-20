@@ -36,6 +36,7 @@ describe('determineActionPointerDown', () => {
 				dragSession: {
 					owner: 'core',
 					type: 'lifted-piece-drag',
+					phase: 'active',
 					sourceSquare: 12 as Square,
 					sourcePieceCode: PieceCode.WhitePawn,
 					targetSquare: 12 as Square,
@@ -62,7 +63,7 @@ describe('determineActionPointerDown', () => {
 		expect(result).toBeNull();
 	});
 
-	it('returns startLiftedDrag when no selection and target has a piece', () => {
+	it('returns startLiftedDragSession (active) when no selection and target has a piece', () => {
 		const surface = createMockSurface({
 			getPieceCodeAt: () => PieceCode.WhitePawn
 		});
@@ -70,7 +71,13 @@ describe('determineActionPointerDown', () => {
 
 		const result = determineActionPointerDown({ surface }, context);
 
-		expect(result).toEqual({ type: 'startLiftedDrag', source: 12, target: 12, startButton: 0 });
+		expect(result).toEqual({
+			type: 'startLiftedDragSession',
+			phase: 'active',
+			sourceSquare: 12,
+			targetSquare: 12,
+			startButton: 0
+		});
 	});
 
 	it('returns null when no selection and target is empty', () => {
@@ -84,7 +91,7 @@ describe('determineActionPointerDown', () => {
 		expect(result).toBeNull();
 	});
 
-	it('returns startReleaseTargetingDrag when selected and target is empty', () => {
+	it('returns startReleaseTargetingDragSession when selected and target is empty', () => {
 		const surface = createMockSurface({
 			snapshot: {
 				selected: { square: 12 as Square, pieceCode: PieceCode.WhitePawn }
@@ -96,14 +103,14 @@ describe('determineActionPointerDown', () => {
 		const result = determineActionPointerDown({ surface }, context);
 
 		expect(result).toEqual({
-			type: 'startReleaseTargetingDrag',
-			source: 12,
-			target: 28,
+			type: 'startReleaseTargetingDragSession',
+			sourceSquare: 12,
+			targetSquare: 28,
 			startButton: 0
 		});
 	});
 
-	it('returns startLiftedDrag when selected and target is same square (re-lift)', () => {
+	it('returns startLiftedDragSession (active) when selected and target is same square (re-lift)', () => {
 		const surface = createMockSurface({
 			snapshot: {
 				selected: { square: 12 as Square, pieceCode: PieceCode.WhitePawn }
@@ -114,10 +121,16 @@ describe('determineActionPointerDown', () => {
 
 		const result = determineActionPointerDown({ surface }, context);
 
-		expect(result).toEqual({ type: 'startLiftedDrag', source: 12, target: 12, startButton: 0 });
+		expect(result).toEqual({
+			type: 'startLiftedDragSession',
+			phase: 'active',
+			sourceSquare: 12,
+			targetSquare: 12,
+			startButton: 0
+		});
 	});
 
-	it('returns startLiftedDrag when selected and target has same-color piece', () => {
+	it('returns startLiftedDragSession (active) when selected and target has same-color piece', () => {
 		const surface = createMockSurface({
 			snapshot: {
 				selected: { square: 12 as Square, pieceCode: PieceCode.WhitePawn }
@@ -128,10 +141,16 @@ describe('determineActionPointerDown', () => {
 
 		const result = determineActionPointerDown({ surface }, context);
 
-		expect(result).toEqual({ type: 'startLiftedDrag', source: 6, target: 6, startButton: 0 });
+		expect(result).toEqual({
+			type: 'startLiftedDragSession',
+			phase: 'active',
+			sourceSquare: 6,
+			targetSquare: 6,
+			startButton: 0
+		});
 	});
 
-	it('returns startReleaseTargetingDrag when selected and target has opposite-color piece that is a legal move target (free mode)', () => {
+	it('returns startReleaseTargetingDragSession when selected and target has opposite-color piece that is a legal move target (free mode)', () => {
 		const surface = createMockSurface({
 			snapshot: {
 				selected: { square: 12 as Square, pieceCode: PieceCode.WhitePawn },
@@ -144,14 +163,14 @@ describe('determineActionPointerDown', () => {
 		const result = determineActionPointerDown({ surface }, context);
 
 		expect(result).toEqual({
-			type: 'startReleaseTargetingDrag',
-			source: 12,
-			target: 28,
+			type: 'startReleaseTargetingDragSession',
+			sourceSquare: 12,
+			targetSquare: 28,
 			startButton: 0
 		});
 	});
 
-	it('returns startReleaseTargetingDrag when selected and target has opposite-color piece in strict mode with target in destinations', () => {
+	it('returns startReleaseTargetingDragSession when selected and target has opposite-color piece in strict mode with target in destinations', () => {
 		const destinations = new Map([[28 as Square, { to: 28 as Square }]] as const);
 		const surface = createMockSurface({
 			snapshot: {
@@ -166,14 +185,14 @@ describe('determineActionPointerDown', () => {
 		const result = determineActionPointerDown({ surface }, context);
 
 		expect(result).toEqual({
-			type: 'startReleaseTargetingDrag',
-			source: 12,
-			target: 28,
+			type: 'startReleaseTargetingDragSession',
+			sourceSquare: 12,
+			targetSquare: 28,
 			startButton: 0
 		});
 	});
 
-	it('returns startLiftedDrag when selected and target has opposite-color piece but is NOT a legal target (disabled mode)', () => {
+	it('returns startLiftedDragSession (active) when selected and target has opposite-color piece but is NOT a legal target (disabled mode)', () => {
 		const surface = createMockSurface({
 			snapshot: {
 				selected: { square: 12 as Square, pieceCode: PieceCode.WhitePawn },
@@ -185,6 +204,54 @@ describe('determineActionPointerDown', () => {
 
 		const result = determineActionPointerDown({ surface }, context);
 
-		expect(result).toEqual({ type: 'startLiftedDrag', source: 28, target: 28, startButton: 0 });
+		expect(result).toEqual({
+			type: 'startLiftedDragSession',
+			phase: 'active',
+			sourceSquare: 28,
+			targetSquare: 28,
+			startButton: 0
+		});
+	});
+
+	it('starts active lifted-piece drag when thresholdPx === 0', () => {
+		const surface = createMockSurface({
+			snapshot: {
+				config: { drag: { liftedActivation: { thresholdPx: 0 } } }
+			},
+			getPieceCodeAt: () => PieceCode.WhitePawn
+		});
+		const context = makeContext(12);
+
+		const result = determineActionPointerDown({ surface }, context);
+
+		expect(result).toEqual({
+			type: 'startLiftedDragSession',
+			phase: 'active',
+			sourceSquare: 12,
+			targetSquare: 12,
+			startButton: 0
+		});
+	});
+
+	it('starts pending lifted-piece drag when thresholdPx > 0', () => {
+		const surface = createMockSurface({
+			snapshot: {
+				config: { drag: { liftedActivation: { thresholdPx: 4 } } }
+			},
+			getPieceCodeAt: () => PieceCode.WhitePawn
+		});
+		const context = makeContext(12);
+
+		const result = determineActionPointerDown({ surface }, context);
+
+		expect(result).toEqual({
+			type: 'startLiftedDragSession',
+			phase: 'pending',
+			sourceSquare: 12,
+			targetSquare: 12,
+			startButton: 0,
+			startPoint: { x: 100, y: 100 },
+			thresholdPx: 4
+		});
 	});
 });

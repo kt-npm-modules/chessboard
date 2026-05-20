@@ -127,7 +127,7 @@ describe('createBoardEvents', () => {
 	});
 
 	describe('onUIMove callback', () => {
-		it('is called when mutation includes completeCoreDragTo and setLastMove', () => {
+		it('is called when mutation includes completeCoreDragSessionTo and setLastMove', () => {
 			const def = createBoardEvents();
 			const instance = def.createInstance(
 				createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
@@ -141,7 +141,10 @@ describe('createBoardEvents', () => {
 
 			// e2 (12) -> e4 (28) with white pawn (PieceCode.WhitePawn = 1)
 			const context = createFakeUpdateContext({
-				hasMutationCauses: ['state.change.setLastMove', 'runtime.interaction.completeCoreDragTo'],
+				hasMutationCauses: [
+					'state.change.setLastMove',
+					'runtime.interaction.completeCoreDragSessionTo'
+				],
 				lastMove: { from: 12, to: 28, piece: PieceCode.WhitePawn }
 			});
 
@@ -154,7 +157,7 @@ describe('createBoardEvents', () => {
 			expect(move.piece).toBe('wP');
 		});
 
-		it('calls onUIMove for completeExtensionDragTo + setLastMove', () => {
+		it('calls onUIMove for completeExtensionDragSession + setLastMove', () => {
 			const def = createBoardEvents();
 			const instance = def.createInstance(
 				createMockExtensionCreateInstanceOptions({ runtimeSurface: {} as never })
@@ -169,7 +172,7 @@ describe('createBoardEvents', () => {
 			const context = createFakeUpdateContext({
 				hasMutationCauses: [
 					'state.change.setLastMove',
-					'runtime.interaction.completeExtensionDragTo'
+					'runtime.interaction.completeExtensionDragSession'
 				],
 				lastMove: { from: 12, to: 28, piece: PieceCode.WhitePawn }
 			});
@@ -294,7 +297,10 @@ describe('createBoardEvents', () => {
 			pub.setOnUIMove(callback);
 
 			const context = createFakeUpdateContext({
-				hasMutationCauses: ['state.change.setLastMove', 'runtime.interaction.completeCoreDragTo'],
+				hasMutationCauses: [
+					'state.change.setLastMove',
+					'runtime.interaction.completeCoreDragSessionTo'
+				],
 				lastMove: null
 			});
 
@@ -310,7 +316,10 @@ describe('createBoardEvents', () => {
 			);
 
 			const context = createFakeUpdateContext({
-				hasMutationCauses: ['state.change.setLastMove', 'runtime.interaction.completeCoreDragTo'],
+				hasMutationCauses: [
+					'state.change.setLastMove',
+					'runtime.interaction.completeCoreDragSessionTo'
+				],
 				lastMove: { from: 12, to: 28, piece: PieceCode.WhitePawn }
 			});
 
@@ -362,7 +371,10 @@ describe('createBoardEvents', () => {
 			pub.setOnUIMove(callback2);
 
 			const context = createFakeUpdateContext({
-				hasMutationCauses: ['state.change.setLastMove', 'runtime.interaction.completeCoreDragTo'],
+				hasMutationCauses: [
+					'state.change.setLastMove',
+					'runtime.interaction.completeCoreDragSessionTo'
+				],
 				lastMove: { from: 12, to: 28, piece: PieceCode.WhitePawn }
 			});
 

@@ -28,12 +28,13 @@ describe('determineActionPointerUp', () => {
 		expect(result).toBeNull();
 	});
 
-	it('returns completeExtensionDrag for extension-owned drag session', () => {
+	it('returns completeExtensionDragSession for extension-owned drag session', () => {
 		const surface = createMockSurface({
 			snapshot: {
 				dragSession: {
 					owner: 'my-ext',
 					type: 'lifted-piece-drag',
+					phase: 'active',
 					sourceSquare: 12 as Square,
 					sourcePieceCode: PieceCode.WhitePawn,
 					targetSquare: 28 as Square,
@@ -45,7 +46,7 @@ describe('determineActionPointerUp', () => {
 
 		const result = determineActionPointerUp({ surface }, context);
 
-		expect(result).toEqual({ type: 'completeExtensionDrag', target: 28 });
+		expect(result).toEqual({ type: 'completeExtensionDragSession', targetSquare: 28 });
 	});
 
 	it('returns cancelActiveInteraction when core drag target equals source', () => {
@@ -54,6 +55,7 @@ describe('determineActionPointerUp', () => {
 				dragSession: {
 					owner: 'core',
 					type: 'lifted-piece-drag',
+					phase: 'active',
 					sourceSquare: 12 as Square,
 					sourcePieceCode: PieceCode.WhitePawn,
 					targetSquare: 12 as Square,
@@ -68,7 +70,7 @@ describe('determineActionPointerUp', () => {
 		expect(result).toEqual({ type: 'cancelActiveInteraction' });
 	});
 
-	it('returns completeCoreDragTo when core drag has valid target (free mode)', () => {
+	it('returns completeCoreDragSessionTo when core drag has valid target (free mode)', () => {
 		const surface = createMockSurface({
 			snapshot: {
 				selected: { square: 12 as Square, pieceCode: PieceCode.WhitePawn },
@@ -76,6 +78,7 @@ describe('determineActionPointerUp', () => {
 				dragSession: {
 					owner: 'core',
 					type: 'lifted-piece-drag',
+					phase: 'active',
 					sourceSquare: 12 as Square,
 					sourcePieceCode: PieceCode.WhitePawn,
 					targetSquare: 28 as Square,
@@ -87,7 +90,7 @@ describe('determineActionPointerUp', () => {
 
 		const result = determineActionPointerUp({ surface }, context);
 
-		expect(result).toEqual({ type: 'completeCoreDragTo', target: 28 });
+		expect(result).toEqual({ type: 'completeCoreDragSessionTo', targetSquare: 28 });
 	});
 
 	it('returns cancelActiveInteraction for lifted-piece-drag with invalid target', () => {
@@ -98,6 +101,7 @@ describe('determineActionPointerUp', () => {
 				dragSession: {
 					owner: 'core',
 					type: 'lifted-piece-drag',
+					phase: 'active',
 					sourceSquare: 12 as Square,
 					sourcePieceCode: PieceCode.WhitePawn,
 					targetSquare: 28 as Square,
@@ -110,6 +114,28 @@ describe('determineActionPointerUp', () => {
 		const result = determineActionPointerUp({ surface }, context);
 
 		expect(result).toEqual({ type: 'cancelActiveInteraction' });
+	});
+
+	it('returns completeCoreDragSessionTo for release-targeting drag with legal target (free mode)', () => {
+		const surface = createMockSurface({
+			snapshot: {
+				selected: { square: 12 as Square, pieceCode: PieceCode.WhitePawn },
+				movability: { mode: MovabilityModeCode.Free },
+				dragSession: {
+					owner: 'core',
+					type: 'release-targeting',
+					sourceSquare: 12 as Square,
+					sourcePieceCode: PieceCode.WhitePawn,
+					targetSquare: 28 as Square,
+					startButton: 0
+				}
+			}
+		});
+		const context = makeContext(28);
+
+		const result = determineActionPointerUp({ surface }, context);
+
+		expect(result).toEqual({ type: 'completeCoreDragSessionTo', targetSquare: 28 });
 	});
 
 	it('returns cancelInteraction for release-targeting drag with invalid target', () => {
@@ -142,6 +168,7 @@ describe('determineActionPointerUp', () => {
 				dragSession: {
 					owner: 'core',
 					type: 'lifted-piece-drag',
+					phase: 'active',
 					sourceSquare: 12 as Square,
 					sourcePieceCode: PieceCode.WhitePawn,
 					targetSquare: null,
@@ -176,5 +203,53 @@ describe('determineActionPointerUp', () => {
 		const result = determineActionPointerUp({ surface }, context);
 
 		expect(result).toEqual({ type: 'cancelInteraction' });
+	});
+
+	it('returns cancelActiveInteraction for pending lifted-piece even when target is a legal destination', () => {
+		const surface = createMockSurface({
+			snapshot: {
+				selected: { square: 12 as Square, pieceCode: PieceCode.WhitePawn },
+				movability: { mode: MovabilityModeCode.Free },
+				dragSession: {
+					owner: 'core',
+					type: 'lifted-piece-drag',
+					phase: 'pending',
+					sourceSquare: 12 as Square,
+					sourcePieceCode: PieceCode.WhitePawn,
+					targetSquare: 28 as Square,
+					startButton: 0,
+					startPoint: { x: 0, y: 0 },
+					thresholdPx: 4
+				}
+			}
+		});
+		const context = makeContext(28);
+
+		const result = determineActionPointerUp({ surface }, context);
+
+		expect(result).toEqual({ type: 'cancelActiveInteraction' });
+	});
+
+	it('returns completeExtensionDragSession for extension-owned pending lifted-piece session', () => {
+		const surface = createMockSurface({
+			snapshot: {
+				dragSession: {
+					owner: 'my-ext',
+					type: 'lifted-piece-drag',
+					phase: 'pending',
+					sourceSquare: 12 as Square,
+					sourcePieceCode: PieceCode.WhitePawn,
+					targetSquare: 28 as Square,
+					startButton: 0,
+					startPoint: { x: 0, y: 0 },
+					thresholdPx: 4
+				}
+			}
+		});
+		const context = makeContext(28);
+
+		const result = determineActionPointerUp({ surface }, context);
+
+		expect(result).toEqual({ type: 'completeExtensionDragSession', targetSquare: 28 });
 	});
 });

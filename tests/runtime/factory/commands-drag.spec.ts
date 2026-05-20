@@ -5,9 +5,14 @@ import type {
 } from '../../../src/extensions/types/extension.js';
 import type { ExtensionRuntimeSurfaceCommands } from '../../../src/extensions/types/surface/commands.js';
 import { createRuntime } from '../../../src/runtime/factory/main.js';
-import { notifyExtensionCancelDragIfOwned } from '../../../src/runtime/factory/input.js';
+import {
+	createRuntimeInteractionSurface,
+	notifyExtensionCancelDragIfOwned
+} from '../../../src/runtime/factory/input.js';
 import { normalizeSquare } from '../../../src/state/board/normalize.js';
-import { PieceCode } from '../../../src/state/board/types/internal.js';
+import { PieceCode, type Square } from '../../../src/state/board/types/internal.js';
+import type { DragSessionExtensionOwned } from '../../../src/state/interaction/types/internal.js';
+import { makeDragSessionCoreOwned } from '../../test-utils/state/interaction/fixtures.js';
 
 let capturedCommands: ExtensionRuntimeSurfaceCommands | null = null;
 
@@ -51,6 +56,7 @@ describe('runtime startDrag (extension-facing boundary)', () => {
 
 		const result = commands.startDrag({
 			type: 'lifted-piece-drag',
+			phase: 'active',
 			sourceSquare: normalizeSquare('e2'),
 			sourcePieceCode: PieceCode.WhitePawn,
 			targetSquare: normalizeSquare('e4'),
@@ -65,6 +71,7 @@ describe('runtime startDrag (extension-facing boundary)', () => {
 
 		commands.startDrag({
 			type: 'lifted-piece-drag',
+			phase: 'active',
 			sourceSquare: normalizeSquare('e2'),
 			sourcePieceCode: PieceCode.WhitePawn,
 			targetSquare: normalizeSquare('e4'),
@@ -84,6 +91,7 @@ describe('runtime startDrag (extension-facing boundary)', () => {
 
 		commands.startDrag({
 			type: 'lifted-piece-drag',
+			phase: 'active',
 			sourceSquare: normalizeSquare('e2'),
 			sourcePieceCode: PieceCode.WhitePawn,
 			targetSquare: normalizeSquare('e4'),
@@ -106,6 +114,7 @@ describe('runtime startDrag (extension-facing boundary)', () => {
 
 		commands.startDrag({
 			type: 'lifted-piece-drag',
+			phase: 'active',
 			sourceSquare: normalizeSquare('e2'),
 			sourcePieceCode: PieceCode.WhitePawn,
 			targetSquare: normalizeSquare('e4'),
@@ -134,6 +143,7 @@ describe('runtime startDrag (extension-facing boundary)', () => {
 		expect(() =>
 			commands.startDrag({
 				type: 'lifted-piece-drag',
+				phase: 'active',
 				sourceSquare: normalizeSquare('e2'),
 				sourcePieceCode: PieceCode.WhitePawn,
 				targetSquare: normalizeSquare('e4'),
@@ -186,6 +196,7 @@ describe('runtime cancelDrag notification on clearActiveInteraction', () => {
 		notifyExtensionCancelDragIfOwned({ extensionSystem: mockExtensionSystem } as never, {
 			owner: 'core',
 			type: 'lifted-piece-drag',
+			phase: 'active',
 			sourceSquare: normalizeSquare('e2'),
 			sourcePieceCode: PieceCode.WhitePawn,
 			targetSquare: normalizeSquare('e4'),
@@ -216,5 +227,147 @@ describe('runtime cancelDrag notification on clearActiveInteraction', () => {
 		});
 
 		expect(() => runtime.clearActiveInteraction()).not.toThrow();
+	});
+});
+
+describe('createRuntimeInteractionSurface.completeCoreDragSessionTo assertion', () => {
+	function createSurfaceWithDragSession(dragSession: ReturnType<typeof makeDragSessionCoreOwned>) {
+		const mutationSession = { addMutation: vi.fn() };
+		const interaction = {
+			get dragSession() {
+				return dragSession;
+			},
+			updateDragSessionCurrentTarget: vi.fn()
+		};
+		const fakeInternal = {
+			state: { interaction },
+			mutation: { getSession: () => mutationSession }
+		};
+		return {
+			surface: createRuntimeInteractionSurface(() => fakeInternal as never),
+			interaction
+		};
+	}
+
+	it('throws when drag session is a pending lifted-piece (core-owned)', () => {
+		const dragSession = makeDragSessionCoreOwned({
+			phase: 'pending',
+			sourceSquare: 12 as Square,
+			sourcePieceCode: PieceCode.WhitePawn,
+			targetSquare: 28 as Square,
+			startButton: 0,
+			startPoint: { x: 0, y: 0 },
+			thresholdPx: 4
+		});
+		const { surface, interaction } = createSurfaceWithDragSession(dragSession);
+
+		expect(() => surface.completeCoreDragSessionTo(28 as Square)).toThrow(
+			/core-owned active lifted-piece or release-targeting/
+		);
+		expect(interaction.updateDragSessionCurrentTarget).not.toHaveBeenCalled();
+	});
+
+	it('accepts a release-targeting drag session (core-owned)', () => {
+		const dragSession = makeDragSessionCoreOwned({
+			type: 'release-targeting',
+			sourceSquare: 12 as Square,
+			sourcePieceCode: PieceCode.WhitePawn,
+			targetSquare: 28 as Square,
+			startButton: 0
+		});
+		const mutationSession = { addMutation: vi.fn() };
+		const interaction = {
+			get dragSession() {
+				return { ...dragSession, targetSquare: 28 as Square };
+			},
+			get selected() {
+				return { square: 12 as Square, pieceCode: PieceCode.WhitePawn };
+			},
+			get activeDestinations() {
+				return new Map();
+			},
+			updateDragSessionCurrentTarget: vi.fn(),
+			getSnapshot: vi.fn(() => ({
+				movability: { mode: 1 },
+				selected: { square: 12, pieceCode: PieceCode.WhitePawn },
+				dragSession: { ...dragSession, targetSquare: 28 as Square },
+				activeDestinations: new Map()
+			})),
+			clear: vi.fn()
+		};
+		const fakeInternal = {
+			state: {
+				interaction,
+				board: { move: vi.fn() },
+				change: { setDeferredUIMoveRequest: vi.fn() }
+			},
+			mutation: { getSession: () => mutationSession, run: vi.fn(() => false) },
+			extensionSystem: {
+				onUIMoveRequest: vi.fn(({ request }: { request: { autoresolve: () => void } }) => {
+					request.autoresolve();
+				})
+			},
+			renderSystem: { requestRender: vi.fn() }
+		};
+		const surface = createRuntimeInteractionSurface(() => fakeInternal as never);
+
+		expect(() => surface.completeCoreDragSessionTo(28 as Square)).not.toThrow();
+		expect(interaction.updateDragSessionCurrentTarget).toHaveBeenCalledWith(28, expect.anything());
+	});
+});
+
+describe('createRuntimeInteractionSurface.completeExtensionDragSession', () => {
+	function createSurfaceWithExtensionDragSession(initial: DragSessionExtensionOwned) {
+		const mutationSession = { addMutation: vi.fn() };
+		let currentSession: DragSessionExtensionOwned | null = initial;
+		const interaction = {
+			get dragSession() {
+				return currentSession;
+			},
+			updateDragSessionCurrentTarget: vi.fn(),
+			setDragSession: vi.fn((session: DragSessionExtensionOwned | null) => {
+				currentSession = session;
+				return true;
+			})
+		};
+		const completeDrag = vi.fn();
+		const fakeInternal = {
+			state: { interaction },
+			mutation: { getSession: () => mutationSession, run: vi.fn(() => false) },
+			extensionSystem: { completeDrag },
+			renderSystem: { requestRender: vi.fn() }
+		};
+		return {
+			surface: createRuntimeInteractionSurface(() => fakeInternal as never),
+			interaction,
+			completeDrag
+		};
+	}
+
+	it('accepts an extension-owned pending lifted-piece session', () => {
+		const dragSession: DragSessionExtensionOwned = {
+			owner: 'my-ext',
+			type: 'lifted-piece-drag',
+			phase: 'pending',
+			sourceSquare: 12 as Square,
+			sourcePieceCode: PieceCode.WhitePawn,
+			targetSquare: 28 as Square,
+			startButton: 0,
+			startPoint: { x: 0, y: 0 },
+			thresholdPx: 4
+		};
+		const { surface, completeDrag, interaction } =
+			createSurfaceWithExtensionDragSession(dragSession);
+
+		expect(() => surface.completeExtensionDragSession(28 as Square)).not.toThrow();
+		expect(completeDrag).toHaveBeenCalledTimes(1);
+		expect(completeDrag).toHaveBeenCalledWith(
+			expect.objectContaining({
+				owner: 'my-ext',
+				type: 'lifted-piece-drag',
+				phase: 'pending'
+			})
+		);
+		expect(interaction.setDragSession).toHaveBeenCalledWith(null, expect.anything());
 	});
 });

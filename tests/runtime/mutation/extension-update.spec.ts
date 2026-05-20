@@ -58,9 +58,10 @@ describe('extensionSystemUpdatePipe', () => {
 			current: { state, layout, renderSystem, extensionSystem }
 		};
 		const session = createSession();
-		session.addMutation('runtime.interaction.completeCoreDragTo', true, {
+		session.addMutation('runtime.interaction.completeCoreDragSessionTo', true, {
 			owner: 'core' as const,
 			type: 'lifted-piece-drag' as const,
+			phase: 'active' as const,
 			sourceSquare: 0 as const,
 			sourcePieceCode: 1 as const,
 			targetSquare: 8 as const,

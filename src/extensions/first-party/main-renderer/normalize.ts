@@ -1,9 +1,10 @@
 import assert from '@ktarmyshov/assert';
+import { toMerged } from 'es-toolkit/object';
 import { normalizePiece } from '../../../state/board/normalize.js';
-import { PieceString } from '../../../state/board/types/input.js';
+import type { PieceString } from '../../../state/board/types/input.js';
 import { ALL_NON_EMPTY_PIECE_CODES, PieceCode } from '../../../state/board/types/internal.js';
-import { MainRendererConfigInput, PieceUrlsInput } from './types/input.js';
-import { DEFAULT_MAIN_RENDERER_CONFIG, MainRendererConfig, PieceUrls } from './types/internal.js';
+import type { MainRendererConfig, PieceUrls } from './types/internal.js';
+import type { MainRendererInitOptions, PieceUrlsPublic } from './types/public.js';
 
 function assertPieceUrlsComplete(pieceUrls: Partial<PieceUrls>): asserts pieceUrls is PieceUrls {
 	for (const pieceCode of ALL_NON_EMPTY_PIECE_CODES) {
@@ -11,7 +12,7 @@ function assertPieceUrlsComplete(pieceUrls: Partial<PieceUrls>): asserts pieceUr
 	}
 }
 
-function normalizePieceUrls(input: PieceUrlsInput): PieceUrls {
+function normalizePieceUrls(input: PieceUrlsPublic): PieceUrls {
 	const normalized: Partial<PieceUrls> = {};
 	for (const [key, url] of Object.entries(input) as [PieceString, string][]) {
 		const pieceCode = normalizePiece(key);
@@ -22,13 +23,30 @@ function normalizePieceUrls(input: PieceUrlsInput): PieceUrls {
 	return normalized;
 }
 
+function validateMainRendererConfig(config: MainRendererConfig): void {
+	const { pieceScale, pieceAnchor, pieceAnchorOffsetY } = config.drag;
+	assert(Number.isFinite(pieceScale), 'drag.pieceScale must be a finite number');
+	assert(pieceScale > 0, 'drag.pieceScale must be > 0');
+	assert(
+		pieceAnchor === 'center' || pieceAnchor === 'bottom',
+		`drag.pieceAnchor must be 'center' or 'bottom', received: ${String(pieceAnchor)}`
+	);
+	assert(Number.isFinite(pieceAnchorOffsetY), 'drag.pieceAnchorOffsetY must be a finite number');
+	const { durationMs } = config.animation;
+	assert(Number.isFinite(durationMs), 'animation.durationMs must be a finite number');
+	assert(durationMs >= 0, 'animation.durationMs must be >= 0');
+}
+
 export function normalizeMainRendererConfig(
-	input: Partial<MainRendererConfigInput>
+	input: MainRendererInitOptions | undefined,
+	base: MainRendererConfig
 ): MainRendererConfig {
-	return {
-		colors: input.colors ?? DEFAULT_MAIN_RENDERER_CONFIG.colors,
-		pieceUrls: input.pieceUrls
-			? normalizePieceUrls(input.pieceUrls)
-			: DEFAULT_MAIN_RENDERER_CONFIG.pieceUrls
+	const { pieceUrls: inputPieceUrls, ...rest } = input ?? {};
+	const merged = toMerged(base, rest) as MainRendererConfig;
+	const result: MainRendererConfig = {
+		...merged,
+		pieceUrls: inputPieceUrls !== undefined ? normalizePieceUrls(inputPieceUrls) : merged.pieceUrls
 	};
+	validateMainRendererConfig(result);
+	return result;
 }

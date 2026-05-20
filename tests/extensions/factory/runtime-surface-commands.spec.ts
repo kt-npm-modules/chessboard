@@ -20,6 +20,7 @@ describe('createExtensionRuntimeSurface – commands', () => {
 
 		surface.commands.startDrag({
 			type: 'lifted-piece-drag',
+			phase: 'active',
 			sourceSquare: 4,
 			sourcePieceCode: 9,
 			targetSquare: 12
@@ -66,6 +67,7 @@ describe('createExtensionRuntimeSurface – commands', () => {
 		expect(() =>
 			surface.commands.startDrag({
 				type: 'lifted-piece-drag',
+				phase: 'active',
 				sourceSquare: 4,
 				sourcePieceCode: 9,
 				targetSquare: 12
@@ -84,6 +86,7 @@ describe('createExtensionRuntimeSurface – commands', () => {
 		expect(() =>
 			surface.commands.startDrag({
 				type: 'lifted-piece-drag',
+				phase: 'active',
 				sourceSquare: 0,
 				sourcePieceCode: 1,
 				targetSquare: 8

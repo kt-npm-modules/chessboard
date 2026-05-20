@@ -1,7 +1,9 @@
 import type { ReadonlyDeep } from 'type-fest';
 import type {
 	ExtensionDragSession,
-	ExtensionDragSessionBase
+	ExtensionDragSessionActiveLiftedPiece,
+	ExtensionDragSessionBase,
+	ExtensionDragSessionPendingLiftedPiece
 } from '../../../extensions/types/basic/interaction.js';
 import type {
 	MoveRequest,
@@ -9,19 +11,35 @@ import type {
 	RolePromotionCode,
 	Square
 } from '../../board/types/internal.js';
+import type { InteractionConfig } from './config.js';
 
 export type DragSessionExtensionOwned = ExtensionDragSession & {
 	owner: string; // Extension identifier
 };
 export type DragSessionExtensionOwnedSnapshot = ReadonlyDeep<DragSessionExtensionOwned>;
 
-export interface DragSessionCoreOwned extends ExtensionDragSessionBase {
+export interface DragSessionPendingLiftedPieceCoreOwned extends ExtensionDragSessionPendingLiftedPiece {
 	owner: 'core';
-	type: 'lifted-piece-drag' | 'release-targeting';
+	sourceSquare: Square;
+}
+
+export interface DragSessionActiveLiftedPieceCoreOwned extends ExtensionDragSessionActiveLiftedPiece {
+	owner: 'core';
+	sourceSquare: Square;
+}
+
+export interface DragSessionReleaseTargetingCoreOwned extends ExtensionDragSessionBase {
+	owner: 'core';
+	type: 'release-targeting';
 	sourceSquare: Square;
 	sourcePieceCode: PieceCode;
-	targetSquare: Square | null;
 }
+
+export type DragSessionCoreOwned =
+	| DragSessionPendingLiftedPieceCoreOwned
+	| DragSessionActiveLiftedPieceCoreOwned
+	| DragSessionReleaseTargetingCoreOwned;
+
 export type DragSessionCoreOwnedSnapshot = ReadonlyDeep<DragSessionCoreOwned>;
 
 export type DragSession = DragSessionCoreOwned | DragSessionExtensionOwned;
@@ -60,3 +78,5 @@ export interface MovabilityDisabled {
 
 export type Movability = MovabilityStrict | MovabilityFree | MovabilityDisabled;
 export type MovabilitySnapshot = ReadonlyDeep<Movability>;
+
+export type InteractionConfigSnapshot = ReadonlyDeep<InteractionConfig>;

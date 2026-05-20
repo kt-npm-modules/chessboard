@@ -5,6 +5,7 @@ import type {
 	RuntimeInteractionSurface
 } from '../../../src/runtime/input/controller/types.js';
 import { type PieceCode, type Square } from '../../../src/state/board/types/internal.js';
+import { DefaultInteractionDesktopConfig } from '../../../src/state/interaction/config.js';
 import { MovabilityModeCode } from '../../../src/state/interaction/types/internal.js';
 import type { InteractionStateSnapshot } from '../../../src/state/interaction/types/main.js';
 
@@ -23,16 +24,18 @@ export function createMockSurface(
 		movability: { mode: MovabilityModeCode.Disabled },
 		activeDestinations: new Map(),
 		dragSession: null,
+		config: DefaultInteractionDesktopConfig,
 		...overrides?.snapshot
 	};
 	return {
 		getInteractionStateSnapshot: vi.fn(() => snapshot),
 		getPieceCodeAt:
 			overrides?.getPieceCodeAt ?? (vi.fn(() => 0) as unknown as (square: Square) => PieceCode),
-		startLiftedDrag: vi.fn(),
-		startReleaseTargetingDrag: vi.fn(),
-		completeCoreDragTo: vi.fn(),
-		completeExtensionDrag: vi.fn(),
+		startLiftedDragSession: vi.fn(),
+		activatePendingLiftedDragSession: vi.fn(),
+		startReleaseTargetingDragSession: vi.fn(),
+		completeCoreDragSessionTo: vi.fn(),
+		completeExtensionDragSession: vi.fn(),
 		updateDragSessionCurrentTarget: vi.fn(),
 		cancelActiveInteraction: vi.fn(),
 		cancelInteraction: vi.fn(),

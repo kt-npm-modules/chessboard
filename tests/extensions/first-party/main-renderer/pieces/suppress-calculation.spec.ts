@@ -44,6 +44,7 @@ describe('calculateSuppressedSquares – drag session', () => {
 		const dragSession = {
 			owner: 'core',
 			type: 'lifted-piece-drag',
+			phase: 'active',
 			sourceSquare: 4 as Square,
 			sourcePieceCode: PieceCode.WhiteKing,
 			targetSquare: null,
@@ -66,6 +67,26 @@ describe('calculateSuppressedSquares – drag session', () => {
 			sourcePieceCode: PieceCode.WhiteKing,
 			targetSquare: 20 as Square,
 			pointerPosition: { x: 100, y: 100 }
+		};
+		const { context } = createPiecesCleanAnimationContext({ dragSession });
+
+		const result = calculateSuppressedSquares(state, context, new Set());
+
+		expect(result.size).toBe(0);
+	});
+
+	it('does not add drag source for pending lifted-piece session', () => {
+		const state = createInternalState();
+		const dragSession = {
+			owner: 'core',
+			type: 'lifted-piece-drag',
+			phase: 'pending',
+			sourceSquare: 4 as Square,
+			sourcePieceCode: PieceCode.WhiteKing,
+			targetSquare: 4 as Square,
+			startButton: 0,
+			startPoint: { x: 0, y: 0 },
+			thresholdPx: 4
 		};
 		const { context } = createPiecesCleanAnimationContext({ dragSession });
 
@@ -134,6 +155,7 @@ describe('calculateSuppressedSquares – combined sources', () => {
 		const dragSession = {
 			owner: 'core',
 			type: 'lifted-piece-drag',
+			phase: 'active',
 			sourceSquare: 4 as Square,
 			sourcePieceCode: PieceCode.WhiteKing,
 			targetSquare: null,
@@ -164,6 +186,7 @@ describe('calculateSuppressedSquares – combined sources', () => {
 		const dragSession = {
 			owner: 'core',
 			type: 'lifted-piece-drag',
+			phase: 'active',
 			sourceSquare: 4 as Square,
 			sourcePieceCode: PieceCode.WhiteKing,
 			targetSquare: null,
